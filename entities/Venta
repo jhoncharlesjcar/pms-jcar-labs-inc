@@ -1,0 +1,98 @@
+{
+    "name": "Venta",
+    "type": "object",
+    "properties": {
+        "numero_ticket": {
+            "type": "string"
+        },
+        "reserva_id": {
+            "type": "string"
+        },
+        "numero_reserva": {
+            "type": "string"
+        },
+        "habitacion_numero": {
+            "type": "string"
+        },
+        "habitacion_tipo": {
+            "type": "string"
+        },
+        "huesped_nombre": {
+            "type": "string"
+        },
+        "huesped_dni": {
+            "type": "string"
+        },
+        "fecha_entrada": {
+            "type": "string",
+            "format": "date"
+        },
+        "fecha_salida": {
+            "type": "string",
+            "format": "date"
+        },
+        "noches": {
+            "type": "number"
+        },
+        "precio_noche": {
+            "type": "number"
+        },
+        "subtotal": {
+            "type": "number"
+        },
+        "descuento": {
+            "type": "number",
+            "default": 0
+        },
+        "total": {
+            "type": "number"
+        },
+        "metodo_pago": {
+            "type": "string",
+            "enum": [
+                "efectivo",
+                "yape",
+                "plin",
+                "transferencia",
+                "tarjeta"
+            ],
+            "default": "efectivo"
+        },
+        "estado_comprobante": {
+            "type": "string",
+            "enum": [
+                "ticket_interno",
+                "sunat_pendiente",
+                "sunat_emitido"
+            ],
+            "default": "ticket_interno"
+        },
+        "tipo_comprobante": {
+            "type": "string",
+            "enum": [
+                "ninguno",
+                "boleta",
+                "factura"
+            ],
+            "default": "ninguno"
+        },
+        "ruc_cliente": {
+            "type": "string"
+        },
+        "razon_social": {
+            "type": "string"
+        },
+        "notas": {
+            "type": "string"
+        },
+        "fecha_pago": {
+            "type": "string",
+            "format": "date"
+        }
+    },
+    "required": [
+        "huesped_nombre",
+        "total",
+        "metodo_pago"
+    ]
+}

@@ -1,0 +1,56 @@
+{
+    "name": "Habitacion",
+    "type": "object",
+    "properties": {
+        "numero": {
+            "type": "string",
+            "description": "N\u00famero o nombre de la habitaci\u00f3n"
+        },
+        "tipo": {
+            "type": "string",
+            "enum": [
+                "simple",
+                "doble",
+                "triple",
+                "matrimonial",
+                "suite"
+            ],
+            "default": "simple"
+        },
+        "precio_noche": {
+            "type": "number",
+            "description": "Precio por noche en soles"
+        },
+        "estado": {
+            "type": "string",
+            "enum": [
+                "disponible",
+                "ocupada",
+                "mantenimiento",
+                "reservada"
+            ],
+            "default": "disponible"
+        },
+        "descripcion": {
+            "type": "string"
+        },
+        "capacidad": {
+            "type": "number",
+            "default": 1
+        },
+        "piso": {
+            "type": "string"
+        }
+    },
+    "required": [
+        "numero",
+        "tipo",
+        "precio_noche"
+    ],
+    "rls": {
+        "create": {},
+        "read": {},
+        "update": {},
+        "delete": {}
+    }
+}

@@ -1,0 +1,47 @@
+{
+    "name": "ServicioExtra",
+    "type": "object",
+    "properties": {
+        "nombre": {
+            "type": "string",
+            "description": "Nombre del producto"
+        },
+        "categoria": {
+            "type": "string",
+            "enum": [
+                "bebidas",
+                "snacks",
+                "lacteos",
+                "higiene",
+                "licores",
+                "cigarros",
+                "otros"
+            ],
+            "default": "otros"
+        },
+        "precio": {
+            "type": "number",
+            "description": "Precio unitario en soles"
+        },
+        "descripcion": {
+            "type": "string"
+        },
+        "disponible": {
+            "type": "boolean",
+            "default": true
+        },
+        "emoji": {
+            "type": "string",
+            "description": "Emoji representativo del producto"
+        },
+        "stock": {
+            "type": "number",
+            "description": "Unidades en stock",
+            "default": 99
+        }
+    },
+    "required": [
+        "nombre",
+        "precio"
+    ]
+}

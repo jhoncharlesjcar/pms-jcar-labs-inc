@@ -1,0 +1,98 @@
+{
+    "name": "VentaPOS",
+    "type": "object",
+    "properties": {
+        "numero_ticket": {
+            "type": "string"
+        },
+        "tipo": {
+            "type": "string",
+            "enum": [
+                "solo_extras",
+                "estad\u00eda_extras",
+                "solo_estad\u00eda"
+            ],
+            "default": "solo_extras"
+        },
+        "habitacion_numero": {
+            "type": "string"
+        },
+        "huesped_nombre": {
+            "type": "string"
+        },
+        "huesped_dni": {
+            "type": "string"
+        },
+        "reserva_id": {
+            "type": "string"
+        },
+        "items": {
+            "type": "array",
+            "description": "Lista de items vendidos (JSON stringificado)",
+            "items": {
+                "type": "object"
+            }
+        },
+        "subtotal_estad\u00eda": {
+            "type": "number",
+            "default": 0
+        },
+        "subtotal_extras": {
+            "type": "number",
+            "default": 0
+        },
+        "descuento": {
+            "type": "number",
+            "default": 0
+        },
+        "total": {
+            "type": "number"
+        },
+        "metodo_pago": {
+            "type": "string",
+            "enum": [
+                "efectivo",
+                "yape",
+                "plin",
+                "transferencia",
+                "tarjeta"
+            ],
+            "default": "efectivo"
+        },
+        "estado_comprobante": {
+            "type": "string",
+            "enum": [
+                "ticket_interno",
+                "sunat_pendiente",
+                "sunat_emitido"
+            ],
+            "default": "ticket_interno"
+        },
+        "tipo_comprobante": {
+            "type": "string",
+            "enum": [
+                "ninguno",
+                "boleta",
+                "factura"
+            ],
+            "default": "ninguno"
+        },
+        "ruc_cliente": {
+            "type": "string"
+        },
+        "razon_social": {
+            "type": "string"
+        },
+        "notas": {
+            "type": "string"
+        },
+        "fecha_venta": {
+            "type": "string",
+            "format": "date"
+        }
+    },
+    "required": [
+        "total",
+        "metodo_pago"
+    ]
+}

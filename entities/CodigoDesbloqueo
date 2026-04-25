@@ -1,0 +1,30 @@
+{
+    "name": "CodigoDesbloqueo",
+    "type": "object",
+    "properties": {
+        "codigo": {
+            "type": "string",
+            "description": "C\u00f3digo \u00fanico de desbloqueo generado por el developer"
+        },
+        "usado": {
+            "type": "boolean",
+            "default": false,
+            "description": "Si el c\u00f3digo ya fue utilizado"
+        },
+        "usado_por": {
+            "type": "string",
+            "description": "Email del admin que lo us\u00f3"
+        },
+        "descripcion": {
+            "type": "string",
+            "description": "Nota del developer (para qu\u00e9 hotel/admin es)"
+        },
+        "fecha_uso": {
+            "type": "string",
+            "format": "date"
+        }
+    },
+    "required": [
+        "codigo"
+    ]
+}

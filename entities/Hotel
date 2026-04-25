@@ -1,0 +1,46 @@
+{
+    "name": "Hotel",
+    "type": "object",
+    "properties": {
+        "nombre": {
+            "type": "string",
+            "description": "Nombre del hotel o propiedad"
+        },
+        "ruc": {
+            "type": "string"
+        },
+        "direccion": {
+            "type": "string"
+        },
+        "ciudad": {
+            "type": "string"
+        },
+        "telefono": {
+            "type": "string"
+        },
+        "email": {
+            "type": "string"
+        },
+        "activo": {
+            "type": "boolean",
+            "default": true
+        },
+        "logo_url": {
+            "type": "string"
+        },
+        "hora_checkin": {
+            "type": "string",
+            "default": "14:00"
+        },
+        "hora_checkout": {
+            "type": "string",
+            "default": "12:00"
+        },
+        "notas": {
+            "type": "string"
+        }
+    },
+    "required": [
+        "nombre"
+    ]
+}
