@@ -9,14 +9,15 @@ import { HotelProvider } from '@/lib/HotelContext';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 import Login from '@/pages/Login';
 import Layout from '@/components/Layout';
-import Dashboard from '@/pages/Dashboard';
-import Habitaciones from '@/pages/Habitaciones';
-import Recepcion from '@/pages/Recepcion';
-import Ventas from '@/pages/Ventas';
-import Configuracion from '@/pages/Configuracion';
-import Documentacion from '@/pages/Documentacion';
-import PuntoVenta from '@/pages/PuntoVenta';
-import PanelDesarrollador from '@/pages/PanelDesarrollador';
+
+// Lazy loading de páginas
+const Dashboard = React.lazy(() => import('@/pages/Dashboard'));
+const Habitaciones = React.lazy(() => import('@/pages/Habitaciones'));
+const Recepcion = React.lazy(() => import('@/pages/Recepcion'));
+const Ventas = React.lazy(() => import('@/pages/Ventas'));
+const Configuracion = React.lazy(() => import('@/pages/Configuracion'));
+const PuntoVenta = React.lazy(() => import('@/pages/PuntoVenta'));
+const PanelDesarrollador = React.lazy(() => import('@/pages/PanelDesarrollador'));
 
 const AuthenticatedApp = () => {
     const { isLoadingAuth, isLoadingPublicSettings, authError } = useAuth();
@@ -41,19 +42,24 @@ const AuthenticatedApp = () => {
     }
 
     return (
-        <Routes>
-            <Route element={<Layout />}>
-                <Route path="/" element={<Dashboard />} />
-                <Route path="/habitaciones" element={<Habitaciones />} />
-                <Route path="/recepcion" element={<Recepcion />} />
-                <Route path="/ventas" element={<Ventas />} />
-                <Route path="/configuracion" element={<Configuracion />} />
-                <Route path="/documentacion" element={<Documentacion />} />
-                <Route path="/pos" element={<PuntoVenta />} />
-                <Route path="/dev" element={<PanelDesarrollador />} />
-            </Route>
-            <Route path="*" element={<PageNotFound />} />
-        </Routes>
+        <React.Suspense fallback={
+            <div className="fixed inset-0 flex items-center justify-center bg-background/50 backdrop-blur-sm">
+                <div className="w-8 h-8 border-4 border-primary/20 border-t-primary rounded-full animate-spin"></div>
+            </div>
+        }>
+            <Routes>
+                <Route element={<Layout />}>
+                    <Route path="/" element={<Dashboard />} />
+                    <Route path="/habitaciones" element={<Habitaciones />} />
+                    <Route path="/recepcion" element={<Recepcion />} />
+                    <Route path="/ventas" element={<Ventas />} />
+                    <Route path="/configuracion" element={<Configuracion />} />
+                    <Route path="/pos" element={<PuntoVenta />} />
+                    <Route path="/dev" element={<PanelDesarrollador />} />
+                </Route>
+                <Route path="*" element={<PageNotFound />} />
+            </Routes>
+        </React.Suspense>
     );
 };
 
@@ -61,7 +67,7 @@ function App() {
     return (
         <QueryClientProvider client={queryClientInstance}>
             <AuthProvider>
-                <Router>
+                <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
                     <HotelProvider>
                         <AuthenticatedApp />
                     </HotelProvider>

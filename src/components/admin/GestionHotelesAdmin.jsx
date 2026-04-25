@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { base44 } from '@/api/base44Client';
+import { db } from '@/api/db';
 import { useAuth } from '@/lib/AuthContext';
 import {
     Building2, Plus, Pencil, Trash2, ToggleLeft, ToggleRight,
@@ -43,25 +43,25 @@ export default function GestionHotelesAdmin({ onClose }) {
 
     const { data: hoteles = [] } = useQuery({
         queryKey: ['hoteles'],
-        queryFn: () => base44.entities.Hotel.list(),
+        queryFn: () => db.entities.Hotel.list(),
         enabled: desbloqueado,
     });
 
     const { data: usuarios = [] } = useQuery({
         queryKey: ['usuarios'],
-        queryFn: () => base44.entities.User.list(),
+        queryFn: () => db.entities.User.list(),
         enabled: desbloqueado,
     });
 
     const { data: codigos = [] } = useQuery({
         queryKey: ['codigos-desbloqueo'],
-        queryFn: () => base44.entities.CodigoDesbloqueo.list(),
+        queryFn: () => db.entities.CodigoDesbloqueo.list(),
     });
 
     const saveHotel = useMutation({
         mutationFn: (data) => editHotel
-            ? base44.entities.Hotel.update(editHotel.id, data)
-            : base44.entities.Hotel.create(data),
+            ? db.entities.Hotel.update(editHotel.id, data)
+            : db.entities.Hotel.create(data),
         onSuccess: () => {
             qc.invalidateQueries({ queryKey: ['hoteles'] });
             setHotelModal(false); setEditHotel(null); setHotelForm(emptyHotel);
@@ -69,17 +69,17 @@ export default function GestionHotelesAdmin({ onClose }) {
     });
 
     const deleteHotel = useMutation({
-        mutationFn: (id) => base44.entities.Hotel.delete(id),
+        mutationFn: (id) => db.entities.Hotel.delete(id),
         onSuccess: () => qc.invalidateQueries({ queryKey: ['hoteles'] }),
     });
 
     const toggleHotel = useMutation({
-        mutationFn: ({ id, activo }) => base44.entities.Hotel.update(id, { activo }),
+        mutationFn: ({ id, activo }) => db.entities.Hotel.update(id, { activo }),
         onSuccess: () => qc.invalidateQueries({ queryKey: ['hoteles'] }),
     });
 
     const marcarCodigoUsado = useMutation({
-        mutationFn: ({ id }) => base44.entities.CodigoDesbloqueo.update(id, {
+        mutationFn: ({ id }) => db.entities.CodigoDesbloqueo.update(id, {
             usado: true,
             usado_por: user?.email,
             fecha_uso: new Date().toISOString().split('T')[0],
@@ -109,8 +109,8 @@ export default function GestionHotelesAdmin({ onClose }) {
         if (!inviteEmail) return;
         setInviteStatus('loading');
         try {
-            const appRole = inviteRole === 'admin' ? 'admin' : 'user';
-            await base44.users.inviteUser(inviteEmail, appRole);
+            const appRole = inviteRole === 'admin' ? 'admin' : 'recepcionista';
+            await db.users.inviteUser(inviteEmail, appRole, inviteHotelId);
             setInviteStatus('ok');
             setInviteEmail('');
             setTimeout(() => { setInviteStatus(null); setInviteModal(false); }, 2500);

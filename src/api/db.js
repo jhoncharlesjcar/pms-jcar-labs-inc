@@ -1,20 +1,19 @@
 import { supabase } from '@/lib/supabaseClient';
 
 /**
- * Capa de compatibilidad Base44 → Supabase
+ * Capa de acceso a datos — Supabase
  * 
- * Replica la API de Base44 SDK para que todos los componentes
- * sigan funcionando sin cambios:
- * - base44.entities.EntityName.list(orderBy?, limit?)
- * - base44.entities.EntityName.create(data)
- * - base44.entities.EntityName.update(id, data)
- * - base44.entities.EntityName.delete(id)
- * - base44.entities.EntityName.filter(filters)
- * - base44.auth.logout()
- * - base44.users.inviteUser(email, role)
+ * API unificada para todas las operaciones CRUD:
+ * - db.entities.EntityName.list(orderBy?, limit?)
+ * - db.entities.EntityName.create(data)
+ * - db.entities.EntityName.update(id, data)
+ * - db.entities.EntityName.delete(id)
+ * - db.entities.EntityName.filter(filters)
+ * - db.auth.logout()
+ * - db.users.inviteUser(email, role)
  */
 
-// Mapeo de nombres de entidades Base44 → tablas Supabase
+// Mapeo de nombres de entidades → tablas Supabase
 const TABLE_MAP = {
     Habitacion: 'habitaciones',
     Reserva: 'reservas',
@@ -28,7 +27,7 @@ const TABLE_MAP = {
 };
 
 /**
- * Crea un wrapper de entidad que implementa la misma API que Base44 SDK
+ * Crea un wrapper de entidad con operaciones CRUD estándar
  */
 function createEntityProxy(tableName) {
     return {
@@ -67,7 +66,6 @@ function createEntityProxy(tableName) {
          * @returns {Promise<object>} El registro creado
          */
         async create(record) {
-            // Limpiar campos internos de Base44 que no existen en Supabase
             const cleanData = { ...record };
             delete cleanData.id; // Supabase genera el UUID automáticamente
 
@@ -173,19 +171,19 @@ const auth = {
 const users = {
     /**
      * Invita a un usuario por email
-     * En Supabase, esto se hace con auth.admin.inviteUserByEmail
-     * o simplemente con signUp + magic link
+     * Usa signUp de Supabase con password temporal
+     * En producción, esto debería ir por una Edge Function con service_role
      */
-    async inviteUser(email, appRole) {
+    async inviteUser(email, appRole, hotelId) {
         try {
-            // Usar la API de invitación de Supabase
-            // Nota: Esta función requiere la clave de servicio (service_role)
-            // En producción, esto debería ir por una Edge Function
             const { data, error } = await supabase.auth.signUp({
                 email,
-                password: crypto.randomUUID(), // Password temporal
+                password: crypto.randomUUID(),
                 options: {
-                    data: { role: appRole },
+                    data: { 
+                        role: appRole,
+                        hotel_id: hotelId
+                    },
                     emailRedirectTo: window.location.origin,
                 },
             });
@@ -199,8 +197,8 @@ const users = {
     },
 };
 
-// Export con la misma interfaz que el SDK de Base44
-export const base44 = {
+// Exportación principal — API de acceso a datos
+export const db = {
     entities,
     auth,
     users,

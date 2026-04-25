@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { base44 } from '@/api/base44Client';
+import { db } from '@/api/db';
 import { Plus, Pencil, Trash2, X, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { cn } from '@/lib/utils';
+import { useHotel } from '@/lib/HotelContext';
 
 const CATEGORIAS = [
     { value: 'restaurante', label: 'Restaurante', emoji: '🍽️' },
@@ -22,25 +23,28 @@ const emptyForm = { nombre: '', categoria: 'restaurante', precio: '', descripcio
 
 export default function CatalogoServicios({ onAgregar }) {
     const qc = useQueryClient();
+    const { hotelActual } = useHotel();
+    const hotelId = hotelActual?.id;
     const [categoriaFiltro, setCategoriaFiltro] = useState('todos');
     const [modalOpen, setModalOpen] = useState(false);
     const [editando, setEditando] = useState(null);
     const [form, setForm] = useState(emptyForm);
 
     const { data: servicios = [] } = useQuery({
-        queryKey: ['servicios'],
-        queryFn: () => base44.entities.ServicioExtra.list(),
+        queryKey: ['servicios', hotelId],
+        queryFn: () => db.entities.ServicioExtra.filter({ hotel_id: hotelId }),
+        enabled: !!hotelId,
     });
 
     const guardar = useMutation({
         mutationFn: (data) => editando
-            ? base44.entities.ServicioExtra.update(editando.id, data)
-            : base44.entities.ServicioExtra.create(data),
+            ? db.entities.ServicioExtra.update(editando.id, data)
+            : db.entities.ServicioExtra.create({ ...data, hotel_id: hotelId }),
         onSuccess: () => { qc.invalidateQueries({ queryKey: ['servicios'] }); setModalOpen(false); setEditando(null); setForm(emptyForm); },
     });
 
     const eliminar = useMutation({
-        mutationFn: (id) => base44.entities.ServicioExtra.delete(id),
+        mutationFn: (id) => db.entities.ServicioExtra.delete(id),
         onSuccess: () => qc.invalidateQueries({ queryKey: ['servicios'] }),
     });
 

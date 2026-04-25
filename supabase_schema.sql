@@ -1,6 +1,6 @@
 -- ============================================================
 -- SCHEMA: Sistema de Gestión de Hospedajes - Supabase Migration
--- Migrado desde Base44
+-- Sistema de Gestión de Hospedajes — Supabase
 -- ============================================================
 
 -- Habilitar UUID

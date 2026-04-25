@@ -4,7 +4,7 @@ import {
     LayoutDashboard, BedDouble, CalendarDays, Receipt, Settings,
     Menu, X, Hotel, ChevronRight, LogOut, BookOpen, ShoppingCart, Code2, Building2
 } from 'lucide-react';
-import { base44 } from '@/api/base44Client';
+import { db } from '@/api/db';
 import { useAuth } from '@/lib/AuthContext';
 import { cn } from '@/lib/utils';
 import SelectorHotel from '@/components/SelectorHotel';
@@ -18,7 +18,6 @@ const navItems = [
     { path: '/ventas', label: 'Ventas & Tickets', icon: Receipt },
     { path: '/pos', label: 'Punto de Venta', icon: ShoppingCart },
     { path: '/configuracion', label: 'Configuración', icon: Settings },
-    { path: '/documentacion', label: 'Documentación', icon: BookOpen },
 ];
 
 const ROLE_LABELS = {
@@ -151,7 +150,7 @@ export default function Layout() {
                         </div>
                     )}
                     <button
-                        onClick={() => base44.auth.logout()}
+                        onClick={() => db.auth.logout()}
                         className="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium text-muted-foreground hover:bg-destructive/10 hover:text-destructive w-full transition-all"
                     >
                         <LogOut className="w-4 h-4" />

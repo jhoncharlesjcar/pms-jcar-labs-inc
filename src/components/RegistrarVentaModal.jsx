@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
-import { base44 } from '@/api/base44Client';
+import { db } from '@/api/db';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -8,9 +8,12 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ExternalLink, Printer, CheckCircle } from 'lucide-react';
 import TicketPDF from '@/components/TicketPDF';
+import { useHotel } from '@/lib/HotelContext';
 
 export default function RegistrarVentaModal({ reserva, onClose, onSuccess }) {
     const qc = useQueryClient();
+    const { hotelActual } = useHotel();
+    const hotelId = hotelActual?.id;
     const [metodo, setMetodo] = useState('efectivo');
     const [descuento, setDescuento] = useState(0);
     const [requiereComprobante, setRequiereComprobante] = useState(false);
@@ -20,15 +23,17 @@ export default function RegistrarVentaModal({ reserva, onClose, onSuccess }) {
     const [ventaCreada, setVentaCreada] = useState(null);
 
     const { data: configs = [] } = useQuery({
-        queryKey: ['config'],
-        queryFn: () => base44.entities.ConfigHotel.list(),
+        queryKey: ['config', hotelId],
+        queryFn: () => db.entities.ConfigHotel.filter({ hotel_id: hotelId }),
+        enabled: !!hotelId,
     });
     const config = configs[0] || {};
 
     const total = (reserva.total || 0) - Number(descuento || 0);
 
     const registrar = useMutation({
-        mutationFn: () => base44.entities.Venta.create({
+        mutationFn: () => db.entities.Venta.create({
+            hotel_id: hotelId,
             numero_ticket: `T${Date.now().toString().slice(-6)}`,
             reserva_id: reserva.id,
             numero_reserva: reserva.numero_reserva,

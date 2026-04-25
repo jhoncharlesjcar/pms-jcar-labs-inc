@@ -1,22 +1,29 @@
 import { useQuery } from '@tanstack/react-query';
-import { base44 } from '@/api/base44Client';
+import { db } from '@/api/db';
 import { BedDouble, Users, Receipt, TrendingUp, AlertCircle, CheckCircle } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { useHotel } from '@/lib/HotelContext';
 
 export default function Dashboard() {
+    const { hotelActual } = useHotel();
+    const hotelId = hotelActual?.id;
+
     const { data: habitaciones = [] } = useQuery({
-        queryKey: ['habitaciones'],
-        queryFn: () => base44.entities.Habitacion.list(),
+        queryKey: ['habitaciones', hotelId],
+        queryFn: () => db.entities.Habitacion.filter({ hotel_id: hotelId }),
+        enabled: !!hotelId,
     });
 
     const { data: reservas = [] } = useQuery({
-        queryKey: ['reservas'],
-        queryFn: () => base44.entities.Reserva.list(),
+        queryKey: ['reservas', hotelId],
+        queryFn: () => db.entities.Reserva.filter({ hotel_id: hotelId }),
+        enabled: !!hotelId,
     });
 
     const { data: ventas = [] } = useQuery({
-        queryKey: ['ventas'],
-        queryFn: () => base44.entities.Venta.list('-created_date', 30),
+        queryKey: ['ventas', hotelId],
+        queryFn: () => db.entities.Venta.filter({ hotel_id: hotelId }),
+        enabled: !!hotelId,
     });
 
     const disponibles = habitaciones.filter(h => h.estado === 'disponible').length;
@@ -130,8 +137,8 @@ export default function Dashboard() {
                             <div className="text-right">
                                 <p className="font-semibold text-foreground">S/ {v.total?.toFixed(2)}</p>
                                 <span className={`text-xs px-2 py-0.5 rounded-full ${v.estado_comprobante === 'sunat_emitido' ? 'bg-green-100 text-green-700' :
-                                        v.estado_comprobante === 'sunat_pendiente' ? 'bg-orange-100 text-orange-700' :
-                                            'bg-secondary text-muted-foreground'
+                                    v.estado_comprobante === 'sunat_pendiente' ? 'bg-orange-100 text-orange-700' :
+                                        'bg-secondary text-muted-foreground'
                                     }`}>
                                     {v.estado_comprobante === 'sunat_emitido' ? 'SUNAT ✓' :
                                         v.estado_comprobante === 'sunat_pendiente' ? 'SUNAT pend.' : 'Ticket'}

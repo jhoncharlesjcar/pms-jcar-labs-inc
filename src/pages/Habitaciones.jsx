@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { base44 } from '@/api/base44Client';
+import { db } from '@/api/db';
 import { Plus, BedDouble, Wrench, CheckCircle, Clock, Pencil, Trash2, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { cn } from '@/lib/utils';
+import { useHotel } from '@/lib/HotelContext';
 
 const estadoConfig = {
     disponible: { label: 'Disponible', icon: CheckCircle, color: 'text-green-600', bg: 'bg-green-50 border-green-200' },
@@ -18,27 +19,32 @@ const estadoConfig = {
 
 const tiposHab = ['simple', 'doble', 'triple', 'matrimonial', 'suite'];
 
-const empty = { numero: '', tipo: 'simple', precio_noche: '', capacidad: 1, piso: '', descripcion: '', estado: 'disponible' };
+const empty = { numero: '', tipo: 'simple', precio_noche: 0, capacidad: 1, piso: '', descripcion: '', estado: 'disponible' };
 
 export default function Habitaciones() {
     const qc = useQueryClient();
+    const { hotelActual } = useHotel();
+    const hotelId = hotelActual?.id;
     const [open, setOpen] = useState(false);
     const [form, setForm] = useState(empty);
     const [editId, setEditId] = useState(null);
     const [filtroEstado, setFiltroEstado] = useState('todos');
 
     const { data: habitaciones = [], isLoading } = useQuery({
-        queryKey: ['habitaciones'],
-        queryFn: () => base44.entities.Habitacion.list(),
+        queryKey: ['habitaciones', hotelId],
+        queryFn: () => db.entities.Habitacion.filter({ hotel_id: hotelId }),
+        enabled: !!hotelId,
     });
 
     const save = useMutation({
-        mutationFn: (data) => editId ? base44.entities.Habitacion.update(editId, data) : base44.entities.Habitacion.create(data),
+        /** @param {any} data */
+        mutationFn: (data) => editId ? db.entities.Habitacion.update(editId, data) : db.entities.Habitacion.create({ ...data, hotel_id: hotelId }),
         onSuccess: () => { qc.invalidateQueries({ queryKey: ['habitaciones'] }); setOpen(false); setForm(empty); setEditId(null); },
     });
 
     const del = useMutation({
-        mutationFn: (id) => base44.entities.Habitacion.delete(id),
+        /** @param {any} id */
+        mutationFn: (id) => db.entities.Habitacion.delete(id),
         onSuccess: () => qc.invalidateQueries({ queryKey: ['habitaciones'] }),
     });
 
@@ -155,12 +161,12 @@ export default function Habitaciones() {
                             </div>
                             <div>
                                 <Label>Capacidad (personas)</Label>
-                                <Input type="number" min={1} value={form.capacidad} onChange={e => setForm({ ...form, capacidad: Number(e.target.value) })} className="mt-1" />
+                                <Input type="number" min={1} value={String(form.capacidad)} onChange={e => setForm({ ...form, capacidad: Number(e.target.value) })} className="mt-1" />
                             </div>
                         </div>
                         <div>
                             <Label>Precio por noche (S/)</Label>
-                            <Input type="number" min={0} value={form.precio_noche} onChange={e => setForm({ ...form, precio_noche: Number(e.target.value) })} placeholder="80" className="mt-1" />
+                            <Input type="number" min={0} value={String(form.precio_noche)} onChange={e => setForm({ ...form, precio_noche: Number(e.target.value) })} placeholder="80" className="mt-1" />
                         </div>
                         <div>
                             <Label>Estado</Label>

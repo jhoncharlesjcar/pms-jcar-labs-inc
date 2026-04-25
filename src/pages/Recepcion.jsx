@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { base44 } from '@/api/base44Client';
+import { db } from '@/api/db';
 import { Plus, Search, CalendarDays, User, BedDouble, CheckCircle, XCircle, LogIn } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -11,6 +11,7 @@ import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { format, differenceInDays } from 'date-fns';
 import RegistrarVentaModal from '@/components/RegistrarVentaModal';
+import { useHotel } from '@/lib/HotelContext';
 
 const estadoBadge = {
     pendiente: 'bg-orange-100 text-orange-700',
@@ -30,6 +31,8 @@ const emptyForm = {
 
 export default function Recepcion() {
     const qc = useQueryClient();
+    const { hotelActual } = useHotel();
+    const hotelId = hotelActual?.id;
     const [open, setOpen] = useState(false);
     const [ventaModal, setVentaModal] = useState(null);
     const [form, setForm] = useState(emptyForm);
@@ -37,24 +40,28 @@ export default function Recepcion() {
     const [filtro, setFiltro] = useState('activa');
 
     const { data: reservas = [] } = useQuery({
-        queryKey: ['reservas'],
-        queryFn: () => base44.entities.Reserva.list('-created_date'),
+        queryKey: ['reservas', hotelId],
+        queryFn: () => db.entities.Reserva.filter({ hotel_id: hotelId }),
+        enabled: !!hotelId,
     });
 
     const { data: habitaciones = [] } = useQuery({
-        queryKey: ['habitaciones'],
-        queryFn: () => base44.entities.Habitacion.list(),
+        queryKey: ['habitaciones', hotelId],
+        queryFn: () => db.entities.Habitacion.filter({ hotel_id: hotelId }),
+        enabled: !!hotelId,
     });
 
     const saveReserva = useMutation({
-        mutationFn: (data) => base44.entities.Reserva.create({
+        /** @param {any} data */
+        mutationFn: (data) => db.entities.Reserva.create({
             ...data,
+            hotel_id: hotelId,
             numero_reserva: `R${Date.now().toString().slice(-6)}`,
         }),
-        onSuccess: (nueva) => {
+        onSuccess: /** @param {any} nueva */ (nueva) => {
             // Marcar habitación como ocupada/reservada
             if (nueva.habitacion_id) {
-                base44.entities.Habitacion.update(nueva.habitacion_id, {
+                db.entities.Habitacion.update(nueva.habitacion_id, {
                     estado: nueva.estado === 'activa' ? 'ocupada' : 'reservada'
                 });
             }
@@ -66,10 +73,11 @@ export default function Recepcion() {
     });
 
     const actualizarEstado = useMutation({
+        /** @param {any} params */
         mutationFn: ({ id, estado, hab_id }) => {
-            const updates = [base44.entities.Reserva.update(id, { estado })];
+            const updates = [db.entities.Reserva.update(id, { estado })];
             if (hab_id && estado === 'finalizada') {
-                updates.push(base44.entities.Habitacion.update(hab_id, { estado: 'disponible' }));
+                updates.push(db.entities.Habitacion.update(hab_id, { estado: 'disponible' }));
             }
             return Promise.all(updates);
         },

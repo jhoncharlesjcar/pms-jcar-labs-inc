@@ -25,6 +25,7 @@ const DialogOverlay = React.forwardRef(({ className, ...props }, ref) => (
 ))
 DialogOverlay.displayName = DialogPrimitive.Overlay.displayName
 
+/** @type {React.ForwardRefExoticComponent<any>} */
 const DialogContent = React.forwardRef(({ className, children, ...props }, ref) => (
     <DialogPortal>
         <DialogOverlay />
@@ -47,7 +48,7 @@ const DialogContent = React.forwardRef(({ className, children, ...props }, ref) 
 DialogContent.displayName = DialogPrimitive.Content.displayName
 
 const DialogHeader = ({
-    className,
+    className = "",
     ...props
 }) => (
     <div
@@ -57,7 +58,7 @@ const DialogHeader = ({
 DialogHeader.displayName = "DialogHeader"
 
 const DialogFooter = ({
-    className,
+    className = "",
     ...props
 }) => (
     <div
@@ -66,6 +67,7 @@ const DialogFooter = ({
 )
 DialogFooter.displayName = "DialogFooter"
 
+/** @type {React.ForwardRefExoticComponent<any>} */
 const DialogTitle = React.forwardRef(({ className, ...props }, ref) => (
     <DialogPrimitive.Title
         ref={ref}

@@ -1,15 +1,18 @@
 import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { base44 } from '@/api/base44Client';
+import { db } from '@/api/db';
 import { Settings, Save, ExternalLink, CheckCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
+import { useHotel } from '@/lib/HotelContext';
 
 export default function Configuracion() {
     const qc = useQueryClient();
+    const { hotelActual } = useHotel();
+    const hotelId = hotelActual?.id;
     const [saved, setSaved] = useState(false);
     const [form, setForm] = useState({
         nombre_hotel: '', ruc: '', direccion: '', telefono: '', email: '',
@@ -19,8 +22,9 @@ export default function Configuracion() {
     const [configId, setConfigId] = useState(null);
 
     const { data: configs = [] } = useQuery({
-        queryKey: ['config'],
-        queryFn: () => base44.entities.ConfigHotel.list(),
+        queryKey: ['config', hotelId],
+        queryFn: () => db.entities.ConfigHotel.filter({ hotel_id: hotelId }),
+        enabled: !!hotelId,
     });
 
     useEffect(() => {
@@ -44,8 +48,8 @@ export default function Configuracion() {
 
     const guardar = useMutation({
         mutationFn: () => configId
-            ? base44.entities.ConfigHotel.update(configId, form)
-            : base44.entities.ConfigHotel.create(form),
+            ? db.entities.ConfigHotel.update(configId, form)
+            : db.entities.ConfigHotel.create({ ...form, hotel_id: hotelId }),
         onSuccess: () => {
             qc.invalidateQueries({ queryKey: ['config'] });
             setSaved(true);

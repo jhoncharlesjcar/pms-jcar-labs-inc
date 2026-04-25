@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { base44 } from '@/api/base44Client';
+import { db } from '@/api/db';
 import { Plus, Minus, Settings2, Pencil, Trash2, X, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
+import { useHotel } from '@/lib/HotelContext';
 
 const CATEGORIAS = [
     { id: 'todos', label: 'Todos', emoji: '🛒' },
@@ -29,6 +30,8 @@ const emptyProd = { nombre: '', categoria: 'bebidas', precio: '', emoji: '', dis
 
 export default function CatalogoMinimarket({ onAgregar, itemsEnCarrito = [] }) {
     const qc = useQueryClient();
+    const { hotelActual } = useHotel();
+    const hotelId = hotelActual?.id;
     const [catActiva, setCatActiva] = useState('todos');
     const [modalOpen, setModalOpen] = useState(false);
     const [editando, setEditando] = useState(null);
@@ -36,19 +39,20 @@ export default function CatalogoMinimarket({ onAgregar, itemsEnCarrito = [] }) {
     const [gestionando, setGestionando] = useState(false);
 
     const { data: productos = [] } = useQuery({
-        queryKey: ['productos-minimarket'],
-        queryFn: () => base44.entities.ServicioExtra.list(),
+        queryKey: ['productos-minimarket', hotelId],
+        queryFn: () => db.entities.ServicioExtra.filter({ hotel_id: hotelId }),
+        enabled: !!hotelId,
     });
 
     const saveProd = useMutation({
         mutationFn: (data) => editando
-            ? base44.entities.ServicioExtra.update(editando.id, data)
-            : base44.entities.ServicioExtra.create(data),
+            ? db.entities.ServicioExtra.update(editando.id, data)
+            : db.entities.ServicioExtra.create({ ...data, hotel_id: hotelId }),
         onSuccess: () => { qc.invalidateQueries({ queryKey: ['productos-minimarket'] }); setModalOpen(false); setEditando(null); setForm(emptyProd); },
     });
 
     const deleteProd = useMutation({
-        mutationFn: (id) => base44.entities.ServicioExtra.delete(id),
+        mutationFn: (id) => db.entities.ServicioExtra.delete(id),
         onSuccess: () => qc.invalidateQueries({ queryKey: ['productos-minimarket'] }),
     });
 
@@ -112,7 +116,7 @@ export default function CatalogoMinimarket({ onAgregar, itemsEnCarrito = [] }) {
                     {filtrados.map(prod => {
                         const qty = cantidadEnCarrito(prod.id);
                         return (
-                            <button
+                            <div
                                 key={prod.id}
                                 onClick={() => !gestionando && onAgregar(prod)}
                                 className={cn(
@@ -159,7 +163,7 @@ export default function CatalogoMinimarket({ onAgregar, itemsEnCarrito = [] }) {
                                         <div className="bg-primary h-0.5 rounded-full transition-all" style={{ width: qty > 0 ? '100%' : '0%' }} />
                                     </div>
                                 )}
-                            </button>
+                            </div>
                         );
                     })}
                 </div>

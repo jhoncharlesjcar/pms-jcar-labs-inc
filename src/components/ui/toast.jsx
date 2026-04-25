@@ -3,6 +3,7 @@ import { cva } from "class-variance-authority";
 import { X } from "lucide-react";
 import { cn } from "@/lib/utils";
 
+/** @type {React.ForwardRefExoticComponent<any>} */
 const ToastProvider = React.forwardRef(({ ...props }, ref) => (
     <div
         ref={ref}
@@ -12,6 +13,7 @@ const ToastProvider = React.forwardRef(({ ...props }, ref) => (
 ));
 ToastProvider.displayName = "ToastProvider";
 
+/** @type {React.ForwardRefExoticComponent<any>} */
 const ToastViewport = React.forwardRef(({ ...props }, ref) => (
     <div
         ref={ref}
@@ -37,6 +39,7 @@ const toastVariants = cva(
     }
 );
 
+/** @type {React.ForwardRefExoticComponent<any>} */
 const Toast = React.forwardRef(({ className, variant, ...props }, ref) => {
     return (
         <div
@@ -48,6 +51,7 @@ const Toast = React.forwardRef(({ className, variant, ...props }, ref) => {
 });
 Toast.displayName = "Toast";
 
+/** @type {React.ForwardRefExoticComponent<any>} */
 const ToastAction = React.forwardRef(({ className, ...props }, ref) => (
     <div
         ref={ref}
@@ -60,6 +64,7 @@ const ToastAction = React.forwardRef(({ className, ...props }, ref) => (
 ));
 ToastAction.displayName = "ToastAction";
 
+/** @type {React.ForwardRefExoticComponent<any>} */
 const ToastClose = React.forwardRef(({ className, ...props }, ref) => (
     <button
         ref={ref}
@@ -75,6 +80,7 @@ const ToastClose = React.forwardRef(({ className, ...props }, ref) => (
 ));
 ToastClose.displayName = "ToastClose";
 
+/** @type {React.ForwardRefExoticComponent<any>} */
 const ToastTitle = React.forwardRef(({ className, ...props }, ref) => (
     <div
         ref={ref}
@@ -84,6 +90,7 @@ const ToastTitle = React.forwardRef(({ className, ...props }, ref) => (
 ));
 ToastTitle.displayName = "ToastTitle";
 
+/** @type {React.ForwardRefExoticComponent<any>} */
 const ToastDescription = React.forwardRef(({ className, ...props }, ref) => (
     <div
         ref={ref}

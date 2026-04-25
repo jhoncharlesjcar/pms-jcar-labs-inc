@@ -1,16 +1,20 @@
 import { useQuery } from '@tanstack/react-query';
-import { base44 } from '@/api/base44Client';
+import { db } from '@/api/db';
 import { Search, BedDouble, X } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
+import { useHotel } from '@/lib/HotelContext';
 
 export default function SeleccionReserva({ reservaSeleccionada, onSeleccionar, onLimpiar }) {
     const [busqueda, setBusqueda] = useState('');
+    const { hotelActual } = useHotel();
+    const hotelId = hotelActual?.id;
 
     const { data: reservas = [] } = useQuery({
-        queryKey: ['reservas'],
-        queryFn: () => base44.entities.Reserva.filter({ estado: 'activa' }),
+        queryKey: ['reservas-activas', hotelId],
+        queryFn: () => db.entities.Reserva.filter({ estado: 'activa', hotel_id: hotelId }),
+        enabled: !!hotelId,
     });
 
     const filtradas = reservas.filter(r =>

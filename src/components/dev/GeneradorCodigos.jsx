@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { base44 } from '@/api/base44Client';
+import { db } from '@/api/db';
 import { Key, Plus, Copy, Check, Trash2, RefreshCw, ShieldCheck, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -22,16 +22,16 @@ export default function GeneradorCodigos() {
 
     const { data: codigos = [], isLoading } = useQuery({
         queryKey: ['codigos-desbloqueo'],
-        queryFn: () => base44.entities.CodigoDesbloqueo.list('-created_date'),
+        queryFn: () => db.entities.CodigoDesbloqueo.list('-created_date'),
     });
 
     const crearCodigo = useMutation({
-        mutationFn: (data) => base44.entities.CodigoDesbloqueo.create(data),
+        mutationFn: (data) => db.entities.CodigoDesbloqueo.create(data),
         onSuccess: () => { qc.invalidateQueries({ queryKey: ['codigos-desbloqueo'] }); setDescripcion(''); setCodigoNuevo(''); },
     });
 
     const deleteCodigo = useMutation({
-        mutationFn: (id) => base44.entities.CodigoDesbloqueo.delete(id),
+        mutationFn: (id) => db.entities.CodigoDesbloqueo.delete(id),
         onSuccess: () => qc.invalidateQueries({ queryKey: ['codigos-desbloqueo'] }),
     });
 

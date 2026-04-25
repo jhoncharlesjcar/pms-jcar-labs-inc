@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
-import { base44 } from '@/api/base44Client';
+import { db } from '@/api/db';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { CheckCircle, Printer, ExternalLink } from 'lucide-react';
 import TicketPOSPDF from '@/components/pos/TicketPOSPDF';
+import { useHotel } from '@/lib/HotelContext';
 
 const METODOS = [
     { value: 'efectivo', label: '💵 Efectivo' },
@@ -19,6 +20,8 @@ const METODOS = [
 
 export default function PagoModal({ open, onClose, resumen, reservaSeleccionada, onExito }) {
     const qc = useQueryClient();
+    const { hotelActual } = useHotel();
+    const hotelId = hotelActual?.id;
     const [metodoPago, setMetodoPago] = useState('efectivo');
     const [descuento, setDescuento] = useState(0);
     const [tipoComprobante, setTipoComprobante] = useState('ninguno');
@@ -27,7 +30,11 @@ export default function PagoModal({ open, onClose, resumen, reservaSeleccionada,
     const [notas, setNotas] = useState('');
     const [ventaCreada, setVentaCreada] = useState(null);
 
-    const { data: configs = [] } = useQuery({ queryKey: ['config'], queryFn: () => base44.entities.ConfigHotel.list() });
+    const { data: configs = [] } = useQuery({
+        queryKey: ['config', hotelId],
+        queryFn: () => db.entities.ConfigHotel.filter({ hotel_id: hotelId }),
+        enabled: !!hotelId,
+    });
     const config = configs[0] || {};
 
     const totalFinal = Math.max(0, resumen.total - descuento);
@@ -38,15 +45,16 @@ export default function PagoModal({ open, onClose, resumen, reservaSeleccionada,
             const numeroTicket = `POS${Date.now().toString().slice(-6)}`;
             const hoy = new Date().toISOString().split('T')[0];
 
-            const venta = await base44.entities.VentaPOS.create({
+            const venta = await db.entities.VentaPOS.create({
+                hotel_id: hotelId,
                 numero_ticket: numeroTicket,
                 tipo: reservaSeleccionada ? (resumen.items.length > 0 ? 'estadía_extras' : 'solo_estadía') : 'solo_extras',
                 habitacion_numero: reservaSeleccionada?.habitacion_numero || '',
                 huesped_nombre: reservaSeleccionada?.huesped_nombre || 'Cliente mostrador',
                 huesped_dni: reservaSeleccionada?.huesped_dni || '',
-                reserva_id: reservaSeleccionada?.id || '',
+                reserva_id: reservaSeleccionada?.id || null,
                 items: resumen.items,
-                subtotal_estadía: resumen.subtotalEstadia,
+                subtotal_estadia: resumen.subtotalEstadia,
                 subtotal_extras: resumen.subtotalExtras,
                 descuento: Number(descuento),
                 total: totalFinal,
@@ -61,8 +69,8 @@ export default function PagoModal({ open, onClose, resumen, reservaSeleccionada,
 
             // Si hay reserva vinculada, marcarla como finalizada
             if (reservaSeleccionada) {
-                await base44.entities.Reserva.update(reservaSeleccionada.id, { estado: 'finalizada' });
-                await base44.entities.Habitacion.update(reservaSeleccionada.habitacion_id, { estado: 'disponible' });
+                await db.entities.Reserva.update(reservaSeleccionada.id, { estado: 'finalizada' });
+                await db.entities.Habitacion.update(reservaSeleccionada.habitacion_id, { estado: 'disponible' });
             }
 
             return venta;
