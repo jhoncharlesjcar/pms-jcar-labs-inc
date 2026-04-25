@@ -10,20 +10,38 @@ export default defineConfig({
         react(),
         VitePWA({
             registerType: 'autoUpdate',
-            includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'mask-icon.svg'],
+            includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'mask-icon.svg', 'logo.png'],
+            workbox: {
+                globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
+                runtimeCaching: [
+                    {
+                        urlPattern: /^https:\/\/.*\.supabase\.co\/.*/i,
+                        handler: 'NetworkFirst',
+                        options: {
+                            cacheName: 'supabase-data',
+                            expiration: {
+                                maxEntries: 100,
+                                maxAgeSeconds: 60 * 60 * 24 // 24 horas
+                            }
+                        }
+                    }
+                ]
+            },
             manifest: {
-                name: 'ANGELICA FREY',
+                name: 'HOSPEDAJE ANGELICA FREY',
                 short_name: 'ANGELICA FREY',
-                description: 'Sistema de Gestión de Hospedajes Profesional',
-                theme_color: '#f59e0b',
+                description: 'Sistema de Gestión de Hospedaje by Jcar Labs',
+                theme_color: '#1d4ed8',
+                background_color: '#ffffff',
+                display: 'standalone',
                 icons: [
                     {
-                        src: 'pwa-192x192.png',
+                        src: 'logo.png',
                         sizes: '192x192',
                         type: 'image/png'
                     },
                     {
-                        src: 'pwa-512x512.png',
+                        src: 'logo.png',
                         sizes: '512x512',
                         type: 'image/png'
                     }
