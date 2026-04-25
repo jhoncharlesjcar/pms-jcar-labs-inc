@@ -28,6 +28,8 @@ jobs:
           # npm run typecheck # Uncomment if TS is strictly enforced
 
       - name: Build
+        # Estas variables son requeridas por Vite para compilar los assets.
+        # Deben configurarse en GitHub -> Settings -> Secrets -> Actions
         run: npm run build
         env:
           VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
