@@ -250,3 +250,8 @@ CREATE INDEX IF NOT EXISTS idx_servicios_hotel ON servicios_extra(hotel_id);
 CREATE INDEX IF NOT EXISTS idx_ventas_pos_hotel ON ventas_pos(hotel_id);
 CREATE INDEX IF NOT EXISTS idx_codigos_codigo ON codigos_desbloqueo(codigo);
 CREATE INDEX IF NOT EXISTS idx_usuarios_hotel ON usuarios(hotel_id);
+
+-- Nuevos Indices de Cobertura para Aceleración SaaS
+CREATE INDEX IF NOT EXISTS idx_ventas_hotel_fecha ON ventas(hotel_id, fecha_pago DESC);
+CREATE INDEX IF NOT EXISTS idx_ventas_pos_hotel_fecha ON ventas_pos(hotel_id, fecha_venta DESC);
+CREATE INDEX IF NOT EXISTS idx_reservas_hotel_estado_fecha ON reservas(hotel_id, estado, fecha_entrada);

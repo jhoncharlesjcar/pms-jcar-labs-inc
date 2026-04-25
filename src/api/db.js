@@ -32,13 +32,14 @@ const TABLE_MAP = {
 function createEntityProxy(tableName) {
     return {
         /**
-         * Lista registros con ordenamiento y límite opcionales
+         * Lista registros con ordenamiento, límite y columnas opcionales
          * @param {string} orderBy - Campo de ordenamiento. Prefijo '-' para DESC (ej: '-created_date')
          * @param {number} limit - Límite de registros
+         * @param {string} columns - Columnas a seleccionar (ej: 'id, nombre, precio')
          * @returns {Promise<Array>}
          */
-        async list(orderBy, limit) {
-            let query = supabase.from(tableName).select('*');
+        async list(orderBy, limit, columns = '*') {
+            let query = supabase.from(tableName).select(columns);
 
             if (orderBy) {
                 const isDesc = orderBy.startsWith('-');
@@ -126,10 +127,11 @@ function createEntityProxy(tableName) {
         /**
          * Filtra registros por condiciones simples (key-value)
          * @param {object} filters - Pares clave-valor para filtrar
+         * @param {string} columns - Columnas a seleccionar
          * @returns {Promise<Array>}
          */
-        async filter(filters) {
-            let query = supabase.from(tableName).select('*');
+        async filter(filters, columns = '*') {
+            let query = supabase.from(tableName).select(columns);
 
             if (filters && typeof filters === 'object') {
                 for (const [key, value] of Object.entries(filters)) {

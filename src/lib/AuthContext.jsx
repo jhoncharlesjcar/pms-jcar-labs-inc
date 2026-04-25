@@ -64,12 +64,13 @@ export function AuthProvider({ children }) {
 
     const checkUserAuth = useCallback(async () => {
         try {
-            setIsLoadingAuth(true);
+            // Obtener sesión de forma ultra rápida (desde caché de Supabase si existe)
             const { data: { session: currentSession } } = await supabase.auth.getSession();
 
             if (currentSession?.user) {
                 setSession(currentSession);
-                await loadUserProfile(currentSession.user);
+                // No esperamos al perfil para desbloquear el loading inicial
+                loadUserProfile(currentSession.user);
             } else {
                 setSession(null);
                 setUser(null);

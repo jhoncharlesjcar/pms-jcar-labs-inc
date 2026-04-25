@@ -21,8 +21,19 @@ const PanelDesarrollador = React.lazy(() => import('@/pages/PanelDesarrollador')
 
 const AuthenticatedApp = () => {
     const { isLoadingAuth, isLoadingPublicSettings, authError } = useAuth();
+    const [showLoading, setShowLoading] = useState(true);
 
-    if (isLoadingPublicSettings || isLoadingAuth) {
+    // Timeout de seguridad: Si demora más de 3.5s, forzar salida del loading
+    React.useEffect(() => {
+        const timer = setTimeout(() => {
+            setShowLoading(false);
+        }, 3500);
+        return () => clearTimeout(timer);
+    }, []);
+
+    const isActualLoading = (isLoadingPublicSettings || isLoadingAuth) && showLoading;
+
+    if (isActualLoading) {
         return (
             <div className="fixed inset-0 flex items-center justify-center bg-background">
                 <div className="flex flex-col items-center gap-4">
