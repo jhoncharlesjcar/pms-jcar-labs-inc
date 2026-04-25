@@ -55,8 +55,8 @@ export default function Layout() {
                             <Hotel className="w-5 h-5 text-primary-foreground" />
                         </div>
                         <div>
-                            <p className="font-display text-lg font-bold text-foreground leading-tight">HospedajePRO</p>
-                            <p className="text-xs text-muted-foreground">Sistema Perú</p>
+                            <p className="font-display text-lg font-bold text-foreground leading-tight">ANGELICA FREY</p>
+                            <p className="text-xs text-muted-foreground">System Hotel By Jcar Labs</p>
                         </div>
                     </div>
                 </div>
@@ -167,7 +167,7 @@ export default function Layout() {
                         <div className="w-7 h-7 bg-primary rounded-lg flex items-center justify-center">
                             <Hotel className="w-4 h-4 text-primary-foreground" />
                         </div>
-                        <span className="font-display font-bold text-foreground">HospedajePRO</span>
+                        <span className="font-display font-bold text-foreground">ANGELICA FREY</span>
                     </div>
                     <button onClick={() => setSidebarOpen(!sidebarOpen)} className="p-2 rounded-lg hover:bg-secondary">
                         {sidebarOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}

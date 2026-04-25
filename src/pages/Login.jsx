@@ -84,7 +84,7 @@ export default function Login() {
                     <div className="inline-flex items-center justify-center w-16 h-16 bg-primary rounded-2xl shadow-lg shadow-primary/30 mb-4">
                         <Hotel className="w-8 h-8 text-white" />
                     </div>
-                    <h1 className="text-3xl font-bold text-white">HospedajePRO</h1>
+                    <h1 className="text-3xl font-bold text-white">ANGELICA FREY</h1>
                     <p className="text-slate-400 mt-1">Sistema de Gestión de Hospedajes</p>
                 </div>
 

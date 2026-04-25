@@ -59,7 +59,7 @@ export default function PanelDesarrollador() {
                 </div>
                 <div>
                     <h1 className="font-display text-2xl font-bold text-foreground">Panel de Desarrollador</h1>
-                    <p className="text-sm text-muted-foreground">Control total del sistema · Multi-Tenant HospedajePRO</p>
+                    <p className="text-sm text-muted-foreground">Control total del sistema · Multi-Tenant ANGELICA FREY</p>
                 </div>
                 <div className="ml-auto flex items-center gap-2">
                     <span className="bg-amber-100 text-amber-700 text-xs font-bold px-3 py-1.5 rounded-full border border-amber-300">🔧 DEV MODE</span>

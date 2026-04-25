@@ -12,8 +12,8 @@ export default defineConfig({
             registerType: 'autoUpdate',
             includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'mask-icon.svg'],
             manifest: {
-                name: 'HospedajePRO',
-                short_name: 'HPRO',
+                name: 'ANGELICA FREY',
+                short_name: 'ANGELICA FREY',
                 description: 'Sistema de Gestión de Hospedajes Profesional',
                 theme_color: '#f59e0b',
                 icons: [

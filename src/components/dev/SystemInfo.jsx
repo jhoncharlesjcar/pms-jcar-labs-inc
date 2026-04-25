@@ -12,7 +12,7 @@ export default function SystemInfo({ version, hotelesCount }) {
                 <h3 className="font-semibold text-foreground flex items-center gap-2"><Server className="w-4 h-4 text-amber-500" /> Estado del Sistema</h3>
                 <div className="grid grid-cols-2 gap-3">
                     {[
-                        { label: 'Versión', value: `HospedajePRO v${version}`, icon: Zap },
+                        { label: 'Versión', value: `ANGELICA FREY v${version}`, icon: Zap },
                         { label: 'Base de datos', value: 'Supabase · Conectada', icon: Database },
                         { label: 'Auth', value: 'Activa · Requerida', icon: CheckCircle },
                         { label: 'Multi-tenant', value: `${hotelesCount} hotel(es)`, icon: Building2 },
