@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { cn } from '@/lib/utils';
-import { useHotel } from '@/lib/HotelContext';
+import { useHotelData } from '@/hooks/use-hotel-data';
 
 const estadoConfig = {
     disponible: { label: 'Disponible', icon: CheckCircle, color: 'text-green-600', bg: 'bg-green-50 border-green-200' },
@@ -23,8 +23,7 @@ const empty = { numero: '', tipo: 'simple', precio_noche: 0, capacidad: 1, piso:
 
 export default function Habitaciones() {
     const qc = useQueryClient();
-    const { hotelActual } = useHotel();
-    const hotelId = hotelActual?.id;
+    const { db: hotelDb, hotelId } = useHotelData();
     const [open, setOpen] = useState(false);
     const [form, setForm] = useState(empty);
     const [editId, setEditId] = useState(null);
@@ -32,19 +31,19 @@ export default function Habitaciones() {
 
     const { data: habitaciones = [], isLoading } = useQuery({
         queryKey: ['habitaciones', hotelId],
-        queryFn: () => db.entities.Habitacion.filter({ hotel_id: hotelId }),
+        queryFn: () => hotelDb.Habitacion.list(),
         enabled: !!hotelId,
     });
 
     const save = useMutation({
         /** @param {any} data */
-        mutationFn: (data) => editId ? db.entities.Habitacion.update(editId, data) : db.entities.Habitacion.create({ ...data, hotel_id: hotelId }),
+        mutationFn: (data) => editId ? hotelDb.Habitacion.update(editId, data) : hotelDb.Habitacion.create(data),
         onSuccess: () => { qc.invalidateQueries({ queryKey: ['habitaciones'] }); setOpen(false); setForm(empty); setEditId(null); },
     });
 
     const del = useMutation({
         /** @param {any} id */
-        mutationFn: (id) => db.entities.Habitacion.delete(id),
+        mutationFn: (id) => hotelDb.Habitacion.delete(id),
         onSuccess: () => qc.invalidateQueries({ queryKey: ['habitaciones'] }),
     });
 

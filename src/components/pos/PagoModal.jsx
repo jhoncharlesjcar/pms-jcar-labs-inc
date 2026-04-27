@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { CheckCircle, Printer, ExternalLink } from 'lucide-react';
 import TicketPOSPDF from '@/components/pos/TicketPOSPDF';
-import { useHotel } from '@/lib/HotelContext';
+import { useHotelData } from '@/hooks/use-hotel-data';
 
 const METODOS = [
     { value: 'efectivo', label: '💵 Efectivo' },
@@ -20,8 +20,7 @@ const METODOS = [
 
 export default function PagoModal({ open, onClose, resumen, reservaSeleccionada, onExito }) {
     const qc = useQueryClient();
-    const { hotelActual } = useHotel();
-    const hotelId = hotelActual?.id;
+    const { db: hotelDb, hotelId } = useHotelData();
     const [metodoPago, setMetodoPago] = useState('efectivo');
     const [descuento, setDescuento] = useState(0);
     const [tipoComprobante, setTipoComprobante] = useState('ninguno');
@@ -32,7 +31,7 @@ export default function PagoModal({ open, onClose, resumen, reservaSeleccionada,
 
     const { data: configs = [] } = useQuery({
         queryKey: ['config', hotelId],
-        queryFn: () => db.entities.ConfigHotel.filter({ hotel_id: hotelId }),
+        queryFn: () => hotelDb.ConfigHotel.list(),
         enabled: !!hotelId,
     });
     const config = configs[0] || {};
@@ -43,10 +42,9 @@ export default function PagoModal({ open, onClose, resumen, reservaSeleccionada,
     const registrar = useMutation({
         mutationFn: async () => {
             const numeroTicket = `POS${Date.now().toString().slice(-6)}`;
-            const hoy = new Date().toISOString().split('T')[0];
+            const hoy = new Date().toLocaleDateString('sv-SE');
 
-            const venta = await db.entities.VentaPOS.create({
-                hotel_id: hotelId,
+            const venta = await hotelDb.VentaPOS.create({
                 numero_ticket: numeroTicket,
                 tipo: reservaSeleccionada ? (resumen.items.length > 0 ? 'estadía_extras' : 'solo_estadía') : 'solo_extras',
                 habitacion_numero: reservaSeleccionada?.habitacion_numero || '',
@@ -69,8 +67,8 @@ export default function PagoModal({ open, onClose, resumen, reservaSeleccionada,
 
             // Si hay reserva vinculada, marcarla como finalizada
             if (reservaSeleccionada) {
-                await db.entities.Reserva.update(reservaSeleccionada.id, { estado: 'finalizada' });
-                await db.entities.Habitacion.update(reservaSeleccionada.habitacion_id, { estado: 'disponible' });
+                await hotelDb.Reserva.update(reservaSeleccionada.id, { estado: 'finalizada' });
+                await hotelDb.Habitacion.update(reservaSeleccionada.habitacion_id, { estado: 'disponible' });
             }
 
             return venta;

@@ -19,11 +19,13 @@ const TABLE_MAP = {
     Reserva: 'reservas',
     Venta: 'ventas',
     Hotel: 'hoteles',
-    ConfigHotel: 'config_hotel',
+    ConfigHotel: 'hoteles',
     ServicioExtra: 'servicios_extra',
     VentaPOS: 'ventas_pos',
     CodigoDesbloqueo: 'codigos_desbloqueo',
     User: 'usuarios',
+    Producto: 'productos',
+    CategoriaProducto: 'categorias_productos',
 };
 
 /**
@@ -160,12 +162,24 @@ for (const [entityName, tableName] of Object.entries(TABLE_MAP)) {
 // Auth wrapper
 const auth = {
     async logout() {
-        const { error } = await supabase.auth.signOut();
-        if (error) {
-            console.error('Error signing out:', error);
-            throw error;
+        console.log('--- LOGOUT INICIADO ---');
+        try {
+            const { error } = await supabase.auth.signOut();
+            if (error) console.error('Error Supabase signOut:', error);
+            
+            // Limpieza agresiva de persistencia
+            localStorage.clear();
+            sessionStorage.clear();
+            
+            console.log('Limpieza completada. Redireccionando...');
+            
+            // Redirección forzada
+            window.location.replace(window.location.origin);
+        } catch (err) {
+            console.error('Error crítico en logout:', err);
+            localStorage.clear();
+            window.location.replace(window.location.origin);
         }
-        window.location.reload();
     },
 };
 
@@ -204,4 +218,25 @@ export const db = {
     entities,
     auth,
     users,
+    /**
+     * Crea una instancia de entidades filtrada automáticamente por hotel_id
+     * @param {string} hotelId 
+     */
+    forHotel(hotelId) {
+        if (!hotelId) return entities;
+        
+        const scoped = {};
+        for (const [name, proxy] of Object.entries(entities)) {
+            // Si la entidad es 'Hotel', el filtro debe ser por 'id', no por 'hotel_id'
+            const filterKey = name === 'Hotel' || name === 'ConfigHotel' ? 'id' : 'hotel_id';
+            
+            scoped[name] = {
+                ...proxy,
+                list: (orderBy, limit, columns) => proxy.filter({ [filterKey]: hotelId }, columns),
+                filter: (filters, columns) => proxy.filter({ ...filters, [filterKey]: hotelId }, columns),
+                create: (data) => proxy.create({ ...data, [filterKey]: hotelId }),
+            };
+        }
+        return scoped;
+    }
 };

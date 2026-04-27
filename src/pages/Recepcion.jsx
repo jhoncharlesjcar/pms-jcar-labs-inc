@@ -11,7 +11,7 @@ import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { format, differenceInDays } from 'date-fns';
 import RegistrarVentaModal from '@/components/RegistrarVentaModal';
-import { useHotel } from '@/lib/HotelContext';
+import { useHotelData } from '@/hooks/use-hotel-data';
 
 const estadoBadge = {
     pendiente: 'bg-orange-100 text-orange-700',
@@ -31,8 +31,7 @@ const emptyForm = {
 
 export default function Recepcion() {
     const qc = useQueryClient();
-    const { hotelActual } = useHotel();
-    const hotelId = hotelActual?.id;
+    const { db: hotelDb, hotelId } = useHotelData();
     const [open, setOpen] = useState(false);
     const [ventaModal, setVentaModal] = useState(null);
     const [form, setForm] = useState(emptyForm);
@@ -41,30 +40,33 @@ export default function Recepcion() {
 
     const { data: reservas = [] } = useQuery({
         queryKey: ['reservas', hotelId],
-        queryFn: () => db.entities.Reserva.filter({ hotel_id: hotelId }),
+        queryFn: () => hotelDb.Reserva.list(),
         enabled: !!hotelId,
     });
 
     const { data: habitaciones = [] } = useQuery({
         queryKey: ['habitaciones', hotelId],
-        queryFn: () => db.entities.Habitacion.filter({ hotel_id: hotelId }),
+        queryFn: () => hotelDb.Habitacion.list(),
         enabled: !!hotelId,
     });
 
     const saveReserva = useMutation({
         /** @param {any} data */
-        mutationFn: (data) => db.entities.Reserva.create({
-            ...data,
-            hotel_id: hotelId,
-            numero_reserva: `R${Date.now().toString().slice(-6)}`,
-        }),
-        onSuccess: /** @param {any} nueva */ (nueva) => {
-            // Marcar habitación como ocupada/reservada
+        mutationFn: async (data) => {
+            const nueva = await hotelDb.Reserva.create({
+                ...data,
+                numero_reserva: `R${Date.now().toString().slice(-6)}`,
+            });
+            
+            // Marcar habitación como ocupada/reservada (AWAITED PROFESSIONAL FIX)
             if (nueva.habitacion_id) {
-                db.entities.Habitacion.update(nueva.habitacion_id, {
+                await hotelDb.Habitacion.update(nueva.habitacion_id, {
                     estado: nueva.estado === 'activa' ? 'ocupada' : 'reservada'
                 });
             }
+            return nueva;
+        },
+        onSuccess: () => {
             qc.invalidateQueries({ queryKey: ['reservas'] });
             qc.invalidateQueries({ queryKey: ['habitaciones'] });
             setOpen(false);
@@ -75,9 +77,9 @@ export default function Recepcion() {
     const actualizarEstado = useMutation({
         /** @param {any} params */
         mutationFn: ({ id, estado, hab_id }) => {
-            const updates = [db.entities.Reserva.update(id, { estado })];
+            const updates = [hotelDb.Reserva.update(id, { estado })];
             if (hab_id && estado === 'finalizada') {
-                updates.push(db.entities.Habitacion.update(hab_id, { estado: 'disponible' }));
+                updates.push(hotelDb.Habitacion.update(hab_id, { estado: 'disponible' }));
             }
             return Promise.all(updates);
         },

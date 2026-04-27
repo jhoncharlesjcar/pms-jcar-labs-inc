@@ -53,7 +53,7 @@ export default function RegistrarVentaModal({ reserva, onClose, onSuccess }) {
             tipo_comprobante: requiereComprobante ? tipoComprobante : 'ninguno',
             ruc_cliente: rucCliente,
             razon_social: razonSocial,
-            fecha_pago: new Date().toISOString().split('T')[0],
+            fecha_pago: new Date().toLocaleDateString('sv-SE'),
         }),
         onSuccess: (venta) => {
             qc.invalidateQueries({ queryKey: ['ventas'] });

@@ -36,7 +36,7 @@ export default function TicketPOSPDF({ venta, config }) {
             <div ref={ticketRef} style={{ display: 'none' }}>
                 <div className="ticket">
                     <div className="center">
-                        <div className="big">{config.nombre_hotel || 'HOSPEDAJE'}</div>
+                        <div className="big">{config.nombre || 'HOSPEDAJE'}</div>
                         {config.ruc && <div className="small">RUC: {config.ruc}</div>}
                         {config.direccion && <div className="small">{config.direccion}</div>}
                     </div>
@@ -67,7 +67,7 @@ export default function TicketPOSPDF({ venta, config }) {
 
             {/* Preview */}
             <div className="bg-white border border-dashed border-gray-300 rounded-xl p-4 font-mono text-xs text-gray-800 text-center space-y-1 max-w-xs mx-auto">
-                <p className="font-bold text-sm">{config.nombre_hotel || 'HOSPEDAJE'}</p>
+                <p className="font-bold text-sm">{config.nombre || 'HOSPEDAJE'}</p>
                 {config.ruc && <p className="text-gray-500">RUC: {config.ruc}</p>}
                 <div className="border-t border-dashed my-2" />
                 <p className="font-bold">TICKET POS #{venta.numero_ticket}</p>

@@ -43,7 +43,7 @@ export default function TicketPDF({ venta, config }) {
             <div ref={ticketRef} style={{ display: 'none' }}>
                 <div className="ticket">
                     <div className="center">
-                        <div className="big">{config.nombre_hotel || 'HOSPEDAJE'}</div>
+                        <div className="big">{config.nombre || 'HOSPEDAJE'}</div>
                         {config.ruc && <div className="small">RUC: {config.ruc}</div>}
                         {config.direccion && <div className="small">{config.direccion}</div>}
                         {config.telefono && <div className="small">Tel: {config.telefono}</div>}
@@ -80,7 +80,7 @@ export default function TicketPDF({ venta, config }) {
 
             {/* Previsualización bonita */}
             <div className="bg-white border border-dashed border-gray-300 rounded-xl p-5 font-mono text-xs text-gray-800 text-center space-y-1 max-w-xs mx-auto">
-                <p className="font-bold text-base">{config.nombre_hotel || 'HOSPEDAJE'}</p>
+                <p className="font-bold text-base">{config.nombre || 'HOSPEDAJE'}</p>
                 {config.ruc && <p className="text-gray-500">RUC: {config.ruc}</p>}
                 <p className="text-gray-500">{config.direccion || ''}</p>
                 <div className="border-t border-dashed my-2" />

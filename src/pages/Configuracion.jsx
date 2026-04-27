@@ -7,15 +7,14 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
-import { useHotel } from '@/lib/HotelContext';
+import { useHotelData } from '@/hooks/use-hotel-data';
 
 export default function Configuracion() {
     const qc = useQueryClient();
-    const { hotelActual } = useHotel();
-    const hotelId = hotelActual?.id;
+    const { db: hotelDb, hotelId } = useHotelData();
     const [saved, setSaved] = useState(false);
     const [form, setForm] = useState({
-        nombre_hotel: '', ruc: '', direccion: '', telefono: '', email: '',
+        nombre: '', ruc: '', direccion: '', telefono: '', email: '',
         ciudad: '', modo_sunat: 'manual', mensaje_ticket: '¡Gracias por su preferencia!',
         hora_checkin: '14:00', hora_checkout: '12:00',
     });
@@ -23,7 +22,7 @@ export default function Configuracion() {
 
     const { data: configs = [] } = useQuery({
         queryKey: ['config', hotelId],
-        queryFn: () => db.entities.ConfigHotel.filter({ hotel_id: hotelId }),
+        queryFn: () => hotelDb.ConfigHotel.list(),
         enabled: !!hotelId,
     });
 
@@ -32,7 +31,7 @@ export default function Configuracion() {
             const c = configs[0];
             setConfigId(c.id);
             setForm({
-                nombre_hotel: c.nombre_hotel || '',
+                nombre: c.nombre || '',
                 ruc: c.ruc || '',
                 direccion: c.direccion || '',
                 telefono: c.telefono || '',
@@ -48,8 +47,8 @@ export default function Configuracion() {
 
     const guardar = useMutation({
         mutationFn: () => configId
-            ? db.entities.ConfigHotel.update(configId, form)
-            : db.entities.ConfigHotel.create({ ...form, hotel_id: hotelId }),
+            ? hotelDb.ConfigHotel.update(configId, form)
+            : hotelDb.ConfigHotel.create(form),
         onSuccess: () => {
             qc.invalidateQueries({ queryKey: ['config'] });
             setSaved(true);
@@ -76,7 +75,7 @@ export default function Configuracion() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="sm:col-span-2">
                         <Label>Nombre del hospedaje *</Label>
-                        <Input value={form.nombre_hotel} onChange={e => setForm({ ...form, nombre_hotel: e.target.value })} placeholder="Hospedaje Los Andes" className="mt-1" />
+                        <Input value={form.nombre} onChange={e => setForm({ ...form, nombre: e.target.value })} placeholder="Hospedaje Los Andes" className="mt-1" />
                     </div>
                     <div>
                         <Label>RUC (opcional)</Label>
@@ -170,7 +169,7 @@ export default function Configuracion() {
 
             {/* Guardar */}
             <div className="flex items-center gap-4">
-                <Button onClick={() => guardar.mutate()} disabled={guardar.isPending || !form.nombre_hotel} className="gap-2 px-8">
+                <Button onClick={() => guardar.mutate()} disabled={guardar.isPending || !form.nombre} className="gap-2 px-8">
                     {saved ? <><CheckCircle className="w-4 h-4" /> Guardado</> : <><Save className="w-4 h-4" /> {guardar.isPending ? 'Guardando...' : 'Guardar Configuración'}</>}
                 </Button>
                 {saved && <span className="text-sm text-green-600 font-medium">¡Configuración guardada!</span>}

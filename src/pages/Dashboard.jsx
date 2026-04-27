@@ -1,28 +1,26 @@
 import { useQuery } from '@tanstack/react-query';
-import { db } from '@/api/db';
+import { useHotelData } from '@/hooks/use-hotel-data';
 import { BedDouble, Users, Receipt, TrendingUp, AlertCircle, CheckCircle } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { useHotel } from '@/lib/HotelContext';
 
 export default function Dashboard() {
-    const { hotelActual } = useHotel();
-    const hotelId = hotelActual?.id;
+    const { db: hotelDb, hotelId } = useHotelData();
 
     const { data: habitaciones = [] } = useQuery({
         queryKey: ['habitaciones', hotelId],
-        queryFn: () => db.entities.Habitacion.filter({ hotel_id: hotelId }),
+        queryFn: () => hotelDb.Habitacion.list(),
         enabled: !!hotelId,
     });
 
     const { data: reservas = [] } = useQuery({
         queryKey: ['reservas', hotelId],
-        queryFn: () => db.entities.Reserva.filter({ hotel_id: hotelId }),
+        queryFn: () => hotelDb.Reserva.list(),
         enabled: !!hotelId,
     });
 
     const { data: ventas = [] } = useQuery({
         queryKey: ['ventas', hotelId],
-        queryFn: () => db.entities.Venta.filter({ hotel_id: hotelId }),
+        queryFn: () => hotelDb.Venta.list(),
         enabled: !!hotelId,
     });
 
@@ -30,7 +28,7 @@ export default function Dashboard() {
     const ocupadas = habitaciones.filter(h => h.estado === 'ocupada').length;
     const reservasActivas = reservas.filter(r => r.estado === 'activa').length;
 
-    const hoy = new Date().toISOString().split('T')[0];
+    const hoy = new Date().toLocaleDateString('sv-SE'); // Formato YYYY-MM-DD local
     const ventasHoy = ventas.filter(v => v.fecha_pago === hoy);
     const ingresoHoy = ventasHoy.reduce((s, v) => s + (v.total || 0), 0);
 

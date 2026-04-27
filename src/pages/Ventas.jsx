@@ -9,7 +9,7 @@ import TicketPDF from '@/components/TicketPDF';
 import TicketPOSPDF from '@/components/pos/TicketPOSPDF';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useHotel } from '@/lib/HotelContext';
+import { useHotelData } from '@/hooks/use-hotel-data';
 
 const estadoComp = {
     ticket_interno: { label: 'Ticket Interno', color: 'bg-secondary text-muted-foreground' },
@@ -21,8 +21,7 @@ const metodoPagoIcon = { efectivo: '💵', yape: '📱', plin: '📲', transfere
 
 export default function Ventas() {
     const qc = useQueryClient();
-    const { hotelActual } = useHotel();
-    const hotelId = hotelActual?.id;
+    const { db: hotelDb, hotelId } = useHotelData();
     const [busqueda, setBusqueda] = useState('');
     const [filtroMetodo, setFiltroMetodo] = useState('todos');
     const [filtroTipo, setFiltroTipo] = useState('todos'); // 'todos' | 'hotel' | 'pos'
@@ -31,28 +30,28 @@ export default function Ventas() {
     // Cargar ventas de hotel
     const { data: ventasHotel = [], isLoading: loadHotel } = useQuery({
         queryKey: ['ventas', hotelId],
-        queryFn: () => db.entities.Venta.filter({ hotel_id: hotelId }),
+        queryFn: () => hotelDb.Venta.list(),
         enabled: !!hotelId,
     });
 
     // Cargar ventas de POS
     const { data: ventasPOS = [], isLoading: loadPOS } = useQuery({
         queryKey: ['ventaspos', hotelId],
-        queryFn: () => db.entities.VentaPOS.filter({ hotel_id: hotelId }),
+        queryFn: () => hotelDb.VentaPOS.list(),
         enabled: !!hotelId,
     });
 
     const { data: configs = [] } = useQuery({
         queryKey: ['config', hotelId],
-        queryFn: () => db.entities.ConfigHotel.filter({ hotel_id: hotelId }),
+        queryFn: () => hotelDb.ConfigHotel.list(),
         enabled: !!hotelId,
     });
     const config = configs[0] || {};
 
     const marcarSunatEmitido = useMutation({
         mutationFn: ({ id, tipo }) => tipo === 'pos' 
-            ? db.entities.VentaPOS.update(id, { estado_comprobante: 'sunat_emitido' })
-            : db.entities.Venta.update(id, { estado_comprobante: 'sunat_emitido' }),
+            ? hotelDb.VentaPOS.update(id, { estado_comprobante: 'sunat_emitido' })
+            : hotelDb.Venta.update(id, { estado_comprobante: 'sunat_emitido' }),
         onSuccess: () => {
             qc.invalidateQueries({ queryKey: ['ventas'] });
             qc.invalidateQueries({ queryKey: ['ventaspos'] });
@@ -66,17 +65,17 @@ export default function Ventas() {
         return [...h, ...p].sort((a, b) => new Date(b.created_date) - new Date(a.created_date));
     }, [ventasHotel, ventasPOS]);
 
-    const hoyStr = new Date().toISOString().split('T')[0];
+    const hoy = new Date().toLocaleDateString('sv-SE');
     
     // Totales de HOY
     const totalesHoy = useMemo(() => {
-        const deHoy = todasLasVentas.filter(v => (v.fecha_pago || v.fecha_venta || '').startsWith(hoyStr));
+        const deHoy = todasLasVentas.filter(v => (v.fecha_pago || v.fecha_venta || '').startsWith(hoy));
         return {
             total: deHoy.reduce((s, v) => s + (v.total || 0), 0),
             pos: deHoy.filter(v => v._tipo === 'pos').reduce((s, v) => s + (v.total || 0), 0),
             hotel: deHoy.filter(v => v._tipo === 'hotel').reduce((s, v) => s + (v.total || 0), 0),
         };
-    }, [todasLasVentas, hoyStr]);
+    }, [todasLasVentas, hoy]);
 
     const filtradas = todasLasVentas.filter(v => {
         const nombre = v.huesped_nombre || 'Cliente mostrador';
@@ -225,6 +224,14 @@ export default function Ventas() {
                                     </tr>
                                 );
                             })}
+                            {(loadHotel || loadPOS) && (
+                                <tr>
+                                    <td colSpan={7} className="py-20 text-center">
+                                        <div className="w-8 h-8 border-4 border-primary/20 border-t-primary rounded-full animate-spin mx-auto" />
+                                        <p className="text-xs text-muted-foreground mt-3">Cargando ventas...</p>
+                                    </td>
+                                </tr>
+                            )}
                             {filtradas.length === 0 && !loadHotel && !loadPOS && (
                                 <tr>
                                     <td colSpan={7} className="text-center py-20 text-muted-foreground">

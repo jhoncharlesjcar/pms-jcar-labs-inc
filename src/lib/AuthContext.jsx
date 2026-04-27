@@ -18,6 +18,7 @@ export function AuthProvider({ children }) {
         }
 
         try {
+            console.log('[DB] Consultando tabla usuarios para ID:', authUser.id);
             const { data: profile, error } = await supabase
                 .from('usuarios')
                 .select('*')
@@ -25,14 +26,14 @@ export function AuthProvider({ children }) {
                 .single();
 
             if (error && error.code === 'PGRST116') {
-                // User not found in usuarios table
+                console.warn('[DB] Perfil no encontrado en usuarios (PGRST116)');
                 setAuthError({ type: 'user_not_registered', message: 'Usuario no registrado' });
                 setUser(null);
                 return;
             }
 
             if (error) {
-                console.error('Error loading user profile:', error);
+                console.error('[DB] Error en consulta de perfil:', error);
                 setUser({
                     id: authUser.id,
                     email: authUser.email,
@@ -42,6 +43,7 @@ export function AuthProvider({ children }) {
                 return;
             }
 
+            console.log('[DB] Perfil cargado con éxito:', profile.full_name);
             setUser({
                 id: profile.id,
                 email: profile.email || authUser.email,
@@ -52,7 +54,7 @@ export function AuthProvider({ children }) {
             });
             setAuthError(null);
         } catch (err) {
-            console.error('Error en loadUserProfile:', err);
+            console.error('[DB] Error crítico en loadUserProfile:', err);
             setUser({
                 id: authUser.id,
                 email: authUser.email,
@@ -63,46 +65,55 @@ export function AuthProvider({ children }) {
     }, []);
 
     const checkUserAuth = useCallback(async () => {
+        // Esta función ahora solo hace un chequeo preventivo, 
+        // pero onAuthStateChange es quien manda.
         try {
-            // Obtener sesión de forma ultra rápida (desde caché de Supabase si existe)
             const { data: { session: currentSession } } = await supabase.auth.getSession();
-
             if (currentSession?.user) {
                 setSession(currentSession);
-                // No esperamos al perfil para desbloquear el loading inicial
-                loadUserProfile(currentSession.user);
-            } else {
-                setSession(null);
-                setUser(null);
-                setAuthError({ type: 'auth_required', message: 'Autenticación requerida' });
+                await loadUserProfile(currentSession.user);
             }
         } catch (err) {
-            console.error('Error checking auth:', err);
-            setAuthError({ type: 'auth_required', message: 'Error de autenticación' });
+            console.error('Error in checkUserAuth:', err);
         } finally {
-            setIsLoadingAuth(false);
+            // No quitamos el loading aquí, dejamos que el evento settling del auth lo haga
             setAuthChecked(true);
         }
     }, [loadUserProfile]);
 
     useEffect(() => {
-        checkUserAuth();
-
+        let isMounted = true;
+        
         const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, newSession) => {
-            if (event === 'SIGNED_IN' && newSession?.user) {
+            if (!isMounted) return;
+            console.log(`[AUTH] Event: ${event}`, !!newSession);
+            
+            if (newSession?.user) {
                 setSession(newSession);
-                await loadUserProfile(newSession.user);
                 setAuthError(null);
-            } else if (event === 'SIGNED_OUT') {
+                
+                // LIBERAMOS EL LOADING DE INMEDIATO PARA QUE LA APP SE MUESTRE
+                setIsLoadingAuth(false);
+                
+                // Cargamos el perfil en "segundo plano" para no bloquear la UI
+                console.log('[AUTH] Cargando perfil en segundo plano...');
+                loadUserProfile(newSession.user).then(() => {
+                    console.log('[AUTH] Perfil sincronizado.');
+                });
+            } else if (event === 'SIGNED_OUT' || (event === 'INITIAL_SESSION' && !newSession)) {
                 setSession(null);
                 setUser(null);
-                setAuthError({ type: 'auth_required', message: 'Sesión cerrada' });
-            } else if (event === 'TOKEN_REFRESHED' && newSession) {
-                setSession(newSession);
+                setAuthError({ type: 'auth_required', message: 'Sesión requerida' });
+                setIsLoadingAuth(false);
             }
         });
 
-        return () => subscription?.unsubscribe();
+        checkUserAuth();
+
+        return () => {
+            isMounted = false;
+            subscription?.unsubscribe();
+        };
     }, [checkUserAuth, loadUserProfile]);
 
     const navigateToLogin = useCallback(async () => {

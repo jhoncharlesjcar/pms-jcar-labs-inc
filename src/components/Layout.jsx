@@ -150,7 +150,10 @@ export default function Layout() {
                         </div>
                     )}
                     <button
-                        onClick={() => db.auth.logout()}
+                        onClick={async () => { 
+                            console.log('Click en Cerrar Sesión'); 
+                            await db.auth.logout(); 
+                        }}
                         className="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium text-muted-foreground hover:bg-destructive/10 hover:text-destructive w-full transition-all"
                     >
                         <LogOut className="w-4 h-4" />
