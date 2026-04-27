@@ -2,7 +2,7 @@ import { Outlet, Link, useLocation } from 'react-router-dom';
 import { useState } from 'react';
 import {
     LayoutDashboard, BedDouble, CalendarDays, Receipt, Settings,
-    Menu, X, Hotel, ChevronRight, LogOut, BookOpen, ShoppingCart, Code2, Building2
+    Menu, X, Hotel, ChevronRight, LogOut, ShoppingCart, Code2, Building2
 } from 'lucide-react';
 import { db } from '@/api/db';
 import { useAuth } from '@/lib/AuthContext';

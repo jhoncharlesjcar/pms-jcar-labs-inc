@@ -4,7 +4,7 @@ import { db } from '@/api/db';
 import { useAuth } from '@/lib/AuthContext';
 import {
     Building2, Plus, Pencil, Trash2, ToggleLeft, ToggleRight,
-    Users, UserPlus, Mail, Check, RefreshCw, Lock, Unlock, Key, X
+    UserPlus, Mail, Check, RefreshCw, Lock, Unlock, Key
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';

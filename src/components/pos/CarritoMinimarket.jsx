@@ -1,5 +1,4 @@
 import { Minus, Plus, Trash2, ShoppingBag } from 'lucide-react';
-import { cn } from '@/lib/utils';
 
 const EMOJI_DEFAULT = {
     bebidas: '🥤', snacks: '🍿', lacteos: '🥛', higiene: '🧴',
