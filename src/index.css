@@ -1,0 +1,95 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+    :root {
+        --background: 210 20% 98%;
+        --foreground: 215 25% 12%;
+        --card: 0 0% 100%;
+        --card-foreground: 215 25% 12%;
+        --popover: 0 0% 100%;
+        --popover-foreground: 215 25% 12%;
+        --primary: 214 84% 40%;
+        --primary-foreground: 0 0% 100%;
+        --secondary: 210 20% 94%;
+        --secondary-foreground: 215 25% 20%;
+        --muted: 210 20% 95%;
+        --muted-foreground: 215 15% 50%;
+        --accent: 38 92% 50%;
+        --accent-foreground: 0 0% 10%;
+        --destructive: 0 72% 51%;
+        --destructive-foreground: 0 0% 100%;
+        --border: 210 20% 88%;
+        --input: 210 20% 88%;
+        --ring: 214 84% 40%;
+        --radius: 0.75rem;
+        --success: 142 72% 35%;
+        --success-foreground: 0 0% 100%;
+        --warning: 38 92% 50%;
+        --warning-foreground: 0 0% 10%;
+    }
+
+    .dark {
+        --background: 215 28% 9%;
+        --foreground: 210 20% 95%;
+        --card: 215 25% 13%;
+        --card-foreground: 210 20% 95%;
+        --popover: 215 25% 13%;
+        --popover-foreground: 210 20% 95%;
+        --primary: 214 84% 55%;
+        --primary-foreground: 0 0% 100%;
+        --secondary: 215 25% 18%;
+        --secondary-foreground: 210 20% 85%;
+        --muted: 215 25% 18%;
+        --muted-foreground: 215 15% 55%;
+        --accent: 38 92% 50%;
+        --accent-foreground: 0 0% 10%;
+        --destructive: 0 62% 45%;
+        --destructive-foreground: 0 0% 100%;
+        --border: 215 25% 20%;
+        --input: 215 25% 20%;
+        --ring: 214 84% 55%;
+    }
+}
+
+@layer base {
+    * {
+        @apply border-border outline-ring/50;
+        -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+        @apply bg-background text-foreground font-inter;
+        overscroll-behavior: none;
+    }
+}
+
+/* PWA safe areas */
+.safe-bottom {
+    padding-bottom: env(safe-area-inset-bottom);
+}
+
+.safe-top {
+    padding-top: env(safe-area-inset-top);
+}
+
+/* Ocultar scrollbar en filtros táctiles */
+.scrollbar-hide::-webkit-scrollbar {
+    display: none;
+}
+
+.scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+
+.font-display {
+    font-family: 'Playfair Display', serif;
+}
+
+.font-inter {
+    font-family: 'Inter', sans-serif;
+}
