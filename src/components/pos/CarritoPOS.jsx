@@ -1,6 +1,4 @@
 import { Trash2, Plus, Minus, ShoppingCart } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { cn } from '@/lib/utils';
 
 export default function CarritoPOS({ items, onCambiarCantidad, onEliminar, subtotalEstadia, reservaSeleccionada }) {
     const subtotalExtras = items.reduce((s, i) => s + i.precio * i.cantidad, 0);

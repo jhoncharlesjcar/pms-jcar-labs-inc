@@ -1,12 +1,11 @@
 import { useState } from 'react';
 import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
-import { db } from '@/api/db';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { CheckCircle, Printer, ExternalLink } from 'lucide-react';
+import { CheckCircle, ExternalLink } from 'lucide-react';
 import TicketPOSPDF from '@/components/pos/TicketPOSPDF';
 import { useHotelData } from '@/hooks/use-hotel-data';
 

@@ -1,7 +1,6 @@
 import { useState, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { db } from '@/api/db';
-import { Receipt, Search, ExternalLink, Printer, TrendingUp, Filter, ShoppingCart, Hotel } from 'lucide-react';
+import { Receipt, Search, ExternalLink, Printer, TrendingUp, ShoppingCart, Hotel } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
@@ -47,16 +46,6 @@ export default function Ventas() {
         enabled: !!hotelId,
     });
     const config = configs[0] || {};
-
-    const marcarSunatEmitido = useMutation({
-        mutationFn: ({ id, tipo }) => tipo === 'pos' 
-            ? hotelDb.VentaPOS.update(id, { estado_comprobante: 'sunat_emitido' })
-            : hotelDb.Venta.update(id, { estado_comprobante: 'sunat_emitido' }),
-        onSuccess: () => {
-            qc.invalidateQueries({ queryKey: ['ventas'] });
-            qc.invalidateQueries({ queryKey: ['ventaspos'] });
-        },
-    });
 
     // Combinar y normalizar ventas
     const todasLasVentas = useMemo(() => {

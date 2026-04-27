@@ -20,7 +20,7 @@ const ROLES_STAFF = [
 
 const emptyHotel = { nombre: '', ruc: '', direccion: '', ciudad: '', telefono: '', email: '', hora_checkin: '14:00', hora_checkout: '12:00', activo: true, notas: '' };
 
-export default function GestionHotelesAdmin({ onClose }) {
+export default function GestionHotelesAdmin() {
     const { user } = useAuth();
     const qc = useQueryClient();
 

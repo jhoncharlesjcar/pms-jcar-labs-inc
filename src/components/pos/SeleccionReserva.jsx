@@ -3,7 +3,6 @@ import { db } from '@/api/db';
 import { Search, BedDouble, X } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { useState } from 'react';
-import { cn } from '@/lib/utils';
 import { useHotel } from '@/lib/HotelContext';
 
 export default function SeleccionReserva({ reservaSeleccionada, onSeleccionar, onLimpiar }) {

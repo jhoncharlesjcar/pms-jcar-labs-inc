@@ -15,11 +15,10 @@ const generarCodigo = () => {
 
 export default function GeneradorCodigos() {
     const qc = useQueryClient();
-    const [codigoNuevo, setCodigoNuevo] = useState('');
     const [descripcion, setDescripcion] = useState('');
     const [copiado, setCopiado] = useState(null);
 
-    const { data: codigos = [], isLoading } = useQuery({
+    const { data: codigos = [] } = useQuery({
         queryKey: ['codigos-desbloqueo'],
         queryFn: () => db.entities.CodigoDesbloqueo.list('-created_date'),
     });

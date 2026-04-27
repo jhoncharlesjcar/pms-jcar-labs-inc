@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { useHotelData } from '@/hooks/use-hotel-data';
-import { BedDouble, Users, Receipt, TrendingUp, AlertCircle, CheckCircle } from 'lucide-react';
+import { BedDouble, Users, TrendingUp, AlertCircle, CheckCircle } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 export default function Dashboard() {

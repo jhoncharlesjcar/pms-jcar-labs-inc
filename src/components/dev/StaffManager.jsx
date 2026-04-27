@@ -19,9 +19,8 @@ export default function StaffManager({ usuarios, hoteles }) {
     const [inviteModal, setInviteModal] = useState(false);
     const [inviteEmail, setInviteEmail] = useState('');
     const [inviteRole, setInviteRole] = useState('recepcionista');
-    const [inviteHotelId, setInviteHotelId] = useState('');
+    const [inviteHotelId] = useState('');
     const [inviteStatus, setInviteStatus] = useState(null);
-    const [error, setError] = useState(null);
 
     const updateUser = useMutation({
         mutationFn: ({ id, data }) => db.entities.User.update(id, data),
