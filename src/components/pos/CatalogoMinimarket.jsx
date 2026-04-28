@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Plus, Settings2, Pencil, Trash2 } from 'lucide-react';
+import { Plus, Settings2, Pencil, Trash2, FolderPlus, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -12,6 +12,9 @@ import { useHotelData } from '@/hooks/use-hotel-data';
 const EMOJI_DEFAULT = {
     bebidas: '🥤', snacks: '🍿', aseo: '🧴',
     licores: '🍺', cigarros: '🚬', otros: '📦',
+    comida: '🍔', lacteos: '🥛', limpieza: '🧹',
+    'bebidas calientes': '☕', 'bebidas frias': '🥤',
+    cafe: '☕', te: '🍵', postres: '🍰'
 };
 
 const emptyProd = { nombre: '', categoria_id: '', precio: '', emoji: '', activo: true, stock: 99 };
@@ -24,6 +27,8 @@ export default function CatalogoMinimarket({ onAgregar, itemsEnCarrito = [] }) {
     const [editando, setEditando] = useState(null);
     const [form, setForm] = useState(emptyProd);
     const [gestionando, setGestionando] = useState(false);
+    const [modalCatOpen, setModalCatOpen] = useState(false);
+    const [nuevaCat, setNuevaCat] = useState('');
 
     // 1. Cargar Categorías de la DB
     const { data: categoriasDb = [] } = useQuery({
@@ -63,6 +68,22 @@ export default function CatalogoMinimarket({ onAgregar, itemsEnCarrito = [] }) {
     const deleteProd = useMutation({
         mutationFn: (id) => hotelDb.Producto.delete(id),
         onSuccess: () => qc.invalidateQueries({ queryKey: ['productos-minimarket'] }),
+    });
+
+    const saveCat = useMutation({
+        mutationFn: (data) => hotelDb.CategoriaProducto.create(data),
+        onSuccess: () => {
+            qc.invalidateQueries({ queryKey: ['categorias-minimarket', hotelId] });
+            setNuevaCat('');
+        },
+    });
+
+    const deleteCat = useMutation({
+        mutationFn: (id) => hotelDb.CategoriaProducto.delete(id),
+        onSuccess: () => {
+            qc.invalidateQueries({ queryKey: ['categorias-minimarket', hotelId] });
+            qc.invalidateQueries({ queryKey: ['productos-minimarket', hotelId] });
+        },
     });
 
     const filtrados = catActiva === 'todos'
@@ -110,9 +131,14 @@ export default function CatalogoMinimarket({ onAgregar, itemsEnCarrito = [] }) {
                         <Settings2 className="w-3 h-3" /> {gestionando ? 'Listo' : 'Gestionar'}
                     </Button>
                     {gestionando && (
-                        <Button size="sm" onClick={abrirNuevo} className="gap-1 text-xs h-7">
-                            <Plus className="w-3 h-3" /> Nuevo
-                        </Button>
+                        <div className="flex gap-2">
+                            <Button variant="secondary" size="sm" onClick={() => setModalCatOpen(true)} className="gap-1 text-xs h-7">
+                                <FolderPlus className="w-3 h-3" /> Categorías
+                            </Button>
+                            <Button size="sm" onClick={abrirNuevo} className="gap-1 text-xs h-7">
+                                <Plus className="w-3 h-3" /> Nuevo
+                            </Button>
+                        </div>
                     )}
                 </div>
             </div>
@@ -219,6 +245,70 @@ export default function CatalogoMinimarket({ onAgregar, itemsEnCarrito = [] }) {
                                 }}>
                                 {saveProd.isPending ? 'Guardando...' : editando ? 'Actualizar' : 'Crear'}
                             </Button>
+                        </div>
+                    </div>
+                </DialogContent>
+            </Dialog>
+
+            {/* Modal Gestión de Categorías */}
+            <Dialog open={modalCatOpen} onOpenChange={setModalCatOpen}>
+                <DialogContent className="max-w-sm">
+                    <DialogHeader>
+                        <DialogTitle>Gestionar Categorías</DialogTitle>
+                    </DialogHeader>
+                    <div className="space-y-4">
+                        <div className="flex flex-col gap-2">
+                            <Label>Nueva Categoría</Label>
+                            <div className="flex gap-2">
+                                <Input 
+                                    placeholder="Ej: Bebidas Calientes" 
+                                    value={nuevaCat} 
+                                    onChange={e => setNuevaCat(e.target.value)}
+                                    onKeyDown={e => {
+                                        if (e.key === 'Enter' && nuevaCat.trim()) {
+                                            saveCat.mutate({ nombre: nuevaCat.trim() });
+                                        }
+                                    }}
+                                />
+                                <Button 
+                                    size="sm" 
+                                    disabled={saveCat.isPending || !nuevaCat.trim()}
+                                    onClick={() => saveCat.mutate({ nombre: nuevaCat.trim() })}
+                                >
+                                    {saveCat.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
+                                </Button>
+                            </div>
+                        </div>
+
+                        <div className="border rounded-xl divide-y max-h-[300px] overflow-y-auto">
+                            {categoriasDb.length === 0 ? (
+                                <div className="p-8 text-center text-muted-foreground text-xs italic">
+                                    No hay categorías personalizadas
+                                </div>
+                            ) : (
+                                categoriasDb.map(cat => (
+                                    <div key={cat.id} className="flex items-center justify-between p-3 bg-card/50">
+                                        <span className="text-sm font-medium">{cat.nombre}</span>
+                                        <Button 
+                                            variant="ghost" 
+                                            size="icon" 
+                                            className="h-8 w-8 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+                                            disabled={deleteCat.isPending}
+                                            onClick={() => {
+                                                if (confirm(`¿Eliminar categoría "${cat.nombre}"?`)) {
+                                                    deleteCat.mutate(cat.id);
+                                                }
+                                            }}
+                                        >
+                                            <Trash2 className="w-4 h-4" />
+                                        </Button>
+                                    </div>
+                                ))
+                            )}
+                        </div>
+                        
+                        <div className="pt-2">
+                            <Button variant="outline" className="w-full" onClick={() => setModalCatOpen(false)}>Cerrar</Button>
                         </div>
                     </div>
                 </DialogContent>
