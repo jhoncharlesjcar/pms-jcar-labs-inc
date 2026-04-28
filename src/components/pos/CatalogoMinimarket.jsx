@@ -8,6 +8,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
 import { useHotelData } from '@/hooks/use-hotel-data';
+import { useToast } from '@/components/ui/use-toast';
 
 const EMOJI_DEFAULT = {
     bebidas: '🥤', snacks: '🍿', aseo: '🧴',
@@ -29,6 +30,7 @@ export default function CatalogoMinimarket({ onAgregar, itemsEnCarrito = [] }) {
     const [gestionando, setGestionando] = useState(false);
     const [modalCatOpen, setModalCatOpen] = useState(false);
     const [nuevaCat, setNuevaCat] = useState('');
+    const { toast } = useToast();
 
     // 1. Cargar Categorías de la DB
     const { data: categoriasDb = [] } = useQuery({
@@ -62,12 +64,18 @@ export default function CatalogoMinimarket({ onAgregar, itemsEnCarrito = [] }) {
             setModalOpen(false); 
             setEditando(null); 
             setForm(emptyProd); 
+            toast({ title: editando ? "Producto actualizado" : "Producto creado", description: "El catálogo se ha actualizado correctamente." });
         },
+        onError: () => toast({ title: "Error", description: "No se pudo guardar el producto.", variant: "destructive" })
     });
 
     const deleteProd = useMutation({
         mutationFn: (id) => hotelDb.Producto.delete(id),
-        onSuccess: () => qc.invalidateQueries({ queryKey: ['productos-minimarket'] }),
+        onSuccess: () => {
+            qc.invalidateQueries({ queryKey: ['productos-minimarket'] });
+            toast({ title: "Producto eliminado", description: "El producto ha sido removido del catálogo." });
+        },
+        onError: () => toast({ title: "Error", description: "No se pudo eliminar el producto.", variant: "destructive" })
     });
 
     const saveCat = useMutation({
@@ -75,7 +83,9 @@ export default function CatalogoMinimarket({ onAgregar, itemsEnCarrito = [] }) {
         onSuccess: () => {
             qc.invalidateQueries({ queryKey: ['categorias-minimarket', hotelId] });
             setNuevaCat('');
+            toast({ title: "Categoría creada", description: "Ya puedes organizar tus productos en esta categoría." });
         },
+        onError: () => toast({ title: "Error", description: "No se pudo crear la categoría.", variant: "destructive" })
     });
 
     const deleteCat = useMutation({
@@ -83,7 +93,9 @@ export default function CatalogoMinimarket({ onAgregar, itemsEnCarrito = [] }) {
         onSuccess: () => {
             qc.invalidateQueries({ queryKey: ['categorias-minimarket', hotelId] });
             qc.invalidateQueries({ queryKey: ['productos-minimarket', hotelId] });
+            toast({ title: "Categoría eliminada", description: "La categoría ha sido eliminada correctamente." });
         },
+        onError: () => toast({ title: "Error", description: "No se pudo eliminar la categoría.", variant: "destructive" })
     });
 
     const filtrados = catActiva === 'todos'
