@@ -33,7 +33,7 @@ CREATE TABLE IF NOT EXISTS habitaciones (
     id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
     hotel_id UUID REFERENCES hoteles(id) ON DELETE CASCADE,
     numero TEXT NOT NULL,
-    tipo TEXT DEFAULT 'simple' CHECK (tipo IN ('simple', 'doble', 'triple', 'matrimonial', 'suite')),
+    tipo TEXT DEFAULT 'simple' CHECK (tipo IN ('simple', 'doble simple', 'matrimonial', 'doble matrimonial', 'mixta', 'queen')),
     precio_noche NUMERIC NOT NULL,
     estado TEXT DEFAULT 'disponible' CHECK (estado IN ('disponible', 'ocupada', 'mantenimiento', 'reservada')),
     descripcion TEXT,

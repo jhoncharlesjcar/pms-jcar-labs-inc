@@ -16,7 +16,7 @@ const estadoConfig = {
     mantenimiento: { label: 'Mantenimiento', icon: Wrench, color: 'text-red-600', bg: 'bg-red-50 border-red-200' },
 };
 
-const tiposHab = ['simple', 'doble', 'triple', 'matrimonial', 'suite'];
+const tiposHab = ['simple', 'doble simple', 'matrimonial', 'doble matrimonial', 'mixta', 'queen'];
 
 const empty = { numero: '', tipo: 'simple', precio_noche: 0, capacidad: 1, piso: '', descripcion: '', estado: 'disponible' };
 
