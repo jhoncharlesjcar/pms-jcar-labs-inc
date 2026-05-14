@@ -89,11 +89,13 @@ export async function shareTicket(ticketHtml, paperWidth = 58) {
     if (!canUseWebShare) {
       if (isAndroidDevice) {
         // FALLBACK ANDROID (HTTP Local): Disparar directo a RawBT
-        // Chrome bloquea el menú genérico "Compartir" en conexiones HTTP (red local).
-        // Por lo tanto, la única forma de imprimir localmente es enviar el ticket directamente a la app.
+        // Usamos la URI "rawbt:data:text/html" para que RawBT interprete el HTML,
+        // lo dibuje como imagen y lo imprima bonito (igual al preview), 
+        // en lugar de imprimir el código fuente como texto.
         const encodedText = encodeURIComponent(fullHtml);
         const base64Text = btoa(unescape(encodedText));
-        window.location.href = `intent:data:text/html;base64,${base64Text}#Intent;scheme=rawbt;package=ru.a402d.rawbtprinter;action=ru.a402d.rawbtprinter.PARSE;end;`;
+        
+        window.location.href = `rawbt:data:text/html;base64,${base64Text}`;
         return true;
       } else {
         // FALLBACK DESKTOP: Abrir ventana e imprimir
@@ -119,7 +121,7 @@ export async function shareTicket(ticketHtml, paperWidth = 58) {
       // Si Chrome Android no permite compartir un archivo HTML directamente, fallback a rawbt directo
       const encodedText = encodeURIComponent(fullHtml);
       const base64Text = btoa(unescape(encodedText));
-      window.location.href = `intent:data:text/html;base64,${base64Text}#Intent;scheme=rawbt;package=ru.a402d.rawbtprinter;action=ru.a402d.rawbtprinter.PARSE;end;`;
+      window.location.href = `rawbt:data:text/html;base64,${base64Text}`;
       return true;
     }
 
