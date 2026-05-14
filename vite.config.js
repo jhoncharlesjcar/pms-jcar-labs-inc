@@ -4,6 +4,7 @@ import path from 'path'
 
 // https://vite.dev/config/
 export default defineConfig({
+    server: { host: true },
     logLevel: 'info', // Show all logs including startup info
     plugins: [
         react(),

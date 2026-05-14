@@ -188,7 +188,7 @@ export default function CatalogoMinimarket({ onAgregar, itemsEnCarrito = [] }) {
                                 {/* Indicador de Stock */}
                                 <div className={cn(
                                     "text-[10px] px-2 py-0.5 rounded-full font-medium mt-1",
-                                    prod.stock <= 5 ? "bg-destructive/10 text-destructive" : "bg-secondary text-muted-foreground"
+                                    prod.stock <= 5 ? "bg-destructive/10 text-destructive" : "bg-secondary text-secondary-foreground"
                                 )}>
                                     Stock: {prod.stock || 0}
                                 </div>

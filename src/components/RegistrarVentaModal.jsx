@@ -9,6 +9,15 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { ExternalLink, CheckCircle } from 'lucide-react';
 import TicketPDF from '@/components/TicketPDF';
 import { useHotel } from '@/lib/HotelContext';
+import { YapeIcon, PlinIcon, EfectivoIcon, TarjetaIcon } from '@/components/PaymentIcons';
+
+const METODOS = [
+    { value: 'efectivo', label: <span className="flex items-center gap-1"><EfectivoIcon /> Efectivo</span> },
+    { value: 'yape', label: <span className="flex items-center gap-1"><YapeIcon /> Yape</span> },
+    { value: 'plin', label: <span className="flex items-center gap-1"><PlinIcon /> Plin</span> },
+    { value: 'transferencia', label: '🏦 Transferencia' },
+    { value: 'tarjeta', label: <span className="flex items-center gap-1"><TarjetaIcon /> Tarjeta</span> },
+];
 
 export default function RegistrarVentaModal({ reserva, onClose, onSuccess }) {
     const qc = useQueryClient();
@@ -129,8 +138,8 @@ export default function RegistrarVentaModal({ reserva, onClose, onSuccess }) {
                             <Select value={metodo} onValueChange={setMetodo}>
                                 <SelectTrigger className="mt-1"><SelectValue /></SelectTrigger>
                                 <SelectContent>
-                                    {['efectivo', 'yape', 'plin', 'transferencia', 'tarjeta'].map(m => (
-                                        <SelectItem key={m} value={m} className="capitalize">{m}</SelectItem>
+                                    {METODOS.map(m => (
+                                        <SelectItem key={m.value} value={m.value} className="capitalize">{m.label}</SelectItem>
                                     ))}
                                 </SelectContent>
                             </Select>

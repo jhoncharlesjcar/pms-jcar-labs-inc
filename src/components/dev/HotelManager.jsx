@@ -76,14 +76,14 @@ export default function HotelManager({ hoteles, habitaciones, reservas, ventas, 
                             <div className="flex items-start gap-4">
                                 <div className={cn("w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0",
                                     h.activo ? "bg-amber-50" : "bg-secondary")}>
-                                    <Building2 className={cn("w-6 h-6", h.activo ? "text-amber-600" : "text-muted-foreground")} />
+                                    <Building2 className={cn("w-6 h-6", h.activo ? "text-amber-600" : "text-secondary-foreground")} />
                                 </div>
 
                                 <div className="flex-1 min-w-0">
                                     <div className="flex items-center gap-2 flex-wrap">
                                         <p className="font-bold text-foreground">{h.nombre}</p>
                                         <span className={cn("text-xs px-2 py-0.5 rounded-full font-medium border",
-                                            h.activo ? "bg-green-50 text-green-700 border-green-200" : "bg-secondary text-muted-foreground border-border")}>
+                                            h.activo ? "bg-green-50 text-green-700 border-green-200" : "bg-secondary text-secondary-foreground border-border")}>
                                             {h.activo ? '● Activo' : '○ Inactivo'}
                                         </span>
                                     </div>

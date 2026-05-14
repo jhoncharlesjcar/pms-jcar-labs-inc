@@ -9,14 +9,15 @@ import TicketPOSPDF from '@/components/pos/TicketPOSPDF';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useHotelData } from '@/hooks/use-hotel-data';
+import { YapeIcon, PlinIcon, EfectivoIcon, TarjetaIcon } from '@/components/PaymentIcons';
 
 const estadoComp = {
-    ticket_interno: { label: 'Ticket Interno', color: 'bg-secondary text-muted-foreground' },
+    ticket_interno: { label: 'Ticket Interno', color: 'bg-secondary text-secondary-foreground' },
     sunat_pendiente: { label: 'SUNAT Pendiente', color: 'bg-orange-100 text-orange-700' },
     sunat_emitido: { label: 'SUNAT Emitido', color: 'bg-green-100 text-green-700' },
 };
 
-const metodoPagoIcon = { efectivo: '💵', yape: '📱', plin: '📲', transferencia: '🏦', tarjeta: '💳' };
+const metodoPagoIcon = { efectivo: <EfectivoIcon />, yape: <YapeIcon />, plin: <PlinIcon />, transferencia: '🏦', tarjeta: <TarjetaIcon /> };
 
 export default function Ventas() {
     const qc = useQueryClient();

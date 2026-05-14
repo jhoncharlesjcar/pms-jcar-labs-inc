@@ -8,13 +8,14 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { CheckCircle, ExternalLink } from 'lucide-react';
 import TicketPOSPDF from '@/components/pos/TicketPOSPDF';
 import { useHotelData } from '@/hooks/use-hotel-data';
+import { YapeIcon, PlinIcon, EfectivoIcon, TarjetaIcon } from '@/components/PaymentIcons';
 
 const METODOS = [
-    { value: 'efectivo', label: '💵 Efectivo' },
-    { value: 'yape', label: '📱 Yape' },
-    { value: 'plin', label: '📲 Plin' },
+    { value: 'efectivo', label: <span className="flex items-center gap-1"><EfectivoIcon /> Efectivo</span> },
+    { value: 'yape', label: <span className="flex items-center gap-1"><YapeIcon /> Yape</span> },
+    { value: 'plin', label: <span className="flex items-center gap-1"><PlinIcon /> Plin</span> },
     { value: 'transferencia', label: '🏦 Transferencia' },
-    { value: 'tarjeta', label: '💳 Tarjeta' },
+    { value: 'tarjeta', label: <span className="flex items-center gap-1"><TarjetaIcon /> Tarjeta</span> },
 ];
 
 export default function PagoModal({ open, onClose, resumen, reservaSeleccionada, onExito }) {

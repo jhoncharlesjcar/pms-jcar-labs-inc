@@ -28,8 +28,8 @@ export default function AuditCenter({ hoteles, habitaciones, reservas, ventas, u
                                     </div>
                                 </div>
                                 <span className={cn("text-xs px-2 py-1 rounded-full border font-medium",
-                                    h.activo ? "bg-green-50 text-green-700 border-green-200" : "bg-secondary text-muted-foreground border-border")}>
-                                    {h.activo ? 'Activo' : 'Inactivo'}
+                                    h.activo ? "bg-green-50 text-green-700 border-green-200" : "bg-secondary text-secondary-foreground border-border")}>
+                                    {h.activo ? 'Operativo' : 'Inactivo'}
                                 </span>
                             </div>
 

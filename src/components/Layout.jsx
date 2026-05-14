@@ -1,5 +1,5 @@
 import { Outlet, Link, useLocation } from 'react-router-dom';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
     LayoutDashboard, BedDouble, CalendarDays, Receipt, Settings,
     Menu, X, Hotel, ChevronRight, LogOut, ShoppingCart, Code2, Building2
@@ -24,7 +24,7 @@ const ROLE_LABELS = {
     admin: { label: 'Administrador', color: 'bg-primary/10 text-primary' },
     recepcionista: { label: 'Recepcionista', color: 'bg-green-100 text-green-700' },
     developer: { label: 'Developer', color: 'bg-amber-100 text-amber-700' },
-    user: { label: 'Usuario', color: 'bg-secondary text-muted-foreground' },
+    user: { label: 'Usuario', color: 'bg-secondary text-secondary-foreground' },
 };
 
 export default function Layout() {
@@ -36,6 +36,31 @@ export default function Layout() {
     const isAdmin = user?.role === 'admin';
     const roleInfo = ROLE_LABELS[user?.role] || ROLE_LABELS['user'];
     const [gestionModal, setGestionModal] = useState(false);
+    const [isDark, setIsDark] = useState(() => document.documentElement.classList.contains('dark'));
+
+    // Check theme on mount
+    useEffect(() => {
+        const theme = localStorage.getItem('theme');
+        if (theme === 'dark' || (!theme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            document.documentElement.classList.add('dark');
+            setIsDark(true);
+        } else {
+            document.documentElement.classList.remove('dark');
+            setIsDark(false);
+        }
+    }, []);
+
+    const toggleTheme = () => {
+        const _isDark = !isDark;
+        setIsDark(_isDark);
+        if (_isDark) {
+            document.documentElement.classList.add('dark');
+            localStorage.setItem('theme', 'dark');
+        } else {
+            document.documentElement.classList.remove('dark');
+            localStorage.setItem('theme', 'light');
+        }
+    };
 
     return (
         <div className="min-h-screen bg-background flex">
@@ -45,7 +70,7 @@ export default function Layout() {
 
             {/* Sidebar */}
             <aside className={cn(
-                "fixed top-0 left-0 h-full w-64 bg-card border-r border-border z-30 flex flex-col transition-transform duration-300",
+                "fixed top-0 left-0 h-full w-64 bg-card/80 backdrop-blur-xl border-r border-border/50 z-30 flex flex-col transition-transform duration-300",
                 sidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
             )}>
                 {/* Logo */}
@@ -134,6 +159,23 @@ export default function Layout() {
 
                 {/* User info + Logout */}
                 <div className="p-4 border-t border-border space-y-3">
+                    {/* Dark Mode Toggle */}
+                    <div className="flex items-center justify-between px-4 py-2 bg-secondary rounded-xl">
+                        <span className="text-sm font-medium">Modo Oscuro</span>
+                        <button
+                            onClick={toggleTheme}
+                            className={cn(
+                                "w-11 h-6 rounded-full transition-colors relative focus:outline-none",
+                                isDark ? "bg-green-500" : "bg-gray-300"
+                            )}
+                        >
+                            <div className={cn(
+                                "w-5 h-5 bg-white rounded-full absolute top-0.5 transition-transform shadow-sm",
+                                isDark ? "translate-x-5.5 left-0.5" : "translate-x-0.5"
+                            )} style={{ transform: isDark ? 'translateX(22px)' : 'translateX(2px)' }} />
+                        </button>
+                    </div>
+
                     {user && (
                         <div className="px-3 py-2.5 bg-secondary rounded-xl">
                             <div className="flex items-center gap-2 mb-1.5">
@@ -165,7 +207,7 @@ export default function Layout() {
             {/* Main */}
             <div className="flex-1 lg:ml-64 flex flex-col min-h-screen">
                 {/* Top bar mobile */}
-                <header className="lg:hidden flex items-center justify-between px-4 py-3 bg-card border-b border-border sticky top-0 z-10">
+                <header className="lg:hidden flex items-center justify-between px-4 py-3 bg-card/80 backdrop-blur-xl border-b border-border/50 sticky top-0 z-10">
                     <div className="flex items-center gap-2">
                         <div className="w-7 h-7 bg-primary rounded-lg flex items-center justify-center">
                             <Hotel className="w-4 h-4 text-primary-foreground" />

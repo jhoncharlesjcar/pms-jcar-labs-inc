@@ -56,7 +56,7 @@ export default function Dashboard() {
             {/* Stats */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
                 {stats.map(({ label, value, icon: Icon, color, bg, link }) => (
-                    <Link key={label} to={link} className="bg-card rounded-2xl p-5 border border-border hover:shadow-md transition-all group">
+                    <Link key={label} to={link} className="bg-card/80 backdrop-blur-md rounded-2xl p-5 border border-border/50 hover:shadow-lg hover:border-primary/30 transition-all duration-300 group">
                         <div className={`w-10 h-10 ${bg} rounded-xl flex items-center justify-center mb-3`}>
                             <Icon className={`w-5 h-5 ${color}`} />
                         </div>
@@ -69,7 +69,7 @@ export default function Dashboard() {
             {/* Ocupación + Ingresos hoy */}
             <div className="grid lg:grid-cols-2 gap-6">
                 {/* Ocupación */}
-                <div className="bg-card rounded-2xl border border-border p-6">
+                <div className="bg-card/80 backdrop-blur-md rounded-2xl border border-border/50 p-6 shadow-sm">
                     <h2 className="font-semibold text-foreground mb-4">Ocupación hoy</h2>
                     <div className="flex items-end gap-4 mb-3">
                         <span className="text-4xl font-bold text-foreground">{ocupacionPct}%</span>
@@ -89,7 +89,7 @@ export default function Dashboard() {
                 </div>
 
                 {/* Ingresos hoy */}
-                <div className="bg-card rounded-2xl border border-border p-6">
+                <div className="bg-card/80 backdrop-blur-md rounded-2xl border border-border/50 p-6 shadow-sm">
                     <h2 className="font-semibold text-foreground mb-4">Ingresos de hoy</h2>
                     <div className="text-4xl font-bold text-foreground mb-1">S/ {ingresoHoy.toFixed(2)}</div>
                     <p className="text-sm text-muted-foreground mb-4">{ventasHoy.length} transacciones registradas</p>
@@ -120,8 +120,8 @@ export default function Dashboard() {
             )}
 
             {/* Últimas ventas */}
-            <div className="bg-card rounded-2xl border border-border">
-                <div className="p-5 border-b border-border flex items-center justify-between">
+            <div className="bg-card/80 backdrop-blur-md rounded-2xl border border-border/50 shadow-sm overflow-hidden">
+                <div className="p-5 border-b border-border/50 flex items-center justify-between">
                     <h2 className="font-semibold text-foreground">Últimas ventas</h2>
                     <Link to="/ventas" className="text-sm text-primary hover:underline">Ver todas</Link>
                 </div>
@@ -136,7 +136,7 @@ export default function Dashboard() {
                                 <p className="font-semibold text-foreground">S/ {v.total?.toFixed(2)}</p>
                                 <span className={`text-xs px-2 py-0.5 rounded-full ${v.estado_comprobante === 'sunat_emitido' ? 'bg-green-100 text-green-700' :
                                     v.estado_comprobante === 'sunat_pendiente' ? 'bg-orange-100 text-orange-700' :
-                                        'bg-secondary text-muted-foreground'
+                                        'bg-secondary text-secondary-foreground'
                                     }`}>
                                     {v.estado_comprobante === 'sunat_emitido' ? 'SUNAT ✓' :
                                         v.estado_comprobante === 'sunat_pendiente' ? 'SUNAT pend.' : 'Ticket'}

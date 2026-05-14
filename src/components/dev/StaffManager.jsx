@@ -61,7 +61,7 @@ export default function StaffManager({ usuarios, hoteles }) {
 
             <div className="flex gap-2 flex-wrap">
                 {ROLES.map(r => (
-                    <span key={r.value} className="text-xs bg-secondary text-muted-foreground px-3 py-1 rounded-full border border-border">
+                    <span key={r.value} className="text-xs bg-secondary text-secondary-foreground px-3 py-1 rounded-full border border-border">
                         {r.label} — {r.desc}
                     </span>
                 ))}

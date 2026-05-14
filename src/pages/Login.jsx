@@ -34,14 +34,18 @@ export default function Login() {
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 px-4">
-            {/* Fondo decorativo */}
-            <div className="absolute inset-0 overflow-hidden pointer-events-none">
-                <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-primary/5 rounded-full blur-3xl" />
-                <div className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-blue-500/5 rounded-full blur-3xl" />
+        <div className="relative min-h-screen flex items-center justify-center px-4">
+            {/* Fondo con la imagen del hotel */}
+            <div 
+                className="absolute inset-0 z-0 bg-cover bg-top bg-no-repeat pointer-events-none"
+                style={{ backgroundImage: "url('/bg-hotel.jpg')" }}
+            >
+                {/* Overlay cinematográfico (Glassmorphism oscuro) */}
+                <div className="absolute inset-0 bg-slate-950/60 backdrop-blur-[3px]" />
+                <div className="absolute inset-0 bg-gradient-to-b from-slate-950/80 via-slate-900/40 to-slate-950/95" />
             </div>
 
-            <div className="relative w-full max-w-md">
+            <div className="relative z-10 w-full max-w-md">
                 {/* Logo */}
                 <div className="text-center mb-8">
                     <div className="inline-flex items-center justify-center w-16 h-16 bg-primary rounded-2xl shadow-lg shadow-primary/30 mb-4">

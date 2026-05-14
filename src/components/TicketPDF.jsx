@@ -1,6 +1,7 @@
 import { useRef } from 'react';
 import { Button } from '@/components/ui/button';
-import { Printer } from 'lucide-react';
+import { Printer, Share2 } from 'lucide-react';
+import { shareTicket } from '@/modules/printer/services/sharePrinter';
 
 export default function TicketPDF({ venta, config }) {
     const ticketRef = useRef();
@@ -35,6 +36,11 @@ export default function TicketPDF({ venta, config }) {
       </html>
     `);
         ventana.document.close();
+    };
+
+    const handleCompartir = async () => {
+        const contenido = ticketRef.current.innerHTML;
+        await shareTicket(contenido);
     };
 
     return (
@@ -96,9 +102,14 @@ export default function TicketPDF({ venta, config }) {
                 <p className="text-gray-400 text-[10px]">{config.mensaje_ticket || '¡Gracias por su preferencia!'}</p>
             </div>
 
-            <Button onClick={imprimir} className="w-full gap-2 mt-3" variant="outline">
-                <Printer className="w-4 h-4" /> Imprimir Ticket
-            </Button>
+            <div className="flex gap-2 mt-4">
+                <Button onClick={imprimir} className="w-full gap-2" variant="outline">
+                    <Printer className="w-4 h-4" /> PC / Web
+                </Button>
+                <Button onClick={handleCompartir} className="w-full gap-2 bg-slate-900 hover:bg-slate-800 text-white">
+                    <Share2 className="w-4 h-4" /> Android PWA
+                </Button>
+            </div>
         </div>
     );
 }

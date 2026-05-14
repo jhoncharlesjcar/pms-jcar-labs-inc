@@ -1,11 +1,13 @@
 import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Save, ExternalLink, CheckCircle } from 'lucide-react';
+import { Save, ExternalLink, CheckCircle, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { cn } from '@/lib/utils';
 import { useHotelData } from '@/hooks/use-hotel-data';
+import { supabase } from '@/lib/supabaseClient';
+import { format, startOfDay, endOfDay, startOfMonth, endOfMonth, startOfYear, endOfYear } from 'date-fns';
 
 export default function Configuracion() {
     const qc = useQueryClient();
@@ -17,6 +19,10 @@ export default function Configuracion() {
         hora_checkin: '14:00', hora_checkout: '12:00',
     });
     const [configId, setConfigId] = useState(null);
+    const [deletePeriod, setDeletePeriod] = useState('dia');
+    const [deleteDate, setDeleteDate] = useState(format(new Date(), 'yyyy-MM-dd'));
+    const [deleteDateEnd, setDeleteDateEnd] = useState(format(new Date(), 'yyyy-MM-dd'));
+    const [isDeleting, setIsDeleting] = useState(false);
 
     const { data: configs = [] } = useQuery({
         queryKey: ['config', hotelId],
@@ -58,6 +64,74 @@ export default function Configuracion() {
         manual: { label: 'Manual (Recomendado para hospedajes pequeños)', desc: 'El recepcionista decide cuándo ir a SUNAT. Perfecto para operar con tickets internos.' },
         automatico: { label: 'Automático (Empresas formales)', desc: 'Recordatorio automático para emitir comprobante en cada venta.' },
         desactivado: { label: 'Desactivado', desc: 'Sin módulo SUNAT. Solo tickets internos.' },
+    };
+
+    const handleDeleteData = async () => {
+        if (!deleteDate || (deletePeriod === 'rango' && !deleteDateEnd)) return;
+        if (!confirm(`¿Estás seguro de que quieres eliminar TODAS las ventas y reservas del periodo seleccionado? Esta acción es irreversible.`)) return;
+
+        setIsDeleting(true);
+        try {
+            const date = new Date(deleteDate + 'T00:00:00'); // Evitar problemas de timezone
+            let start, end;
+
+            if (deletePeriod === 'dia') {
+                start = startOfDay(date);
+                end = endOfDay(date);
+            } else if (deletePeriod === 'mes') {
+                start = startOfMonth(date);
+                end = endOfMonth(date);
+            } else if (deletePeriod === 'año') {
+                start = startOfYear(date);
+                end = endOfYear(date);
+            } else if (deletePeriod === 'rango') {
+                start = startOfDay(new Date(deleteDate + 'T00:00:00'));
+                end = endOfDay(new Date(deleteDateEnd + 'T00:00:00'));
+            }
+
+            const startISO = start.toISOString();
+            const endISO = end.toISOString();
+
+            // Borrar Ventas
+            const { error: errVentas } = await supabase
+                .from('ventas')
+                .delete()
+                .eq('hotel_id', hotelId)
+                .gte('created_date', startISO)
+                .lte('created_date', endISO);
+
+            if (errVentas) throw errVentas;
+
+            // Borrar Reservas
+            const { error: errReservas } = await supabase
+                .from('reservas')
+                .delete()
+                .eq('hotel_id', hotelId)
+                .gte('created_date', startISO)
+                .lte('created_date', endISO);
+
+            if (errReservas) throw errReservas;
+
+            // Borrar Ventas POS (Minimarket)
+            const { error: errVentasPOS } = await supabase
+                .from('ventas_pos')
+                .delete()
+                .eq('hotel_id', hotelId)
+                .gte('created_date', startISO)
+                .lte('created_date', endISO);
+
+            if (errVentasPOS) throw errVentasPOS;
+
+            alert('Datos eliminados correctamente.');
+            qc.invalidateQueries({ queryKey: ['ventas'] });
+            qc.invalidateQueries({ queryKey: ['reservas'] });
+            qc.invalidateQueries({ queryKey: ['ventas_pos'] });
+        } catch (error) {
+            console.error('Error al borrar datos:', error);
+            alert('Hubo un error al borrar los datos.');
+        } finally {
+            setIsDeleting(false);
+        }
     };
 
     return (
@@ -162,6 +236,63 @@ export default function Configuracion() {
 
                 <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 text-xs text-blue-700">
                     <strong>Nota SUNAT Perú:</strong> El sistema guarda el historial completo de ventas para cumplir con la normativa. Cuando un cliente solicite comprobante, puedes emitirlo directamente en el portal web de SUNAT usando tu Clave SOL.
+                </div>
+            </div>
+
+            {/* Mantenimiento de Datos */}
+            <div className="bg-red-50 rounded-2xl border border-red-200 p-6 space-y-4">
+                <h2 className="font-semibold text-red-700 flex items-center gap-2">
+                    <Trash2 className="w-5 h-5" /> Mantenimiento de Datos
+                </h2>
+                <p className="text-sm text-red-600">
+                    Elimina el historial de ventas y reservas por periodo. <strong>Precaución: Esta acción no se puede deshacer.</strong>
+                </p>
+                <div className="flex flex-col sm:flex-row gap-4">
+                    <div className="flex-1">
+                        <Label className="text-red-700">Periodo a eliminar</Label>
+                        <select 
+                            className="flex h-10 w-full rounded-md border border-red-300 bg-white px-3 py-2 text-sm text-red-900 mt-1"
+                            value={deletePeriod}
+                            onChange={e => setDeletePeriod(e.target.value)}
+                        >
+                            <option value="dia">Por Día</option>
+                            <option value="mes">Por Mes</option>
+                            <option value="año">Por Año</option>
+                            <option value="rango">Por Rango de Fechas</option>
+                        </select>
+                    </div>
+                    <div className="flex-1 flex gap-2">
+                        <div className="w-full">
+                            <Label className="text-red-700">{deletePeriod === 'rango' ? 'Desde' : 'Fecha de referencia'}</Label>
+                            <Input 
+                                type="date" 
+                                className="mt-1 border-red-300 text-red-900" 
+                                value={deleteDate}
+                                onChange={e => setDeleteDate(e.target.value)}
+                            />
+                        </div>
+                        {deletePeriod === 'rango' && (
+                            <div className="w-full">
+                                <Label className="text-red-700">Hasta</Label>
+                                <Input 
+                                    type="date" 
+                                    className="mt-1 border-red-300 text-red-900" 
+                                    value={deleteDateEnd}
+                                    onChange={e => setDeleteDateEnd(e.target.value)}
+                                />
+                            </div>
+                        )}
+                    </div>
+                    <div className="flex items-end">
+                        <Button 
+                            variant="destructive" 
+                            onClick={handleDeleteData} 
+                            disabled={isDeleting || !deleteDate || (deletePeriod === 'rango' && !deleteDateEnd)}
+                            className="w-full sm:w-auto"
+                        >
+                            {isDeleting ? 'Borrando...' : 'Borrar Datos'}
+                        </Button>
+                    </div>
                 </div>
             </div>
 
