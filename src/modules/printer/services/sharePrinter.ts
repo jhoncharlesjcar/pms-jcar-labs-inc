@@ -113,24 +113,29 @@ export async function shareTicket(ticketHtml, paperWidth = 58, fallbackText = nu
       }
     }
 
+    // Usamos el fallbackText (texto plano perfecto) o limpiamos el HTML básico
+    const plainText = fallbackText || ticketHtml.replace(/<[^>]*>?/gm, ' ').replace(/\s\s+/g, ' ');
+    
     // Si Web Share SÍ está disponible (HTTPS)
-    const blob = new Blob([fullHtml], { type: 'text/html' });
-    const file = new File([blob], 'ticket.html', { type: 'text/html' });
+    // Creamos un archivo de TEXTO (.txt) en lugar de .html
+    // Esto asegura que RawBT no intente parsearlo como código fuente, sino que lo imprima directo.
+    const blob = new Blob([plainText], { type: 'text/plain' });
+    const file = new File([blob], 'ticket.txt', { type: 'text/plain' });
 
-    if (!navigator.canShare({ files: [file] })) {
-      const plainText = fallbackText || ticketHtml.replace(/<[^>]*>?/gm, ' ').replace(/\s\s+/g, ' ');
-      const encodedText = encodeURIComponent(plainText);
-      const base64Text = btoa(unescape(encodedText));
-      window.location.href = `intent:base64,${base64Text}#Intent;scheme=rawbt;package=ru.a402d.rawbtprinter;action=ru.a402d.rawbtprinter.PARSE;end;`;
+    // Compartir nativo
+    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+      await navigator.share({
+        title: 'Ticket de Caja',
+        text: plainText, // Enviamos el texto directamente también (ideal para WhatsApp)
+        files: [file]
+      });
       return true;
     }
 
-    await navigator.share({
-      title: 'Ticket de Caja',
-      text: 'Compartir o Imprimir Ticket',
-      files: [file]
-    });
-
+    // Si canShare falla incluso con .txt, mandamos el Intent de RawBT directo
+    const encodedText = encodeURIComponent(plainText);
+    const base64Text = btoa(unescape(encodedText));
+    window.location.href = `intent:base64,${base64Text}#Intent;scheme=rawbt;package=ru.a402d.rawbtprinter;action=ru.a402d.rawbtprinter.PARSE;end;`;
     return true;
 
   } catch (error) {
