@@ -102,7 +102,13 @@ export default function Recepcion() {
         return { noches: n, total: precio * n };
     };
 
-    const habitacionesDisp = habitaciones.filter(h => h.estado === 'disponible');
+    const habitacionesDisp = habitaciones.filter(h => h.estado === 'disponible')
+        .sort((a, b) => {
+            const numA = parseInt(a.numero, 10);
+            const numB = parseInt(b.numero, 10);
+            if (!isNaN(numA) && !isNaN(numB)) return numA - numB;
+            return String(a.numero).localeCompare(String(b.numero));
+        });
 
     const filtradas = reservas.filter(r => {
         const matchFiltro = filtro === 'todas' || r.estado === filtro;

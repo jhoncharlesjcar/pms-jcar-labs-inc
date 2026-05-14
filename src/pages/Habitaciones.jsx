@@ -79,7 +79,13 @@ export default function Habitaciones() {
         save.mutate(dataToSave);
     };
 
-    const filtradas = filtroEstado === 'todos' ? habitaciones : habitaciones.filter(h => h.estado === filtroEstado);
+    const filtradas = (filtroEstado === 'todos' ? habitaciones : habitaciones.filter(h => h.estado === filtroEstado))
+        .sort((a, b) => {
+            const numA = parseInt(a.numero, 10);
+            const numB = parseInt(b.numero, 10);
+            if (!isNaN(numA) && !isNaN(numB)) return numA - numB;
+            return String(a.numero).localeCompare(String(b.numero));
+        });
 
     return (
         <div className="space-y-6">
