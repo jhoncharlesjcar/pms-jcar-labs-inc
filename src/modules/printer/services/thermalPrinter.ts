@@ -58,10 +58,22 @@ export const generatePlainTextTicket = (data, lineWidth = 32) => {
     const stVal = Number(data.subTotal).toFixed(2);
     ticket += pad(stLabel, lineWidth - stVal.length) + stVal + br();
   }
+
+  if (data.descuento !== undefined) {
+    const descLabel = 'Descuento:';
+    const descVal = '-S/ ' + Number(data.descuento).toFixed(2);
+    ticket += pad(descLabel, lineWidth - descVal.length) + descVal + br();
+  }
   
   const totalLabel = 'TOTAL: S/ ';
   const totalVal = Number(data.total).toFixed(2);
   ticket += pad(totalLabel, lineWidth - totalVal.length) + totalVal + br();
+
+  if (data.paymentMethod) {
+    const payLabel = 'Pago:';
+    const payVal = String(data.paymentMethod).toUpperCase();
+    ticket += pad(payLabel, lineWidth - payVal.length) + payVal + br();
+  }
 
   ticket += br();
   ticket += pad('¡Gracias por su preferencia!', lineWidth, ' ', 'center') + br();
