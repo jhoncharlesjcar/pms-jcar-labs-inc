@@ -75,6 +75,15 @@ export default function Habitaciones() {
     const openNew = () => { setForm(empty); setEditId(null); setAmenities({ wifi: false, tv: false, agua: false, bano: false }); setOpen(true); };
 
     const handleSave = () => {
+        const isDuplicate = habitaciones.some(
+            h => String(h.numero).toLowerCase() === String(form.numero).toLowerCase() && h.id !== editId
+        );
+
+        if (isDuplicate) {
+            alert(`La habitación #${form.numero} ya existe. Por favor, usa un número diferente.`);
+            return;
+        }
+
         const dataToSave = { ...form, descripcion: JSON.stringify(amenities) };
         save.mutate(dataToSave);
     };
