@@ -2,6 +2,7 @@ import { useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Printer, Share2 } from 'lucide-react';
 import { shareTicket } from '@/modules/printer/services/sharePrinter';
+import { generatePlainTextTicket } from '@/modules/printer/services/thermalPrinter';
 
 export default function TicketPDF({ venta, config }) {
     const ticketRef = useRef();
@@ -40,7 +41,31 @@ export default function TicketPDF({ venta, config }) {
 
     const handleCompartir = async () => {
         const contenido = ticketRef.current.innerHTML;
-        await shareTicket(contenido);
+        
+        // Data estructurada para generar texto plano perfecto
+        const rawData = {
+            hotelName: config.nombre || 'HOSPEDAJE',
+            ruc: config.ruc,
+            address: config.direccion,
+            title: `TICKET INTERNO #${venta.numero_ticket}`,
+            guestName: venta.huesped_nombre,
+            documentId: venta.huesped_dni,
+            roomNumber: `${venta.habitacion_numero} (${venta.habitacion_tipo})`,
+            items: [
+                {
+                    quantity: venta.noches,
+                    description: 'Noche(s) de estadía',
+                    total: venta.subtotal
+                }
+            ],
+            subTotal: undefined, // It's just subtotal
+            descuento: venta.descuento > 0 ? venta.descuento : undefined,
+            total: venta.total,
+            paymentMethod: venta.metodo_pago
+        };
+
+        const plainText = generatePlainTextTicket(rawData, 32);
+        await shareTicket(contenido, 58, plainText);
     };
 
     return (

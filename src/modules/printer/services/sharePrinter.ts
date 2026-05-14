@@ -72,7 +72,7 @@ export const generateShareableHtml = (innerHtml, paperWidth = 58) => {
  * @param {number} [paperWidth=58] - Paper width in mm
  * @returns {Promise<boolean>}
  */
-export async function shareTicket(ticketHtml, paperWidth = 58) {
+export async function shareTicket(ticketHtml, paperWidth = 58, fallbackText = null) {
   try {
     if (!ticketHtml) {
       alert('No hay contenido para generar el ticket.');
@@ -85,17 +85,17 @@ export async function shareTicket(ticketHtml, paperWidth = 58) {
     const isAndroidDevice = isAndroid();
     const canUseWebShare = navigator.canShare && navigator.share;
 
-    // Si NO hay Web Share API (por estar en HTTP local o desktop)
     if (!canUseWebShare) {
       if (isAndroidDevice) {
         // FALLBACK ANDROID (HTTP Local): Disparar directo a RawBT
-        // Usamos la URI "rawbt:data:text/html" para que RawBT interprete el HTML,
-        // lo dibuje como imagen y lo imprima bonito (igual al preview), 
-        // en lugar de imprimir el código fuente como texto.
-        const encodedText = encodeURIComponent(fullHtml);
+        // Como la app RawBT muchas veces imprime el HTML como texto en lugar de renderizarlo,
+        // le enviamos un texto plano puramente alineado (si se proporciona) o limpiamos el HTML.
+        const plainText = fallbackText || ticketHtml.replace(/<[^>]*>?/gm, ' ').replace(/\s\s+/g, ' ');
+        const encodedText = encodeURIComponent(plainText);
         const base64Text = btoa(unescape(encodedText));
         
-        window.location.href = `rawbt:data:text/html;base64,${base64Text}`;
+        // Usamos el intent PARSE que entiende texto plano y comandos ESC/POS perfectamente
+        window.location.href = `intent:base64,${base64Text}#Intent;scheme=rawbt;package=ru.a402d.rawbtprinter;action=ru.a402d.rawbtprinter.PARSE;end;`;
         return true;
       } else {
         // FALLBACK DESKTOP: Abrir ventana e imprimir
@@ -118,10 +118,10 @@ export async function shareTicket(ticketHtml, paperWidth = 58) {
     const file = new File([blob], 'ticket.html', { type: 'text/html' });
 
     if (!navigator.canShare({ files: [file] })) {
-      // Si Chrome Android no permite compartir un archivo HTML directamente, fallback a rawbt directo
-      const encodedText = encodeURIComponent(fullHtml);
+      const plainText = fallbackText || ticketHtml.replace(/<[^>]*>?/gm, ' ').replace(/\s\s+/g, ' ');
+      const encodedText = encodeURIComponent(plainText);
       const base64Text = btoa(unescape(encodedText));
-      window.location.href = `rawbt:data:text/html;base64,${base64Text}`;
+      window.location.href = `intent:base64,${base64Text}#Intent;scheme=rawbt;package=ru.a402d.rawbtprinter;action=ru.a402d.rawbtprinter.PARSE;end;`;
       return true;
     }
 
