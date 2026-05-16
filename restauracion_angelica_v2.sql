@@ -7,6 +7,10 @@
 -- 3. Restaura el catálogo completo de habitaciones y minimarket.
 -- ============================================================
 
+-- [0] CORRECCIÓN DE SCHEMA (COLUMNAS FALTANTES)
+ALTER TABLE reservas ADD COLUMN IF NOT EXISTS nacionalidad TEXT DEFAULT 'Peruana';
+ALTER TABLE reservas ADD COLUMN IF NOT EXISTS motivo_viaje TEXT DEFAULT 'turismo';
+
 -- [1] CORRECCIÓN DE SEGURIDAD (RLS) - ELIMINAR RECURSIÓN
 -- Eliminamos políticas que causaban bucles infinitos
 DROP POLICY IF EXISTS "ver_perfiles_mismo_hotel" ON usuarios;

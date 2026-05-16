@@ -64,6 +64,8 @@ CREATE TABLE IF NOT EXISTS reservas (
     total NUMERIC,
     estado TEXT DEFAULT 'pendiente' CHECK (estado IN ('pendiente', 'activa', 'finalizada', 'cancelada')),
     observaciones TEXT,
+    nacionalidad TEXT DEFAULT 'Peruana',
+    motivo_viaje TEXT DEFAULT 'turismo',
     num_adultos INTEGER DEFAULT 1,
     num_ninos INTEGER DEFAULT 0,
     created_date TIMESTAMPTZ DEFAULT NOW(),
@@ -216,7 +218,11 @@ CREATE TRIGGER on_auth_user_created
     FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
 
 -- ============================================================
--- RLS Policies (SEGURIDAD REFORZADA)
+-- [0] CORRECCIÓN DE SCHEMA (COLUMNAS FALTANTES)
+ALTER TABLE reservas ADD COLUMN IF NOT EXISTS nacionalidad TEXT DEFAULT 'Peruana';
+ALTER TABLE reservas ADD COLUMN IF NOT EXISTS motivo_viaje TEXT DEFAULT 'turismo';
+
+-- [1] CORRECCIÓN DE SEGURIDAD (RLS) - ELIMINAR RECURSIÓN
 -- ============================================================
 
 -- Función para obtener el hotel_id del usuario actual
