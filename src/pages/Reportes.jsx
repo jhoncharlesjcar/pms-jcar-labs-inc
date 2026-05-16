@@ -2,21 +2,20 @@ import { useState, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { 
     BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, 
-    PieChart, Pie, Cell, LineChart, Line, Legend
+    PieChart, Pie, Cell, Legend
 } from 'recharts';
 import { 
-    FileText, Download, Calendar, Filter, TrendingUp, 
-    ShoppingCart, Hotel, Wallet, ArrowUpRight, ArrowDownRight,
-    Search, RefreshCw, Table as TableIcon
+    Download, TrendingUp, 
+    ShoppingCart, Hotel, Wallet, ArrowUpRight,
+    Table as TableIcon
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useHotelData } from '@/hooks/use-hotel-data';
 import { cn } from '@/lib/utils';
-import { motion, AnimatePresence } from 'framer-motion';
-import { format, startOfDay, endOfDay, startOfMonth, endOfMonth, startOfYear, endOfYear, subDays, isWithinInterval, parseISO } from 'date-fns';
-import { es } from 'date-fns/locale';
+import { motion } from 'framer-motion';
+import { format, startOfDay, endOfDay, startOfMonth, endOfMonth, startOfYear, endOfYear, isWithinInterval, parseISO } from 'date-fns';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import * as XLSX from 'xlsx';

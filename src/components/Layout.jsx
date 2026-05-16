@@ -1,9 +1,9 @@
 import { Outlet, Link, useLocation } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import {
-    LayoutDashboard, BedDouble, CalendarDays, Receipt, Settings,
-    Menu, X, Hotel, ChevronRight, LogOut, ShoppingCart, Code2, Building2,
-    LayoutGrid, Users, Package, CreditCard, Bell, FileText, Wallet, Sun, Moon
+    BedDouble, CalendarDays, Settings,
+    Menu, X, Hotel, LogOut, ShoppingCart, Code2, Building2,
+    LayoutGrid, Users, CreditCard, FileText, Wallet, Sun, Moon
 } from 'lucide-react';
 import { db } from '@/api/db';
 import { useAuth } from '@/lib/AuthContext';

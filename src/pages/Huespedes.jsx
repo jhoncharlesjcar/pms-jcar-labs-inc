@@ -3,9 +3,9 @@ import { useQuery } from '@tanstack/react-query';
 import { 
     Users, Search, Phone, MapPin, Calendar, 
     CreditCard, User as UserIcon, TrendingUp,
-    Filter, ArrowUpDown, ChevronRight, Eye,
-    ArrowLeft, Mail, Star, History, Info,
-    Clock, BedDouble, DollarSign
+    ArrowUpDown, Eye,
+    ArrowLeft, Mail, Star, History,
+    Clock, DollarSign
 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';

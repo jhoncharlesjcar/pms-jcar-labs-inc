@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { useHotelData } from '@/hooks/use-hotel-data';
-import { BedDouble, CheckCircle2, CalendarDays, User, TrendingUp, AlertTriangle, Wrench, Receipt, CalendarCheck, LayoutGrid, ChevronRight } from 'lucide-react';
+import { BedDouble, CheckCircle2, CalendarDays, User, TrendingUp, Receipt, ChevronRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { motion, useMotionValue, useTransform, animate } from 'framer-motion';
 import { useEffect } from 'react';

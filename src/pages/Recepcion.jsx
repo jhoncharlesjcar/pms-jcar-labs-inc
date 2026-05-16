@@ -258,7 +258,8 @@ export default function Recepcion() {
                                             <p className="text-xl sm:text-2xl font-display font-black text-foreground tracking-tight">S/ {r.total?.toFixed(2)}</p>
                                             <p className="text-[9px] text-muted-foreground font-mono mt-0.5 opacity-60">#{r.numero_reserva}</p>
                                         </div>
-                                        <div className="w-px h-10 bg-border/50 hidden sm:bl                                        <div className="flex gap-1.5">
+                                        <div className="w-px h-10 bg-border/50 hidden sm:block" />
+                                        <div className="flex gap-1.5">
                                             {r.estado === 'activa' && (
                                                 <Button size="sm" variant="default" className="gap-1.5 shadow-lg shadow-primary/10 rounded-xl h-9 text-[10px] sm:text-xs font-black uppercase tracking-tight px-3"
                                                     onClick={() => {
