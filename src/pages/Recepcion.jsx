@@ -294,7 +294,6 @@ export default function Recepcion() {
                                                 </Button>
                                             )}
                                         </div>
-           </div>
                                     </div>
                                 </div>
                             </motion.div>
