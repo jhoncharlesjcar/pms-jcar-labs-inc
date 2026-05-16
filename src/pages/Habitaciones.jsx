@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Plus, BedDouble, Wrench, CheckCircle, Clock, Pencil, Trash2, Wifi, Tv, Droplets, Bath } from 'lucide-react';
+import { Plus, BedDouble, Wrench, CheckCircle2, CalendarDays, User, Sparkles, Pencil, Trash2, Wifi, Tv, Droplets, Bath } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Input } from '@/components/ui/input';
@@ -9,12 +9,39 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { cn } from '@/lib/utils';
 import { useHotelData } from '@/hooks/use-hotel-data';
+import { motion, AnimatePresence } from 'framer-motion';
 
 const estadoConfig = {
-    disponible: { label: 'Disponible', icon: CheckCircle, color: 'text-green-600 dark:text-green-400', bg: 'bg-green-50 dark:bg-green-500/10 border-green-200 dark:border-green-500/20' },
-    ocupada: { label: 'Ocupada', icon: BedDouble, color: 'text-red-600 dark:text-red-400', bg: 'bg-red-50 dark:bg-red-500/10 border-red-200 dark:border-red-500/20' },
-    reservada: { label: 'Reservada', icon: Clock, color: 'text-yellow-600 dark:text-yellow-400', bg: 'bg-yellow-50 dark:bg-yellow-500/10 border-yellow-200 dark:border-yellow-500/20' },
-    mantenimiento: { label: 'Mantenimiento', icon: Wrench, color: 'text-gray-600 dark:text-gray-400', bg: 'bg-gray-50 dark:bg-gray-500/10 border-gray-200 dark:border-gray-500/20' },
+    disponible: { 
+        label: 'Disponible', 
+        icon: CheckCircle2, 
+        color: 'text-[hsl(var(--state-disponible-fg))]', 
+        bg: 'bg-[hsl(var(--state-disponible-bg))] border-[hsl(var(--state-disponible-border))]' 
+    },
+    ocupada: { 
+        label: 'Ocupada', 
+        icon: User, 
+        color: 'text-[hsl(var(--state-ocupada-fg))]', 
+        bg: 'bg-[hsl(var(--state-ocupada-bg))] border-[hsl(var(--state-ocupada-border))]' 
+    },
+    reservada: { 
+        label: 'Reservada', 
+        icon: CalendarDays, 
+        color: 'text-[hsl(var(--state-reservada-fg))]', 
+        bg: 'bg-[hsl(var(--state-reservada-bg))] border-[hsl(var(--state-reservada-border))]' 
+    },
+    mantenimiento: { 
+        label: 'Mantenimiento', 
+        icon: Wrench, 
+        color: 'text-[hsl(var(--state-mantenimiento-fg))]', 
+        bg: 'bg-[hsl(var(--state-mantenimiento-bg))] border-[hsl(var(--state-mantenimiento-border))]' 
+    },
+    limpieza: { 
+        label: 'Limpieza', 
+        icon: Sparkles, 
+        color: 'text-[hsl(var(--state-limpieza-fg))]', 
+        bg: 'bg-[hsl(var(--state-limpieza-bg))] border-[hsl(var(--state-limpieza-border))]' 
+    },
 };
 
 const tiposHab = ['simple', 'doble simple', 'matrimonial', 'doble matrimonial', 'mixta', 'queen'];
@@ -97,114 +124,235 @@ export default function Habitaciones() {
         });
 
     return (
-        <div className="space-y-6">
-            <div className="flex items-center justify-between">
+        <motion.div 
+            initial={{ opacity: 0 }} 
+            animate={{ opacity: 1 }} 
+            className="space-y-6"
+        >
+            <motion.div 
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="flex flex-col sm:flex-row sm:items-center justify-between gap-4"
+            >
                 <div>
-                    <h1 className="font-display text-3xl font-bold text-foreground">Habitaciones</h1>
-                    <p className="text-muted-foreground mt-1">{habitaciones.length} habitaciones registradas</p>
+                    <h1 className="font-display text-2xl sm:text-3xl font-black text-foreground tracking-tight">Habitaciones</h1>
+                    <p className="text-muted-foreground text-xs sm:text-sm mt-0.5">{habitaciones.length} habitaciones registradas</p>
                 </div>
-                <Button onClick={openNew} className="gap-2">
-                    <Plus className="w-4 h-4" /> Nueva Habitación
-                </Button>
-            </div>
-
-            {/* Filtros */}
-            <div className="flex gap-2 flex-wrap">
-                {['todos', 'disponible', 'ocupada', 'reservada', 'mantenimiento'].map(e => (
+                <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} className="w-full sm:w-auto">
+                    <Button onClick={openNew} className="w-full sm:w-auto gap-2 shadow-lg shadow-primary/20 h-11 sm:h-10 rounded-xl font-black uppercase text-[10px]">
+                        <Plus className="w-4 h-4" /> Nueva Habitación
+                    </Button>
+                </motion.div>
+            </motion.div>
+            <motion.div 
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.1 }}
+                className="space-y-3"
+            >
+                <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] px-1">Filtrar por Estado</p>
+                <div className="flex gap-2.5 overflow-x-auto pb-4 scrollbar-hide px-1 -mx-1">
+                    {/* Botón "Todas" */}
                     <button
-                        key={e}
-                        onClick={() => setFiltroEstado(e)}
-                        className={cn(
-                            "px-4 py-2 rounded-xl text-sm font-medium transition-all border",
-                            filtroEstado === e ? "bg-primary text-primary-foreground border-primary" : "bg-card text-muted-foreground border-border hover:bg-secondary"
-                        )}
+                        onClick={() => setFiltroEstado('todos')}
+                        className="flex-shrink-0 transition-all duration-200"
                     >
-                        {e === 'todos' ? 'Todas' : estadoConfig[e]?.label}
-                        <span className="ml-2 text-xs opacity-70">
-                            {e === 'todos' ? habitaciones.length : habitaciones.filter(h => h.estado === e).length}
-                        </span>
+                        <div className={cn(
+                            "px-4 py-3 rounded-2xl flex items-center gap-3 shadow-lg transition-all duration-300 min-w-[120px]",
+                            filtroEstado === 'todos'
+                                ? "bg-gradient-to-br from-primary to-primary/80 shadow-primary/30 ring-2 ring-primary/40 ring-offset-2 ring-offset-background scale-[1.03]"
+                                : "bg-card/40 border border-border/50 opacity-75 hover:opacity-100"
+                        )}>
+                            <BedDouble className={cn("w-5 h-5", filtroEstado === 'todos' ? "text-white/80" : "text-primary")} />
+                            <div className="text-left">
+                                <p className={cn("text-[10px] font-black uppercase tracking-widest leading-tight", filtroEstado === 'todos' ? "text-white" : "text-muted-foreground")}>Todas</p>
+                                <p className={cn("text-base font-black leading-none mt-0.5", filtroEstado === 'todos' ? "text-white/90" : "text-foreground")}>{habitaciones.length}</p>
+                            </div>
+                        </div>
                     </button>
-                ))}
-            </div>
+ 
+                    {/* Botones de estado */}
+                    {Object.entries(estadoConfig).map(([key, cfg]) => {
+                        const StateIcon = cfg.icon;
+                        const count = habitaciones.filter(h => h.estado === key).length;
+                        const colorMap = {
+                            disponible: 'from-green-500 to-green-600 shadow-green-500/25 ring-green-400/40',
+                            ocupada: 'from-red-500 to-red-600 shadow-red-500/25 ring-red-400/40',
+                            reservada: 'from-blue-500 to-blue-600 shadow-blue-500/25 ring-blue-400/40',
+                            mantenimiento: 'from-amber-500 to-amber-600 shadow-amber-500/25 ring-amber-400/40',
+                            limpieza: 'from-purple-500 to-purple-600 shadow-purple-500/25 ring-purple-400/40',
+                        };
+                        const inactiveIconColor = {
+                            disponible: 'text-green-500',
+                            ocupada: 'text-red-500',
+                            reservada: 'text-blue-500',
+                            mantenimiento: 'text-amber-500',
+                            limpieza: 'text-purple-500',
+                        };
+                        return (
+                            <button
+                                key={key}
+                                onClick={() => setFiltroEstado(key)}
+                                className="flex-shrink-0 transition-all duration-200"
+                            >
+                                <div className={cn(
+                                    "px-4 py-3 rounded-2xl flex items-center gap-3 shadow-lg transition-all duration-300 min-w-[120px] border",
+                                    filtroEstado === key
+                                        ? `${colorMap[key]} bg-gradient-to-br ring-2 ring-offset-2 ring-offset-background scale-[1.03]`
+                                        : `bg-card/40 border-border/50 opacity-75 hover:opacity-100`
+                                )}>
+                                    <StateIcon className={cn("w-5 h-5", filtroEstado === key ? "text-white/80" : inactiveIconColor[key])} />
+                                    <div className="text-left">
+                                        <p className={cn("text-[10px] font-black uppercase tracking-widest leading-tight", filtroEstado === key ? "text-white" : "text-muted-foreground")}>{cfg.label}</p>
+                                        <p className={cn("text-base font-black leading-none mt-0.5", filtroEstado === key ? "text-white/90" : "text-foreground")}>{count}</p>
+                                    </div>
+                                </div>
+                            </button>
+                        );
+                    })}
+                </div>
+            </motion.div>
 
             {/* Grid */}
             {isLoading ? (
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                     {[...Array(8)].map((_, i) => (
-                        <div key={i} className="bg-card/80 backdrop-blur-md rounded-2xl border border-border/50 p-5 animate-pulse h-40 shadow-sm" />
+                        <div key={i} className="bg-card/80 backdrop-blur-xl rounded-2xl border border-border/50 p-5 animate-pulse h-40 shadow-sm" />
                     ))}
                 </div>
             ) : (
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                    {filtradas.map(h => {
-                        const cfg = estadoConfig[h.estado] || estadoConfig.disponible;
-                        const StateIcon = cfg.icon;
-                        return (
-                            <div key={h.id} className={cn("rounded-2xl border p-5 flex flex-col gap-3 transition-all duration-300 hover:shadow-xl hover:-translate-y-1 backdrop-blur-md", cfg.bg)}>
-                                <div className="flex items-start justify-between">
-                                    <div>
-                                        <p className="text-2xl font-bold text-foreground">#{h.numero}</p>
-                                        <p className="text-xs text-muted-foreground capitalize">{h.tipo}{h.piso ? ` · Piso ${h.piso}` : ''}</p>
-                                    </div>
-                                    <StateIcon className={cn("w-5 h-5", cfg.color)} />
-                                </div>
-                                <div>
-                                    <p className="text-lg font-semibold text-foreground">S/ {h.precio_noche}</p>
-                                    <p className="text-xs text-muted-foreground">por noche · {h.capacidad} persona(s)</p>
-                                </div>
-                                <div className="flex items-center justify-between">
-                                    <span className={cn("text-xs font-medium px-2 py-1 rounded-lg w-fit", cfg.color, "bg-white/60 dark:bg-background/50")}>
+                <motion.div 
+                    layout
+                    initial="hidden"
+                    animate="visible"
+                    variants={{
+                        hidden: { opacity: 0 },
+                        visible: { opacity: 1, transition: { staggerChildren: 0.05 } }
+                    }}
+                    className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4"
+                >
+                    <AnimatePresence>
+                        {filtradas.map(h => {
+                            const cfg = estadoConfig[h.estado] || estadoConfig.disponible;
+                            const StateIcon = cfg.icon;
+                            const stateCardColors = {
+                                disponible: 'bg-green-50 border-green-200 dark:bg-green-950/40 dark:border-green-800/50',
+                                ocupada: 'bg-red-50 border-red-200 dark:bg-red-950/40 dark:border-red-800/50',
+                                reservada: 'bg-blue-50 border-blue-200 dark:bg-blue-950/40 dark:border-blue-800/50',
+                                mantenimiento: 'bg-amber-50 border-amber-200 dark:bg-amber-950/40 dark:border-amber-800/50',
+                                limpieza: 'bg-purple-50 border-purple-200 dark:bg-purple-950/40 dark:border-purple-800/50',
+                            };
+                            const stateBadgeColors = {
+                                disponible: 'bg-green-100 text-green-700 border-green-300 dark:bg-green-900/50 dark:text-green-400 dark:border-green-700/50',
+                                ocupada: 'bg-red-100 text-red-700 border-red-300 dark:bg-red-900/50 dark:text-red-400 dark:border-red-700/50',
+                                reservada: 'bg-blue-100 text-blue-700 border-blue-300 dark:bg-blue-900/50 dark:text-blue-400 dark:border-blue-700/50',
+                                mantenimiento: 'bg-amber-100 text-amber-700 border-amber-300 dark:bg-amber-900/50 dark:text-amber-400 dark:border-amber-700/50',
+                                limpieza: 'bg-purple-100 text-purple-700 border-purple-300 dark:bg-purple-900/50 dark:text-purple-400 dark:border-purple-700/50',
+                            };
+                            const stateNumberColors = {
+                                disponible: 'text-green-700 dark:text-green-400',
+                                ocupada: 'text-red-700 dark:text-red-400',
+                                reservada: 'text-blue-700 dark:text-blue-400',
+                                mantenimiento: 'text-amber-700 dark:text-amber-400',
+                                limpieza: 'text-purple-700 dark:text-purple-400',
+                            };
+                            return (
+                                <motion.div 
+                                    layout
+                                    variants={{ hidden: { opacity: 0, scale: 0.95 }, visible: { opacity: 1, scale: 1 } }}
+                                    exit={{ opacity: 0, scale: 0.9 }}
+                                    whileHover={{ y: -4 }}
+                                    transition={{ type: "spring", stiffness: 300, damping: 25 }}
+                                    key={h.id} 
+                                    className={cn(
+                                        "group relative overflow-hidden rounded-2xl border-2 p-4 sm:p-5 flex flex-col items-center justify-center text-center gap-1 transition-all duration-300 hover:shadow-xl min-h-[160px] sm:min-h-[140px]",
+                                        stateCardColors[h.estado] || stateCardColors.disponible
+                                    )}
+                                >
+                                    {/* Número de habitación */}
+                                    <p className={cn("text-2xl sm:text-3xl font-black tracking-tight", stateNumberColors[h.estado] || stateNumberColors.disponible)}>
+                                        {h.numero}
+                                    </p>
+
+                                    {/* Tipo de habitación */}
+                                    <p className="text-xs text-muted-foreground capitalize font-medium">
+                                        {h.tipo}{h.piso ? ` · Piso ${h.piso}` : ''}
+                                    </p>
+
+                                    {/* Precio */}
+                                    <p className="text-sm font-bold text-foreground mt-1">
+                                        S/ {h.precio_noche}
+                                    </p>
+                                    <p className="text-[10px] text-muted-foreground">por noche · {h.capacidad} persona(s)</p>
+
+                                    {/* Badge de estado */}
+                                    <span className={cn(
+                                        "text-[10px] font-bold uppercase tracking-widest px-3 py-1 rounded-full border mt-2",
+                                        stateBadgeColors[h.estado] || stateBadgeColors.disponible
+                                    )}>
                                         {cfg.label}
                                     </span>
-                                    <div className="flex gap-1.5 text-muted-foreground/70">
+
+                                    {/* Amenities row */}
+                                    <div className="flex gap-1.5 text-muted-foreground/60 mt-1.5">
                                         {AMENITIES_MAP.map(a => {
                                             const Icon = a.icon;
-                                            return parseAmenities(h.descripcion)[a.id] ? <Icon key={a.id} className="w-4 h-4" title={a.label} /> : null;
+                                            return parseAmenities(h.descripcion)[a.id] ? (
+                                                <span key={a.id} title={a.label}>
+                                                    <Icon className="w-3.5 h-3.5" />
+                                                </span>
+                                            ) : null;
                                         })}
                                     </div>
-                                </div>
-                                <div className="flex gap-2 mt-auto">
-                                    <button onClick={() => openEdit(h)} className="flex-1 text-xs py-1.5 rounded-lg bg-white/70 hover:bg-white dark:bg-background/50 dark:hover:bg-background transition-all text-foreground font-medium flex items-center justify-center gap-1">
-                                        <Pencil className="w-3 h-3" /> Editar
-                                    </button>
-                                    <button onClick={() => { if (confirm('¿Eliminar habitación?')) del.mutate(h.id); }} className="p-1.5 rounded-lg bg-white/70 hover:bg-red-50 hover:text-red-600 dark:bg-background/50 dark:hover:bg-red-950/50 dark:hover:text-red-400 transition-all text-muted-foreground">
-                                        <Trash2 className="w-3 h-3" />
-                                    </button>
-                                </div>
-                            </div>
-                        );
-                    })}
+
+                                    {/* Acciones (aparecen al hover o visibles en móvil) */}
+                                    <div className="absolute bottom-0 left-0 right-0 flex gap-1 p-1.5 sm:p-2 bg-gradient-to-t from-background via-background/80 to-transparent opacity-100 sm:opacity-0 group-hover:opacity-100 transition-all duration-300 translate-y-0 sm:translate-y-1 sm:group-hover:translate-y-0">
+                                        <button onClick={() => openEdit(h)} className="flex-1 text-[10px] sm:text-xs py-1.5 sm:py-2 rounded-lg bg-background/90 hover:bg-background backdrop-blur-sm transition-all text-foreground font-black uppercase flex items-center justify-center gap-1 border border-border/50 shadow-sm">
+                                            <Pencil className="w-3 h-3 sm:w-3.5 sm:h-3.5" /> <span className="hidden sm:inline">Editar</span>
+                                        </button>
+                                        <button onClick={() => { if (confirm('¿Eliminar habitación?')) del.mutate(h.id); }} className="w-9 h-9 sm:w-10 sm:h-10 shrink-0 rounded-lg bg-background/90 hover:bg-red-500/10 backdrop-blur-sm transition-all text-muted-foreground hover:text-red-500 border border-border/50 shadow-sm flex items-center justify-center">
+                                            <Trash2 className="w-3.5 h-3.5" />
+                                        </button>
+                                    </div>
+                                </motion.div>
+                            );
+                        })}
+                    </AnimatePresence>
                     {filtradas.length === 0 && (
-                        <div className="col-span-full text-center py-16 text-muted-foreground">
+                        <motion.div 
+                            initial={{ opacity: 0 }} 
+                            animate={{ opacity: 1 }} 
+                            className="col-span-full text-center py-16 text-muted-foreground"
+                        >
                             <BedDouble className="w-12 h-12 mx-auto mb-3 opacity-30" />
                             <p>No hay habitaciones {filtroEstado !== 'todos' ? `en estado "${estadoConfig[filtroEstado]?.label}"` : ''}</p>
-                        </div>
+                        </motion.div>
                     )}
-                </div>
+                </motion.div>
             )}
 
             {/* Modal */}
             <Dialog open={open} onOpenChange={setOpen}>
-                <DialogContent className="max-w-md">
+                <DialogContent className="max-w-md bg-card/95 backdrop-blur-xl border-border/50 shadow-2xl">
                     <DialogHeader>
-                        <DialogTitle className="font-display">{editId ? 'Editar Habitación' : 'Nueva Habitación'}</DialogTitle>
+                        <DialogTitle className="font-display text-2xl">{editId ? 'Editar Habitación' : 'Nueva Habitación'}</DialogTitle>
                     </DialogHeader>
                     <div className="space-y-4">
                         <div className="grid grid-cols-2 gap-3">
                             <div>
                                 <Label>Número / Nombre</Label>
-                                <Input value={form.numero} onChange={e => setForm({ ...form, numero: e.target.value })} placeholder="101" className="mt-1" />
+                                <Input value={form.numero} onChange={e => setForm({ ...form, numero: e.target.value })} placeholder="101" className="mt-1 bg-background/50" />
                             </div>
                             <div>
                                 <Label>Piso</Label>
-                                <Input value={form.piso} onChange={e => setForm({ ...form, piso: e.target.value })} placeholder="1" className="mt-1" />
+                                <Input value={form.piso} onChange={e => setForm({ ...form, piso: e.target.value })} placeholder="1" className="mt-1 bg-background/50" />
                             </div>
                         </div>
                         <div className="grid grid-cols-2 gap-3">
                             <div>
                                 <Label>Tipo</Label>
                                 <Select value={form.tipo} onValueChange={v => setForm({ ...form, tipo: v })}>
-                                    <SelectTrigger className="mt-1"><SelectValue /></SelectTrigger>
+                                    <SelectTrigger className="mt-1 bg-background/50"><SelectValue /></SelectTrigger>
                                     <SelectContent>
                                         {tiposHab.map(t => <SelectItem key={t} value={t} className="capitalize">{t}</SelectItem>)}
                                     </SelectContent>
@@ -212,17 +360,17 @@ export default function Habitaciones() {
                             </div>
                             <div>
                                 <Label>Capacidad (personas)</Label>
-                                <Input type="number" min={1} value={String(form.capacidad)} onChange={e => setForm({ ...form, capacidad: Number(e.target.value) })} className="mt-1" />
+                                <Input type="number" min={1} value={String(form.capacidad)} onChange={e => setForm({ ...form, capacidad: Number(e.target.value) })} className="mt-1 bg-background/50" />
                             </div>
                         </div>
                         <div>
                             <Label>Precio por noche (S/)</Label>
-                            <Input type="number" min={0} value={String(form.precio_noche)} onChange={e => setForm({ ...form, precio_noche: Number(e.target.value) })} placeholder="80" className="mt-1" />
+                            <Input type="number" min={0} value={String(form.precio_noche)} onChange={e => setForm({ ...form, precio_noche: Number(e.target.value) })} placeholder="80" className="mt-1 bg-background/50" />
                         </div>
                         <div>
                             <Label>Estado</Label>
                             <Select value={form.estado} onValueChange={v => setForm({ ...form, estado: v })}>
-                                <SelectTrigger className="mt-1"><SelectValue /></SelectTrigger>
+                                <SelectTrigger className="mt-1 bg-background/50"><SelectValue /></SelectTrigger>
                                 <SelectContent>
                                     {Object.entries(estadoConfig).map(([k, v]) => <SelectItem key={k} value={k}>{v.label}</SelectItem>)}
                                 </SelectContent>
@@ -234,13 +382,13 @@ export default function Habitaciones() {
                                 {AMENITIES_MAP.map(a => {
                                     const Icon = a.icon;
                                     return (
-                                        <div key={a.id} className="flex items-center justify-between bg-card border rounded-xl p-2.5">
+                                        <div key={a.id} className="flex items-center justify-between bg-background/50 border border-border/50 rounded-xl p-2.5 hover:bg-background/80 transition-colors">
                                             <div className="flex items-center gap-2">
                                                 <Icon className="w-4 h-4 text-muted-foreground" />
                                                 <span className="text-sm font-medium">{a.label}</span>
                                             </div>
                                             <Switch 
-                                                checked={amenities[a.id]} 
+                                                checked={!!amenities[a.id]} 
                                                 onCheckedChange={c => setAmenities({ ...amenities, [a.id]: c })} 
                                             />
                                         </div>
@@ -249,7 +397,7 @@ export default function Habitaciones() {
                             </div>
                         </div>
                         <div className="flex gap-3 pt-2">
-                            <Button variant="outline" className="flex-1" onClick={() => setOpen(false)}>Cancelar</Button>
+                            <Button variant="outline" className="flex-1 bg-transparent border-border hover:bg-secondary/10 hover:text-foreground" onClick={() => setOpen(false)}>Cancelar</Button>
                             <Button className="flex-1" onClick={handleSave} disabled={save.isPending || !form.numero || !form.precio_noche}>
                                 {save.isPending ? 'Guardando...' : editId ? 'Actualizar' : 'Crear'}
                             </Button>
@@ -257,6 +405,6 @@ export default function Habitaciones() {
                     </div>
                 </DialogContent>
             </Dialog>
-        </div>
+        </motion.div>
     );
 }

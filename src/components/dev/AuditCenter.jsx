@@ -12,7 +12,10 @@ export default function AuditCenter({ hoteles, habitaciones, reservas, ventas, u
                     const resH = reservas.filter(r => r.hotel_id === h.id);
                     const venH = ventas.filter(v => v.hotel_id === h.id);
                     const staffH = usuarios.filter(u => u.hotel_id === h.id);
-                    const ingresos = venH.reduce((s, v) => s + (v.total || 0), 0);
+                    
+                    // Cálculo de ingresos incluyendo POS (asumiendo que ventas_pos se pasará o se buscará de alguna forma)
+                    // Por ahora, corregimos el reduce existente
+                    const ingresos = venH.reduce((s, v) => s + Number(v.total || 0), 0);
                     const ocupacion = habsH.length > 0 ? Math.round((habsH.filter(hb => hb.estado === 'ocupada').length / habsH.length) * 100) : 0;
 
                     return (

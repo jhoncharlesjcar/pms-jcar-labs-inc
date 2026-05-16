@@ -31,6 +31,7 @@ export default function PanelDesarrollador() {
     const { data: usuarios = [] } = useQuery({ queryKey: ['usuarios'], queryFn: () => db.entities.User.list() });
     const { data: reservas = [] } = useQuery({ queryKey: ['reservas'], queryFn: () => db.entities.Reserva.list() });
     const { data: ventas = [] } = useQuery({ queryKey: ['ventas'], queryFn: () => db.entities.Venta.list('-created_date', 100) });
+    const { data: ventasPOS = [] } = useQuery({ queryKey: ['ventaspos'], queryFn: () => db.entities.VentaPOS.list() });
     const { data: habitaciones = [] } = useQuery({ queryKey: ['habitaciones'], queryFn: () => db.entities.Habitacion.list() });
 
     if (user && user.role !== 'developer') {
@@ -43,12 +44,14 @@ export default function PanelDesarrollador() {
         );
     }
 
+    const todasVentas = [...ventas, ...ventasPOS];
+
     const statsGlobales = {
         totalHoteles: hoteles.length,
         totalUsuarios: usuarios.length,
         totalReservas: reservas.length,
         reservasActivas: reservas.filter(r => r.estado === 'activa').length,
-        totalVentas: ventas.reduce((s, v) => s + (v.total || 0), 0),
+        totalVentas: todasVentas.reduce((s, v) => s + Number(v.total || 0), 0),
     };
 
     return (
@@ -86,7 +89,7 @@ export default function PanelDesarrollador() {
                         hoteles={hoteles} 
                         habitaciones={habitaciones} 
                         reservas={reservas} 
-                        ventas={ventas} 
+                        ventas={todasVentas} 
                         usuarios={usuarios}
                         isLoading={loadHoteles} 
                     />
@@ -99,7 +102,7 @@ export default function PanelDesarrollador() {
                         hoteles={hoteles} 
                         habitaciones={habitaciones} 
                         reservas={reservas} 
-                        ventas={ventas} 
+                        ventas={todasVentas} 
                         usuarios={usuarios} 
                     />
                 )}

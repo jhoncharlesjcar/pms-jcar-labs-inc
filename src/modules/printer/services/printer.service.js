@@ -3,6 +3,7 @@ import { generateThermalTicket } from '../templates/base.js';
 import { buildCheckInTemplate } from '../templates/checkIn.js';
 import { buildCheckOutTemplate } from '../templates/checkOut.js';
 import { buildReceiptTemplate } from '../templates/receipt.js';
+import { buildCashClosureTemplate } from '../templates/cashClosure.js';
 
 /**
  * Printer Service Module
@@ -62,6 +63,21 @@ export const printReceipt = (data) => {
     return printHTML(html);
   } catch (error) {
     console.error('[Printer Service] Error printing receipt ticket:', error);
+    return false;
+  }
+};
+
+/**
+ * Generates and prints a Cash Closure report
+ * @param {object} data 
+ * @returns {boolean}
+ */
+export const printCashClosure = (data) => {
+  try {
+    const html = buildCashClosureTemplate(data);
+    return printHTML(html);
+  } catch (error) {
+    console.error('[Printer Service] Error printing cash closure:', error);
     return false;
   }
 };

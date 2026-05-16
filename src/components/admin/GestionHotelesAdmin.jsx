@@ -20,7 +20,7 @@ const ROLES_STAFF = [
 
 const emptyHotel = { nombre: '', ruc: '', direccion: '', ciudad: '', telefono: '', email: '', hora_checkin: '14:00', hora_checkout: '12:00', activo: true, notas: '' };
 
-export default function GestionHotelesAdmin() {
+export default function GestionHotelesAdmin({ onClose }) {
     const { user } = useAuth();
     const qc = useQueryClient();
 
@@ -59,9 +59,9 @@ export default function GestionHotelesAdmin() {
     });
 
     const saveHotel = useMutation({
-        mutationFn: (data) => editHotel
-            ? db.entities.Hotel.update(editHotel.id, data)
-            : db.entities.Hotel.create(data),
+        mutationFn: (/** @type {any} */ vars) => editHotel
+            ? db.entities.Hotel.update(editHotel.id, vars)
+            : db.entities.Hotel.create(vars),
         onSuccess: () => {
             qc.invalidateQueries({ queryKey: ['hoteles'] });
             setHotelModal(false); setEditHotel(null); setHotelForm(emptyHotel);
@@ -69,17 +69,17 @@ export default function GestionHotelesAdmin() {
     });
 
     const deleteHotel = useMutation({
-        mutationFn: (id) => db.entities.Hotel.delete(id),
+        mutationFn: (/** @type {any} */ id) => db.entities.Hotel.delete(id),
         onSuccess: () => qc.invalidateQueries({ queryKey: ['hoteles'] }),
     });
 
     const toggleHotel = useMutation({
-        mutationFn: ({ id, activo }) => db.entities.Hotel.update(id, { activo }),
+        mutationFn: (/** @type {any} */ vars) => db.entities.Hotel.update(vars.id, { activo: vars.activo }),
         onSuccess: () => qc.invalidateQueries({ queryKey: ['hoteles'] }),
     });
 
     const marcarCodigoUsado = useMutation({
-        mutationFn: ({ id }) => db.entities.CodigoDesbloqueo.update(id, {
+        mutationFn: (/** @type {any} */ vars) => db.entities.CodigoDesbloqueo.update(vars.id, {
             usado: true,
             usado_por: user?.email,
             fecha_uso: new Date().toISOString().split('T')[0],

@@ -96,7 +96,7 @@ CREATE TABLE IF NOT EXISTS ventas (
     ruc_cliente TEXT,
     razon_social TEXT,
     notas TEXT,
-    fecha_pago DATE,
+    fecha_pago TIMESTAMPTZ DEFAULT NOW(),
     created_date TIMESTAMPTZ DEFAULT NOW(),
     updated_date TIMESTAMPTZ DEFAULT NOW()
 );
@@ -162,7 +162,7 @@ CREATE TABLE IF NOT EXISTS ventas_pos (
     ruc_cliente TEXT,
     razon_social TEXT,
     notas TEXT,
-    fecha_venta DATE,
+    fecha_venta TIMESTAMPTZ DEFAULT NOW(),
     created_date TIMESTAMPTZ DEFAULT NOW(),
     updated_date TIMESTAMPTZ DEFAULT NOW()
 );
@@ -216,9 +216,17 @@ CREATE TRIGGER on_auth_user_created
     FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
 
 -- ============================================================
--- RLS Policies (básicas - sin restricciones por ahora)
--- El sistema maneja el multi-tenant a nivel de aplicación
+-- RLS Policies (SEGURIDAD REFORZADA)
 -- ============================================================
+
+-- Función para obtener el hotel_id del usuario actual
+CREATE OR REPLACE FUNCTION get_my_hotel_id()
+RETURNS UUID AS $$
+BEGIN
+  RETURN (SELECT hotel_id FROM public.usuarios WHERE id = auth.uid());
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
 ALTER TABLE hoteles ENABLE ROW LEVEL SECURITY;
 ALTER TABLE habitaciones ENABLE ROW LEVEL SECURITY;
 ALTER TABLE reservas ENABLE ROW LEVEL SECURITY;
@@ -229,16 +237,23 @@ ALTER TABLE ventas_pos ENABLE ROW LEVEL SECURITY;
 ALTER TABLE codigos_desbloqueo ENABLE ROW LEVEL SECURITY;
 ALTER TABLE usuarios ENABLE ROW LEVEL SECURITY;
 
--- Políticas permisivas para usuarios autenticados
-CREATE POLICY "allow_all_hoteles" ON hoteles FOR ALL TO authenticated USING (true) WITH CHECK (true);
-CREATE POLICY "allow_all_habitaciones" ON habitaciones FOR ALL TO authenticated USING (true) WITH CHECK (true);
-CREATE POLICY "allow_all_reservas" ON reservas FOR ALL TO authenticated USING (true) WITH CHECK (true);
-CREATE POLICY "allow_all_ventas" ON ventas FOR ALL TO authenticated USING (true) WITH CHECK (true);
-CREATE POLICY "allow_all_config_hotel" ON config_hotel FOR ALL TO authenticated USING (true) WITH CHECK (true);
-CREATE POLICY "allow_all_servicios_extra" ON servicios_extra FOR ALL TO authenticated USING (true) WITH CHECK (true);
-CREATE POLICY "allow_all_ventas_pos" ON ventas_pos FOR ALL TO authenticated USING (true) WITH CHECK (true);
-CREATE POLICY "allow_all_codigos_desbloqueo" ON codigos_desbloqueo FOR ALL TO authenticated USING (true) WITH CHECK (true);
-CREATE POLICY "allow_all_usuarios" ON usuarios FOR ALL TO authenticated USING (true) WITH CHECK (true);
+-- Políticas de hoteles: Ver el propio, dueños pueden ver el suyo
+CREATE POLICY "ver_propio_hotel" ON hoteles FOR SELECT TO authenticated USING (id = get_my_hotel_id());
+
+-- Políticas multi-tenant estándar (Filtrar por hotel_id)
+CREATE POLICY "tenant_habitaciones" ON habitaciones FOR ALL TO authenticated USING (hotel_id = get_my_hotel_id()) WITH CHECK (hotel_id = get_my_hotel_id());
+CREATE POLICY "tenant_reservas" ON reservas FOR ALL TO authenticated USING (hotel_id = get_my_hotel_id()) WITH CHECK (hotel_id = get_my_hotel_id());
+CREATE POLICY "tenant_ventas" ON ventas FOR ALL TO authenticated USING (hotel_id = get_my_hotel_id()) WITH CHECK (hotel_id = get_my_hotel_id());
+CREATE POLICY "tenant_config" ON config_hotel FOR ALL TO authenticated USING (hotel_id = get_my_hotel_id()) WITH CHECK (hotel_id = get_my_hotel_id());
+CREATE POLICY "tenant_servicios" ON servicios_extra FOR ALL TO authenticated USING (hotel_id = get_my_hotel_id()) WITH CHECK (hotel_id = get_my_hotel_id());
+CREATE POLICY "tenant_ventas_pos" ON ventas_pos FOR ALL TO authenticated USING (hotel_id = get_my_hotel_id()) WITH CHECK (hotel_id = get_my_hotel_id());
+
+-- Códigos de desbloqueo (Solo lectura para todos, actualización para uso)
+CREATE POLICY "read_codigos" ON codigos_desbloqueo FOR SELECT TO authenticated USING (true);
+CREATE POLICY "update_codigos" ON codigos_desbloqueo FOR UPDATE TO authenticated USING (true);
+
+-- Usuarios: Ver mi propio perfil y los de mi hotel
+CREATE POLICY "ver_perfiles_mismo_hotel" ON usuarios FOR SELECT TO authenticated USING (hotel_id = get_my_hotel_id() OR id = auth.uid());
 
 -- Indices para performance
 CREATE INDEX IF NOT EXISTS idx_habitaciones_hotel ON habitaciones(hotel_id);

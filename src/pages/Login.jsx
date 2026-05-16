@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { supabase } from '@/lib/supabaseClient';
-import { Hotel, Mail, Lock, Eye, EyeOff } from 'lucide-react';
+import { Hotel, Mail, Lock, Eye, EyeOff, ShieldCheck } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { motion, AnimatePresence } from 'framer-motion';
 
 export default function Login() {
     const [email, setEmail] = useState('');
@@ -34,58 +36,68 @@ export default function Login() {
     };
 
     return (
-        <div className="relative min-h-screen flex items-center justify-center px-4">
-            {/* Fondo con la imagen del hotel */}
+        <div className="relative min-h-screen flex items-center justify-center px-4 overflow-hidden bg-black">
+            {/* Background Layer (Cinematic) */}
             <div 
-                className="absolute inset-0 z-0 bg-cover bg-top bg-no-repeat pointer-events-none"
-                style={{ backgroundImage: "url('/bg-hotel.jpg')" }}
+                className="absolute inset-0 z-0 bg-cover bg-center scale-110"
+                style={{ backgroundImage: "url('https://images.unsplash.com/photo-1566073771259-6a8506099945?q=80&w=2070&auto=format&fit=crop')" }}
             >
-                {/* Overlay cinematográfico (Glassmorphism oscuro) */}
-                <div className="absolute inset-0 bg-slate-950/60 backdrop-blur-[3px]" />
-                <div className="absolute inset-0 bg-gradient-to-b from-slate-950/80 via-slate-900/40 to-slate-950/95" />
+                {/* Dark OLED Overlay */}
+                <div className="absolute inset-0 bg-black/70 backdrop-blur-[6px]" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-black/80" />
             </div>
 
-            <div className="relative z-10 w-full max-w-md">
-                {/* Logo */}
-                <div className="text-center mb-8">
-                    <div className="inline-flex items-center justify-center w-16 h-16 bg-primary rounded-2xl shadow-lg shadow-primary/30 mb-4">
-                        <Hotel className="w-8 h-8 text-white" />
-                    </div>
+            <motion.div 
+                initial={{ opacity: 0, y: 30 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.8, ease: "easeOut" }}
+                className="relative z-10 w-full max-w-md"
+            >
+                {/* Logo Section */}
+                <div className="text-center mb-10">
+                    <motion.div 
+                        initial={{ scale: 0.8, opacity: 0 }}
+                        animate={{ scale: 1, opacity: 1 }}
+                        transition={{ delay: 0.2, duration: 0.5 }}
+                        className="inline-flex items-center justify-center w-20 h-20 bg-primary/20 backdrop-blur-md rounded-[2rem] border border-primary/30 shadow-[0_0_30px_rgba(var(--primary),0.2)] mb-6 group"
+                    >
+                        <Hotel className="w-10 h-10 text-primary group-hover:scale-110 transition-transform" />
+                    </motion.div>
                     <h1 className="text-3xl font-bold text-white uppercase tracking-wider">HOSPEDAJE ANGELICA FREY</h1>
                     <p className="text-slate-400 mt-1">Sistema de Gestión de Hospedaje by Jcar Labs</p>
                 </div>
 
-                {/* Card */}
-                <div className="bg-white/[0.06] backdrop-blur-xl border border-white/10 rounded-3xl p-8 shadow-2xl">
-                    <h2 className="text-xl font-semibold text-white mb-6 text-center">
-                        Iniciar Sesión
-                    </h2>
+                {/* Login Card */}
+                <div className="bg-white/[0.03] backdrop-blur-3xl border border-white/10 rounded-[2.5rem] p-10 shadow-[0_20px_50px_rgba(0,0,0,0.5)]">
+                    <div className="flex items-center gap-3 mb-8">
+                        <div className="w-2 h-8 bg-primary rounded-full" />
+                        <h2 className="text-2xl font-bold text-white">Iniciar Sesión</h2>
+                    </div>
 
-                    {/* Formulario Email */}
-                    <form onSubmit={handleEmailLogin} className="space-y-4">
-                        <div>
-                            <label className="block text-sm font-medium text-slate-300 mb-1.5">
-                                Email
+                    <form onSubmit={handleEmailLogin} className="space-y-6">
+                        <div className="space-y-2">
+                            <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest ml-1">
+                                Email de Acceso
                             </label>
-                            <div className="relative">
-                                <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+                            <div className="relative group">
+                                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
                                 <input
                                     type="email"
                                     value={email}
                                     onChange={e => setEmail(e.target.value)}
-                                    placeholder="tu@email.com"
+                                    placeholder="ejemplo@hotel.com"
                                     required
-                                    className="w-full pl-11 pr-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/30 transition-all"
+                                    className="w-full pl-12 pr-4 py-4 bg-white/[0.05] border border-white/10 rounded-2xl text-white placeholder-muted-foreground/50 focus:outline-none focus:border-primary/50 focus:ring-4 focus:ring-primary/10 transition-all font-medium"
                                 />
                             </div>
                         </div>
 
-                        <div>
-                            <label className="block text-sm font-medium text-slate-300 mb-1.5">
+                        <div className="space-y-2">
+                            <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest ml-1">
                                 Contraseña
                             </label>
-                            <div className="relative">
-                                <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+                            <div className="relative group">
+                                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
                                 <input
                                     type={showPassword ? 'text' : 'password'}
                                     value={password}
@@ -93,41 +105,69 @@ export default function Login() {
                                     placeholder="••••••••"
                                     required
                                     minLength={6}
-                                    className="w-full pl-11 pr-12 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/30 transition-all"
+                                    className="w-full pl-12 pr-14 py-4 bg-white/[0.05] border border-white/10 rounded-2xl text-white placeholder-muted-foreground/50 focus:outline-none focus:border-primary/50 focus:ring-4 focus:ring-primary/10 transition-all font-medium"
                                 />
                                 <button
                                     type="button"
                                     onClick={() => setShowPassword(!showPassword)}
-                                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 transition-colors"
+                                    className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-white transition-colors"
                                 >
-                                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                                    {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                                 </button>
                             </div>
                         </div>
 
-                        {/* Error */}
-                        {error && (
-                            <div className="bg-red-500/10 border border-red-500/20 rounded-xl px-4 py-3 text-sm text-red-400">
-                                {error}
-                            </div>
-                        )}
+                        <AnimatePresence>
+                            {error && (
+                                <motion.div 
+                                    initial={{ opacity: 0, x: -10 }}
+                                    animate={{ opacity: 1, x: 0 }}
+                                    exit={{ opacity: 0 }}
+                                    className="bg-red-500/10 border border-red-500/20 rounded-2xl px-4 py-3 text-xs font-bold text-red-400 flex items-center gap-2"
+                                >
+                                    <div className="w-1.5 h-1.5 bg-red-500 rounded-full animate-pulse" />
+                                    {error}
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
 
-                        {/* Submit */}
-                        <button
+                        <Button
                             type="submit"
                             disabled={loading || !email || !password}
-                            className="w-full py-3.5 bg-primary hover:bg-primary/90 text-white font-semibold rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-primary/20"
+                            className="w-full h-14 bg-primary hover:bg-primary/90 text-white font-bold rounded-2xl transition-all disabled:opacity-50 shadow-xl shadow-primary/20 text-base"
                         >
-                            {loading ? 'Procesando...' : 'Iniciar Sesión'}
-                        </button>
+                            {loading ? (
+                                <div className="flex items-center gap-2">
+                                    <div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin" />
+                                    Autenticando...
+                                </div>
+                            ) : (
+                                <div className="flex items-center gap-2">
+                                    <ShieldCheck className="w-5 h-5" />
+                                    Entrar al Sistema
+                                </div>
+                            )}
+                        </Button>
                     </form>
                 </div>
 
-                {/* Footer */}
-                <p className="text-center text-xs text-slate-500 mt-8 font-medium">
-                    JCAR LABS ©Todos los derechos reservados
-                </p>
-            </div>
+                {/* Footer Section */}
+                <motion.div 
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 1 }}
+                    className="mt-12 text-center space-y-4"
+                >
+                    <p className="text-[10px] font-bold text-muted-foreground/40 uppercase tracking-[0.4em]">
+                        Propiedad de Hospedaje Angelica Frey
+                    </p>
+                    <div className="flex items-center justify-center gap-6">
+                        <span className="text-[9px] font-black text-primary/40 uppercase tracking-widest">v4.0 Premium</span>
+                        <div className="w-1 h-1 bg-white/10 rounded-full" />
+                        <span className="text-[9px] font-black text-primary/40 uppercase tracking-widest">OLED Optimized</span>
+                    </div>
+                </motion.div>
+            </motion.div>
         </div>
     );
 }

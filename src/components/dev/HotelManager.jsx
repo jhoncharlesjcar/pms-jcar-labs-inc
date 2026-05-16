@@ -100,7 +100,7 @@ export default function HotelManager({ hoteles, habitaciones, reservas, ventas, 
                                             <p className="text-[10px] text-muted-foreground">Reservas activas</p>
                                         </div>
                                         <div className="text-center">
-                                            <p className="text-sm font-bold text-foreground">S/ {ventasHotel.reduce((s, v) => s + (v.total || 0), 0).toFixed(0)}</p>
+                                            <p className="text-sm font-bold text-foreground">S/ {ventasHotel.reduce((s, v) => s + Number(v.total || 0), 0).toFixed(0)}</p>
                                             <p className="text-[10px] text-muted-foreground">Ingresos</p>
                                         </div>
                                         <div className="text-center">

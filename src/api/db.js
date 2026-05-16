@@ -26,6 +26,8 @@ const TABLE_MAP = {
     User: 'usuarios',
     Producto: 'productos',
     CategoriaProducto: 'categorias_productos',
+    Egreso: 'egresos',
+    CierreCaja: 'cierres_caja',
 };
 
 /**
@@ -48,6 +50,7 @@ function createEntityProxy(tableName) {
                 const column = isDesc ? orderBy.slice(1) : orderBy;
                 query = query.order(column, { ascending: !isDesc });
             } else {
+                // Todas las tablas en este esquema usan created_date en lugar de created_at
                 query = query.order('created_date', { ascending: false });
             }
 
@@ -132,7 +135,7 @@ function createEntityProxy(tableName) {
          * @param {string} columns - Columnas a seleccionar
          * @returns {Promise<Array>}
          */
-        async filter(filters, columns = '*') {
+        async filter(filters, columns = '*', orderBy = null) {
             let query = supabase.from(tableName).select(columns);
 
             if (filters && typeof filters === 'object') {
@@ -141,7 +144,13 @@ function createEntityProxy(tableName) {
                 }
             }
 
-            query = query.order('created_date', { ascending: false });
+            if (orderBy) {
+                const isDesc = orderBy.startsWith('-');
+                const column = isDesc ? orderBy.slice(1) : orderBy;
+                query = query.order(column, { ascending: !isDesc });
+            } else {
+                query = query.order('created_date', { ascending: false });
+            }
 
             const { data, error } = await query;
             if (error) {
@@ -232,8 +241,8 @@ export const db = {
             
             scoped[name] = {
                 ...proxy,
-                list: (orderBy, limit, columns) => proxy.filter({ [filterKey]: hotelId }, columns),
-                filter: (filters, columns) => proxy.filter({ ...filters, [filterKey]: hotelId }, columns),
+                list: (orderBy, limit, columns) => proxy.filter({ [filterKey]: hotelId }, columns, orderBy),
+                filter: (filters, columns, orderBy) => proxy.filter({ ...filters, [filterKey]: hotelId }, columns, orderBy),
                 create: (data) => proxy.create({ ...data, [filterKey]: hotelId }),
             };
         }

@@ -42,8 +42,9 @@ export default function PagoModal({ open, onClose, resumen, reservaSeleccionada,
     const registrar = useMutation({
         mutationFn: async () => {
             const numeroTicket = `POS${Date.now().toString().slice(-6)}`;
-            const hoy = new Date().toLocaleDateString('sv-SE');
+            const ahora = new Date().toISOString();
 
+            // 1. Crear la venta
             const venta = await hotelDb.VentaPOS.create({
                 numero_ticket: numeroTicket,
                 tipo: reservaSeleccionada ? (resumen.items.length > 0 ? 'estadía_extras' : 'solo_estadía') : 'solo_extras',
@@ -62,10 +63,25 @@ export default function PagoModal({ open, onClose, resumen, reservaSeleccionada,
                 ruc_cliente: rucCliente,
                 razon_social: razonSocial,
                 notas,
-                fecha_venta: hoy,
+                fecha_venta: ahora, // Usamos timestamp para precisión
             });
 
-            // Si hay reserva vinculada, marcarla como finalizada
+            // 2. Descontar stock de cada producto vendido
+            if (resumen.items && resumen.items.length > 0) {
+                const promises = resumen.items.map(async (item) => {
+                    if (item.id) {
+                        // Obtener stock actual
+                        const [prod] = await hotelDb.ServicioExtra.filter({ id: item.id });
+                        if (prod) {
+                            const nuevoStock = Math.max(0, (prod.stock || 0) - (item.cantidad || 1));
+                            return hotelDb.ServicioExtra.update(item.id, { stock: nuevoStock });
+                        }
+                    }
+                });
+                await Promise.all(promises);
+            }
+
+            // 3. Si hay reserva vinculada, marcarla como finalizada
             if (reservaSeleccionada) {
                 await hotelDb.Reserva.update(reservaSeleccionada.id, { estado: 'finalizada' });
                 await hotelDb.Habitacion.update(reservaSeleccionada.habitacion_id, { estado: 'disponible' });
@@ -178,7 +194,13 @@ export default function PagoModal({ open, onClose, resumen, reservaSeleccionada,
                         <div className="flex gap-3 pt-2">
                             <Button variant="outline" className="flex-1" onClick={handleClose}>Cancelar</Button>
                             <Button className="flex-1" disabled={registrar.isPending}
-                                onClick={() => registrar.mutate()}>
+                                onClick={() => {
+                                    if (tipoComprobante === 'factura' && (!rucCliente || rucCliente.length !== 11)) {
+                                        alert('El RUC debe tener 11 dígitos para emitir factura.');
+                                        return;
+                                    }
+                                    registrar.mutate();
+                                }}>
                                 {registrar.isPending ? 'Procesando...' : `Cobrar S/ ${totalFinal.toFixed(2)}`}
                             </Button>
                         </div>

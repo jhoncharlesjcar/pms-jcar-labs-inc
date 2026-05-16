@@ -16,8 +16,11 @@ const Dashboard = React.lazy(() => import('@/pages/Dashboard'));
 const Habitaciones = React.lazy(() => import('@/pages/Habitaciones'));
 const Recepcion = React.lazy(() => import('@/pages/Recepcion'));
 const Ventas = React.lazy(() => import('@/pages/Ventas'));
+const Caja = React.lazy(() => import('@/pages/Caja'));
+const Reportes = React.lazy(() => import('@/pages/Reportes'));
 const Configuracion = React.lazy(() => import('@/pages/Configuracion'));
 const PuntoVenta = React.lazy(() => import('@/pages/PuntoVenta'));
+const Huespedes = React.lazy(() => import('@/pages/Huespedes'));
 const PanelDesarrollador = React.lazy(() => import('@/pages/PanelDesarrollador'));
 
 const AuthenticatedApp = () => {
@@ -58,7 +61,10 @@ const AuthenticatedApp = () => {
                         <Route path="/" element={<Dashboard />} />
                         <Route path="/habitaciones" element={<Habitaciones />} />
                         <Route path="/recepcion" element={<Recepcion />} />
+                        <Route path="/huespedes" element={<Huespedes />} />
                         <Route path="/ventas" element={<Ventas />} />
+                        <Route path="/caja" element={<Caja />} />
+                        <Route path="/reportes" element={<Reportes />} />
                         <Route path="/configuracion" element={<Configuracion />} />
                         <Route path="/pos" element={<PuntoVenta />} />
                         <Route path="/dev" element={<PanelDesarrollador />} />
