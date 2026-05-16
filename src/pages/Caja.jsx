@@ -20,7 +20,7 @@ import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { printCashClosure } from '@/modules/printer/services/printer.service';
 import jsPDF from 'jspdf';
-import 'jspdf-autotable';
+import autoTable from 'jspdf-autotable';
 import * as XLSX from 'xlsx';
 
 export default function Caja() {
@@ -117,7 +117,35 @@ export default function Caja() {
             posTotal: stats.pos,
             egresosCount: stats.countEgresos,
             egresosTotal: stats.egresos,
-            saldoFinal: stats.balance
+            saldoFinal: stats.balance,
+            hotelSales: stats.hHoy,
+            posSales: stats.pHoy
+        });
+    };
+
+    const handlePrintHotel = () => {
+        printCashClosure({
+            hotelName: activeHotel?.nombre,
+            address: activeHotel?.direccion,
+            userName: user?.full_name || user?.email,
+            date: new Date(),
+            hotelCount: stats.countHotel,
+            hotelTotal: stats.hotel,
+            hotelSales: stats.hHoy,
+            onlyHotel: true
+        });
+    };
+
+    const handlePrintPOS = () => {
+        printCashClosure({
+            hotelName: activeHotel?.nombre,
+            address: activeHotel?.direccion,
+            userName: user?.full_name || user?.email,
+            date: new Date(),
+            posCount: stats.countPOS,
+            posTotal: stats.pos,
+            posSales: stats.pHoy,
+            onlyPOS: true
         });
     };
 
@@ -142,13 +170,46 @@ export default function Caja() {
             ["SALDO FINAL", "", `S/ ${stats.balance.toFixed(2)}`]
         ];
 
-        doc.autoTable({
+        autoTable(doc, {
             startY: 45,
             head: [summaryData[0]],
             body: summaryData.slice(1),
             theme: 'striped',
             headStyles: { fillColor: [0, 112, 65] }
         });
+
+        // Detalle Hotel
+        if (stats.hHoy.length > 0) {
+            doc.addPage();
+            doc.text("Detalle Ventas Hotel", 14, 15);
+            autoTable(doc, {
+                startY: 20,
+                head: [["Fecha", "Habitación", "Cliente", "Total"]],
+                body: stats.hHoy.map(v => [
+                    format(new Date(v.fecha_pago || v.created_date), "dd/MM HH:mm"),
+                    v.habitacion_numero || '-',
+                    v.cliente_nombre || 'General',
+                    `S/ ${Number(v.monto_pagado || v.total).toFixed(2)}`
+                ]),
+                headStyles: { fillColor: [41, 128, 185] }
+            });
+        }
+
+        // Detalle Minimarket
+        if (stats.pHoy.length > 0) {
+            doc.addPage();
+            doc.text("Detalle Ventas Minimarket", 14, 15);
+            autoTable(doc, {
+                startY: 20,
+                head: [["Fecha", "Cliente", "Total"]],
+                body: stats.pHoy.map(v => [
+                    format(new Date(v.created_date), "dd/MM HH:mm"),
+                    v.cliente_nombre || 'General',
+                    `S/ ${Number(v.total).toFixed(2)}`
+                ]),
+                headStyles: { fillColor: [230, 126, 34] }
+            });
+        }
 
         doc.save(`Cierre_Caja_${format(new Date(), "yyyyMMdd")}.pdf`);
     };
@@ -412,7 +473,7 @@ export default function Caja() {
 
                     <form onSubmit={(e) => {
                         e.preventDefault();
-                        const formData = new FormData(e.target);
+                        const formData = new FormData(e.currentTarget);
                         addEgreso.mutate({
                             monto: Number(formData.get('monto')),
                             concepto: formData.get('concepto'),
@@ -490,50 +551,65 @@ export default function Caja() {
                     </div>
 
                     <div className="p-8 space-y-6 bg-card">
-                        <div className="bg-amber-50 border border-amber-200 p-5 rounded-3xl space-y-3">
-                            <div className="flex justify-between items-center text-amber-900/60 font-bold text-[10px] uppercase tracking-widest">
-                                <span>Resumen de Turno</span>
-                                <span>{format(new Date(), "dd/MM/yyyy")}</span>
+                        {/* Resumen Card Ultra-Compacto */}
+                        <div className="bg-primary/5 border border-primary/20 rounded-xl p-3 space-y-1.5 relative overflow-hidden group">
+                            <div className="absolute top-0 right-0 p-6 bg-primary/5 rounded-full -mr-3 -mt-3 blur-xl group-hover:bg-primary/10 transition-colors" />
+                            
+                            <div className="flex justify-between items-center relative z-10">
+                                <span className="text-[9px] font-black uppercase tracking-[0.1em] text-primary/60">Resumen de Turno</span>
+                                <span className="text-[9px] font-bold text-muted-foreground bg-background/30 px-1.5 py-0.5 rounded border border-border/30">{format(new Date(), "dd/MM/yyyy")}</span>
                             </div>
-                            <div className="space-y-1.5 pt-2">
-                                <div className="flex justify-between text-sm">
-                                    <span className="text-muted-foreground font-medium italic">Ventas Hotel (Alojamiento):</span>
-                                    <span className="font-bold text-foreground">S/ {stats.hotel.toFixed(2)}</span>
+
+                            <div className="space-y-0.5 relative z-10">
+                                <div className="flex justify-between items-center text-[12px]">
+                                    <span className="text-muted-foreground italic">Ventas Hotel:</span>
+                                    <span className="font-bold tabular-nums">S/ {stats.hotel.toFixed(2)}</span>
                                 </div>
-                                <div className="flex justify-between text-sm">
-                                    <span className="text-muted-foreground font-medium italic">Ventas Minimarket (POS):</span>
-                                    <span className="font-bold text-foreground">S/ {stats.pos.toFixed(2)}</span>
+                                <div className="flex justify-between items-center text-[12px]">
+                                    <span className="text-muted-foreground italic">Ventas Minimarket:</span>
+                                    <span className="font-bold tabular-nums">S/ {stats.pos.toFixed(2)}</span>
                                 </div>
-                                <div className="flex justify-between text-sm pt-1">
-                                    <span className="text-muted-foreground font-medium">Subtotal Ingresos:</span>
-                                    <span className="font-black text-green-600">S/ {stats.ingresos.toFixed(2)}</span>
+                                <div className="flex justify-between items-center text-[12px] pt-0.5 border-t border-primary/5">
+                                    <span className="text-primary/70 font-medium">Subtotal:</span>
+                                    <span className="font-bold text-primary tabular-nums">S/ {stats.ingresos.toFixed(2)}</span>
                                 </div>
-                                <div className="flex justify-between text-sm">
-                                    <span className="text-muted-foreground font-medium">Egresos Registrados:</span>
-                                    <span className="font-black text-red-500">- S/ {stats.egresos.toFixed(2)}</span>
+                                <div className="flex justify-between items-center text-[12px]">
+                                    <span className="text-red-500/70 font-medium">Egresos:</span>
+                                    <span className="font-bold text-red-500 tabular-nums">- S/ {stats.egresos.toFixed(2)}</span>
                                 </div>
-                                <div className="pt-3 border-t border-amber-200 flex justify-between items-end">
-                                    <span className="text-amber-900 font-black text-xs uppercase">Efectivo en Caja:</span>
-                                    <span className="font-black text-2xl text-amber-600 leading-none">S/ {stats.balance.toFixed(2)}</span>
-                                </div>
+                            </div>
+
+                            <div className="pt-1 border-t border-dashed border-primary/20 flex justify-between items-center relative z-10">
+                                <span className="text-[10px] font-black uppercase text-primary/80">Efectivo Caja:</span>
+                                <span className="text-xl font-black text-primary tabular-nums">
+                                    S/ {stats.balance.toFixed(2)}
+                                </span>
                             </div>
                         </div>
 
                         {/* Export Buttons */}
-                        <div className="grid grid-cols-3 gap-2">
-                            <Button variant="outline" size="sm" onClick={handlePrintTicket} className="flex-col h-auto py-3 gap-2 border-border/50 hover:bg-primary/5">
-                                <Printer className="w-4 h-4 text-primary" />
-                                <span className="text-[10px] font-bold">Ticket</span>
+                        <div className="grid grid-cols-2 gap-2">
+                            <Button variant="outline" size="sm" onClick={handlePrintHotel} className="flex-col h-auto py-1.5 gap-1 border-border/50 hover:bg-primary/5">
+                                <Printer className="w-3.5 h-3.5 text-primary" />
+                                <span className="text-[9px] font-bold">Ventas Hotel</span>
                             </Button>
-                            <Button variant="outline" size="sm" onClick={handleExportPDF} className="flex-col h-auto py-3 gap-2 border-border/50 hover:bg-red-500/5">
-                                <FileText className="w-4 h-4 text-red-500" />
-                                <span className="text-[10px] font-bold">PDF</span>
+                            <Button variant="outline" size="sm" onClick={handlePrintPOS} className="flex-col h-auto py-1.5 gap-1 border-border/50 hover:bg-primary/5">
+                                <Printer className="w-3.5 h-3.5 text-primary" />
+                                <span className="text-[9px] font-bold">Ventas Minimarket</span>
                             </Button>
-                            <Button variant="outline" size="sm" onClick={handleExportExcel} className="flex-col h-auto py-3 gap-2 border-border/50 hover:bg-green-500/5">
-                                <FileSpreadsheet className="w-4 h-4 text-green-500" />
-                                <span className="text-[10px] font-bold">Excel</span>
+                            <Button variant="outline" size="sm" onClick={handleExportPDF} className="flex-col h-auto py-1.5 gap-1 border-border/50 hover:bg-red-500/5">
+                                <FileText className="w-3.5 h-3.5 text-red-500" />
+                                <span className="text-[9px] font-bold">Reporte PDF</span>
+                            </Button>
+                            <Button variant="outline" size="sm" onClick={handleExportExcel} className="flex-col h-auto py-1.5 gap-1 border-border/50 hover:bg-green-500/5">
+                                <FileSpreadsheet className="w-3.5 h-3.5 text-green-500" />
+                                <span className="text-[9px] font-bold">Reporte Excel</span>
                             </Button>
                         </div>
+
+                        <Button variant="ghost" size="sm" onClick={handlePrintTicket} className="w-full text-[10px] text-muted-foreground gap-2">
+                            <Printer className="w-3 h-3" /> Imprimir Cierre General Completo
+                        </Button>
 
                         <div className="space-y-3">
                             <Label className="text-[11px] font-black uppercase tracking-widest text-muted-foreground/60">Notas del Cierre (Opcional)</Label>
