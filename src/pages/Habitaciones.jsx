@@ -150,68 +150,45 @@ export default function Habitaciones() {
                 transition={{ delay: 0.1 }}
                 className="space-y-3"
             >
-                <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] px-1">Filtrar por Estado</p>
-                <div className="flex gap-2.5 overflow-x-auto pb-4 scrollbar-hide px-1 -mx-1">
-                    {/* Botón "Todas" */}
-                    <button
-                        onClick={() => setFiltroEstado('todos')}
-                        className="flex-shrink-0 transition-all duration-200"
-                    >
-                        <div className={cn(
-                            "px-4 py-3 rounded-2xl flex items-center gap-3 shadow-lg transition-all duration-300 min-w-[120px]",
-                            filtroEstado === 'todos'
-                                ? "bg-gradient-to-br from-primary to-primary/80 shadow-primary/30 ring-2 ring-primary/40 ring-offset-2 ring-offset-background scale-[1.03]"
-                                : "bg-card/40 border border-border/50 opacity-75 hover:opacity-100"
-                        )}>
-                            <BedDouble className={cn("w-5 h-5", filtroEstado === 'todos' ? "text-white/80" : "text-primary")} />
-                            <div className="text-left">
-                                <p className={cn("text-[10px] font-black uppercase tracking-widest leading-tight", filtroEstado === 'todos' ? "text-white" : "text-muted-foreground")}>Todas</p>
-                                <p className={cn("text-base font-black leading-none mt-0.5", filtroEstado === 'todos' ? "text-white/90" : "text-foreground")}>{habitaciones.length}</p>
-                            </div>
-                        </div>
-                    </button>
- 
-                    {/* Botones de estado */}
-                    {Object.entries(estadoConfig).map(([key, cfg]) => {
-                        const StateIcon = cfg.icon;
-                        const count = habitaciones.filter(h => h.estado === key).length;
-                        const colorMap = {
-                            disponible: 'from-green-500 to-green-600 shadow-green-500/25 ring-green-400/40',
-                            ocupada: 'from-red-500 to-red-600 shadow-red-500/25 ring-red-400/40',
-                            reservada: 'from-blue-500 to-blue-600 shadow-blue-500/25 ring-blue-400/40',
-                            mantenimiento: 'from-amber-500 to-amber-600 shadow-amber-500/25 ring-amber-400/40',
-                            limpieza: 'from-purple-500 to-purple-600 shadow-purple-500/25 ring-purple-400/40',
-                        };
-                        const inactiveIconColor = {
-                            disponible: 'text-green-500',
-                            ocupada: 'text-red-500',
-                            reservada: 'text-blue-500',
-                            mantenimiento: 'text-amber-500',
-                            limpieza: 'text-purple-500',
-                        };
-                        return (
-                            <button
-                                key={key}
-                                onClick={() => setFiltroEstado(key)}
-                                className="flex-shrink-0 transition-all duration-200"
-                            >
-                                <div className={cn(
-                                    "px-4 py-3 rounded-2xl flex items-center gap-3 shadow-lg transition-all duration-300 min-w-[120px] border",
-                                    filtroEstado === key
-                                        ? `${colorMap[key]} bg-gradient-to-br ring-2 ring-offset-2 ring-offset-background scale-[1.03]`
-                                        : `bg-card/40 border-border/50 opacity-75 hover:opacity-100`
-                                )}>
-                                    <StateIcon className={cn("w-5 h-5", filtroEstado === key ? "text-white/80" : inactiveIconColor[key])} />
-                                    <div className="text-left">
-                                        <p className={cn("text-[10px] font-black uppercase tracking-widest leading-tight", filtroEstado === key ? "text-white" : "text-muted-foreground")}>{cfg.label}</p>
-                                        <p className={cn("text-base font-black leading-none mt-0.5", filtroEstado === key ? "text-white/90" : "text-foreground")}>{count}</p>
-                                    </div>
-                                </div>
-                            </button>
-                        );
-                    })}
+                <div className="bg-card/50 backdrop-blur-md p-1.5 rounded-[1.25rem] border border-border/40 shadow-sm mb-6 sticky top-0 z-10 lg:relative">
+                    <div className="flex gap-1 overflow-x-auto scrollbar-hide no-scrollbar">
+                        <button
+                            onClick={() => setFiltroEstado('todos')}
+                            className={cn(
+                                "flex-1 min-w-[80px] py-2 px-3 rounded-[1rem] text-[11px] font-black uppercase tracking-widest transition-all whitespace-nowrap flex flex-col items-center gap-0.5",
+                                filtroEstado === 'todos' ? "bg-primary text-white shadow-lg shadow-primary/20 scale-[1.02]" : "text-muted-foreground hover:bg-secondary/50"
+                            )}
+                        >
+                            <span className="opacity-60"><BedDouble className="w-3.5 h-3.5" /></span>
+                            <span>Todas ({habitaciones.length})</span>
+                        </button>
+                        {Object.entries(estadoConfig).map(([key, cfg]) => {
+                            const count = habitaciones.filter(h => h.estado === key).length;
+                            const activeColors = {
+                                disponible: "bg-green-500 text-white shadow-green-500/20",
+                                ocupada: "bg-red-500 text-white shadow-red-500/20",
+                                reservada: "bg-blue-500 text-white shadow-blue-500/20",
+                                mantenimiento: "bg-amber-500 text-white shadow-amber-500/20",
+                                limpieza: "bg-purple-500 text-white shadow-purple-500/20"
+                            };
+                            return (
+                                <button
+                                    key={key}
+                                    onClick={() => setFiltroEstado(key)}
+                                    className={cn(
+                                        "flex-1 min-w-[80px] py-2 px-3 rounded-[1rem] text-[11px] font-black uppercase tracking-widest transition-all whitespace-nowrap flex flex-col items-center gap-0.5",
+                                        filtroEstado === key ? activeColors[key] + " shadow-lg scale-[1.02]" : "text-muted-foreground hover:bg-secondary/50"
+                                    )}
+                                >
+                                    <span className="opacity-60"><cfg.icon className="w-3.5 h-3.5" /></span>
+                                    <span>{cfg.label} ({count})</span>
+                                </button>
+                            );
+                        })}
+                    </div>
                 </div>
             </motion.div>
+
 
             {/* Grid */}
             {isLoading ? (
