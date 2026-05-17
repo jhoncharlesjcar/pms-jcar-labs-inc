@@ -19,7 +19,7 @@ const navItems = [
     { path: '/habitaciones', label: 'Habitaciones', icon: BedDouble, color: 'bg-[#2D63ED]' }, 
     { path: '/recepcion', label: 'Recepción', icon: CalendarDays, color: 'bg-[#7C3AED]' }, 
     { path: '/huespedes', label: 'Huéspedes', icon: Users, color: 'bg-[#10b981]' }, 
-    { path: '/ventas', label: 'Ventas', icon: CreditCard, color: 'bg-[#0284C7]' }, 
+    { path: '/ventas', label: 'Ventas y Tickets', icon: CreditCard, color: 'bg-[#0284C7]' }, 
     { path: '/caja', label: 'Caja', icon: Wallet, color: 'bg-[#8B5CF6]' }, 
     { path: '/reportes', label: 'Reportes', icon: FileText, color: 'bg-[#4F46E5]' }, 
     { path: '/pos', label: 'Punto de Venta', icon: ShoppingCart, color: 'bg-[#D97706]' }, 
@@ -232,53 +232,18 @@ export default function Layout() {
                         </div>
                         <span className="font-display font-black text-foreground tracking-tighter">ANGELICA FREY</span>
                     </div>
-                    <button onClick={() => setSidebarOpen(!sidebarOpen)} className="p-2.5 rounded-xl bg-card border border-border shadow-sm active:scale-90 transition-all">
+                    <button 
+                        onClick={() => setSidebarOpen(!sidebarOpen)} 
+                        className="w-12 h-12 rounded-xl bg-card border border-border/80 shadow-sm flex items-center justify-center active:scale-90 active:bg-primary/15 active:border-primary/30 active:text-primary transition-all duration-150 select-none cursor-pointer"
+                        style={{ WebkitTapHighlightColor: 'transparent' }}
+                    >
                         {sidebarOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
                     </button>
                 </header>
 
-                <main className="flex-1 p-4 sm:p-6 lg:p-10 max-w-[100vw] overflow-x-hidden pb-20 lg:pb-10">
+                <main className="flex-1 p-4 sm:p-6 lg:p-10 max-w-[100vw] overflow-x-hidden pb-10">
                     <Outlet />
                 </main>
-            </div>
-
-            {/* Barra de Navegación Inferior (Móvil) */}
-            <div className="lg:hidden fixed bottom-0 left-0 right-0 h-16 sm:h-20 bg-background/80 backdrop-blur-3xl border-t border-border/50 z-40 px-2 safe-bottom">
-                <nav className="flex items-center justify-around h-full max-w-lg mx-auto">
-                    {[
-                        { path: '/', icon: LayoutGrid, label: 'Dashboard' },
-                        { path: '/recepcion', icon: CalendarDays, label: 'Recep.' },
-                        { path: '/habitaciones', icon: BedDouble, label: 'Hab.' },
-                        { path: '/pos', icon: ShoppingCart, label: 'POS' },
-                        { path: '/reportes', icon: FileText, label: 'Rep.' },
-                    ].map(({ path, icon: Icon, label }) => {
-                        const active = location.pathname === path;
-                        return (
-                            <Link
-                                key={path}
-                                to={path}
-                                className={cn(
-                                    "flex flex-col items-center justify-center gap-1 w-full h-full transition-all duration-300",
-                                    active ? "text-primary" : "text-muted-foreground/60"
-                                )}
-                            >
-                                <div className={cn(
-                                    "p-1.5 rounded-xl transition-all duration-300",
-                                    active ? "bg-primary/10 shadow-inner" : ""
-                                )}>
-                                    <Icon className={cn("w-5 h-5", active ? "stroke-[2.5px]" : "stroke-2")} />
-                                </div>
-                                <span className={cn(
-                                    "text-[9px] font-black uppercase tracking-widest",
-                                    active ? "opacity-100" : "opacity-40"
-                                )}>{label}</span>
-                                {active && (
-                                    <motion.div layoutId="bottom-nav-active" className="absolute bottom-1 w-1 h-1 bg-primary rounded-full" />
-                                )}
-                            </Link>
-                        );
-                    })}
-                </nav>
             </div>
 
             {/* Modal Gestión Hoteles & Staff */}

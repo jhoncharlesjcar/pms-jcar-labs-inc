@@ -171,7 +171,27 @@ export default function Recepcion() {
         );
     }).sort((a, b) => new Date(b.fecha_entrada).getTime() - new Date(a.fecha_entrada).getTime());
 
-    const habitacionesDisp = habitaciones.filter(h => h.estado === 'disponible');
+    const habitacionesDisp = habitaciones
+        .filter(h => h.estado === 'disponible')
+        .sort((a, b) => {
+            const pisoA = parseInt(a.piso, 10);
+            const pisoB = parseInt(b.piso, 10);
+            const hasPisoA = !isNaN(pisoA);
+            const hasPisoB = !isNaN(pisoB);
+            
+            if (hasPisoA && hasPisoB) {
+                if (pisoA !== pisoB) return pisoA - pisoB;
+            } else if (hasPisoA) {
+                return -1;
+            } else if (hasPisoB) {
+                return 1;
+            }
+
+            const numA = parseInt(a.numero, 10);
+            const numB = parseInt(b.numero, 10);
+            if (!isNaN(numA) && !isNaN(numB)) return numA - numB;
+            return String(a.numero).localeCompare(String(b.numero));
+        });
 
     return (
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">

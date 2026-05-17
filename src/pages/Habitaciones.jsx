@@ -117,6 +117,19 @@ export default function Habitaciones() {
 
     const filtradas = (filtroEstado === 'todos' ? habitaciones : habitaciones.filter(h => h.estado === filtroEstado))
         .sort((a, b) => {
+            const pisoA = parseInt(a.piso, 10);
+            const pisoB = parseInt(b.piso, 10);
+            const hasPisoA = !isNaN(pisoA);
+            const hasPisoB = !isNaN(pisoB);
+            
+            if (hasPisoA && hasPisoB) {
+                if (pisoA !== pisoB) return pisoA - pisoB;
+            } else if (hasPisoA) {
+                return -1;
+            } else if (hasPisoB) {
+                return 1;
+            }
+
             const numA = parseInt(a.numero, 10);
             const numB = parseInt(b.numero, 10);
             if (!isNaN(numA) && !isNaN(numB)) return numA - numB;

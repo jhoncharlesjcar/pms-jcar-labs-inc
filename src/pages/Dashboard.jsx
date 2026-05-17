@@ -42,6 +42,26 @@ export default function Dashboard() {
         enabled: !!hotelId,
     });
 
+    const habitacionesOrdenadas = [...habitaciones].sort((a, b) => {
+        const pisoA = parseInt(a.piso, 10);
+        const pisoB = parseInt(b.piso, 10);
+        const hasPisoA = !isNaN(pisoA);
+        const hasPisoB = !isNaN(pisoB);
+        
+        if (hasPisoA && hasPisoB) {
+            if (pisoA !== pisoB) return pisoA - pisoB;
+        } else if (hasPisoA) {
+            return -1;
+        } else if (hasPisoB) {
+            return 1;
+        }
+
+        const numA = parseInt(a.numero, 10);
+        const numB = parseInt(b.numero, 10);
+        if (!isNaN(numA) && !isNaN(numB)) return numA - numB;
+        return String(a.numero).localeCompare(String(b.numero));
+    });
+
     const { data: reservas = [] } = useQuery({
         queryKey: ['reservas', hotelId],
         queryFn: () => hotelDb.Reserva.list(),
@@ -233,7 +253,7 @@ export default function Dashboard() {
 
                             {/* Mapa Visual con Efecto Glass */}
                             <div className="hidden md:grid grid-cols-4 gap-3">
-                                {habitaciones.slice(0, 16).map((h, i) => (
+                                {habitacionesOrdenadas.slice(0, 16).map((h, i) => (
                                     <motion.div 
                                         key={h.id}
                                         initial={{ opacity: 0, scale: 0 }}
