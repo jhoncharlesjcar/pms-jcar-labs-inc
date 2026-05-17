@@ -51,7 +51,7 @@ export default function PuntoVenta() {
             {/* ===== PANEL IZQUIERDO: CATÁLOGO ===== */}
             <div className={`flex-1 flex flex-col ${vistaMovil === 'catalogo' ? 'flex' : 'hidden'} lg:flex`}>
                 {/* Header */}
-                <div className="flex items-center justify-between px-5 py-4 bg-card/60 backdrop-blur-xl border-b border-border/50 sticky top-0 z-10">
+                <div className="flex items-center justify-between px-5 py-4 bg-card/60 backdrop-blur-xl border-b border-border/50 flex-shrink-0">
                     <div className="flex items-center gap-3">
                         <div className="w-9 h-9 bg-primary/15 rounded-xl flex items-center justify-center border border-primary/20 shadow-sm">
                             <Store className="w-4.5 h-4.5 text-primary" />
@@ -76,7 +76,7 @@ export default function PuntoVenta() {
 
             {/* ===== PANEL DERECHO: CARRITO ===== */}
             <div className={`w-full lg:w-80 xl:w-96 flex flex-col bg-card/60 backdrop-blur-xl border-l border-border/50 ${vistaMovil === 'carrito' ? 'flex' : 'hidden'} lg:flex`}>
-                <div className="px-5 py-4 border-b border-border/50 bg-card/40 backdrop-blur-xl sticky top-0 z-10">
+                <div className="px-5 py-4 border-b border-border/50 bg-card/40 backdrop-blur-xl flex-shrink-0">
                     <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2.5">
                             <ShoppingCart className="w-4 h-4 text-primary" />
