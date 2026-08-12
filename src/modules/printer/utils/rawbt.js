@@ -1,3 +1,5 @@
+import logger from '@/lib/logger';
+
 /**
  * RawBT Integration Utility
  * Handles sending HTML payloads to the RawBT printing service
@@ -11,7 +13,7 @@
  */
 export const printRawBT = (html) => {
   if (!html) {
-    console.error('[Printer Module] Error: No HTML content provided to printRawBT.');
+    logger.error('[Printer Module] Error: No HTML content provided to printRawBT.');
     return false;
   }
 
@@ -34,7 +36,7 @@ export const printRawBT = (html) => {
     
     return true;
   } catch (error) {
-    console.error('[Printer Module] Error dispatching to RawBT:', error);
+    logger.error('[Printer Module] Error dispatching to RawBT:', error);
     return false;
   }
 };

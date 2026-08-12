@@ -1,4 +1,5 @@
 import { toast } from 'sonner';
+import logger from '@/lib/logger';
 
 /**
  * Detects if the current device is Android
@@ -75,7 +76,7 @@ export const generateShareableHtml = (innerHtml, paperWidth = 58) => {
 export async function shareTicket(ticketHtml, paperWidth = 58, fallbackText = null) {
   try {
     if (!ticketHtml) {
-      alert('No hay contenido para generar el ticket.');
+      toast.error('No hay contenido para generar el ticket.');
       return false;
     }
 
@@ -140,8 +141,8 @@ export async function shareTicket(ticketHtml, paperWidth = 58, fallbackText = nu
 
   } catch (error) {
     if (error.name !== 'AbortError') {
-      console.error('[Share Printer Service] Error:', error);
-      alert('Ocurrió un error al intentar compartir el ticket.');
+      logger.error('[Share Printer Service] Error:', error);
+      toast.error('Ocurrió un error al intentar compartir el ticket.');
     }
     return false;
   }

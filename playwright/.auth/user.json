@@ -1,0 +1,22 @@
+{
+  "cookies": [],
+  "origins": [
+    {
+      "origin": "http://localhost:5173",
+      "localStorage": [
+        {
+          "name": "theme",
+          "value": "light"
+        },
+        {
+          "name": "hotel_activo_id",
+          "value": "11111111-1111-1111-1111-111111111111"
+        },
+        {
+          "name": "sb-nwprnycqplnmztpjicea-auth-token",
+          "value": "{\"access_token\":\"mock-access-token-for-testing\",\"token_type\":\"bearer\",\"expires_in\":3600,\"expires_at\":1784182687,\"refresh_token\":\"mock-refresh-token\",\"user\":{\"id\":\"22222222-2222-2222-2222-222222222222\",\"aud\":\"authenticated\",\"role\":\"authenticated\",\"email\":\"admin@test.com\",\"email_confirmed_at\":\"2025-01-01T00:00:00Z\",\"phone\":\"\",\"confirmed_at\":\"2025-01-01T00:00:00Z\",\"last_sign_in_at\":\"2026-07-14T00:00:00Z\",\"app_metadata\":{\"provider\":\"email\"},\"user_metadata\":{\"full_name\":\"Admin Principal\"},\"identities\":[],\"created_at\":\"2025-01-01T00:00:00Z\",\"updated_at\":\"2026-07-14T00:00:00Z\"}}"
+        }
+      ]
+    }
+  ]
+}

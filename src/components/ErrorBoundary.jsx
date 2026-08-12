@@ -1,7 +1,8 @@
 import React from 'react';
 import { AlertCircle, RefreshCw } from 'lucide-react';
+import logger from '@/lib/logger';
 
-class ErrorBoundary extends React.Component {
+class ErrorBoundary extends React.Component { // Componente de clase — memo no aplica
     constructor(props) {
         super(props);
         this.state = { hasError: false, error: null };
@@ -12,7 +13,7 @@ class ErrorBoundary extends React.Component {
     }
 
     componentDidCatch(error, errorInfo) {
-        console.error("ErrorBoundary caught an error", error, errorInfo);
+        logger.error("ErrorBoundary caught an error", error, errorInfo);
     }
 
     render() {
@@ -28,12 +29,12 @@ class ErrorBoundary extends React.Component {
                     </p>
                     <button
                         onClick={() => window.location.reload()}
-                        className="flex items-center gap-2 px-6 py-3 bg-primary text-primary-foreground rounded-xl font-semibold hover:bg-primary/90 transition-all shadow-lg shadow-primary/20"
+                        className="flex items-center gap-2 px-6 py-3 bg-primary text-primary-foreground rounded-xl font-semibold hover:bg-primary/90 transition-[transform,opacity] shadow-lg shadow-primary/20"
                     >
                         <RefreshCw className="w-4 h-4" />
                         Recargar Aplicación
                     </button>
-                    {process.env.NODE_ENV === 'development' && (
+                    {import.meta.env.DEV && (
                         <div className="mt-8 p-4 bg-secondary/50 rounded-xl text-left overflow-auto max-w-full">
                             <p className="text-xs font-mono text-destructive">{this.state.error?.toString()}</p>
                         </div>
@@ -45,5 +46,6 @@ class ErrorBoundary extends React.Component {
         return this.props.children;
     }
 }
+ErrorBoundary.displayName = 'ErrorBoundary'; // Clase — displayName fuera del cuerpo
 
 export default ErrorBoundary;

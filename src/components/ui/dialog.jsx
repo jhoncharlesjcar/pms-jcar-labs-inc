@@ -14,11 +14,12 @@ const DialogPortal = DialogPrimitive.Portal
 
 const DialogClose = DialogPrimitive.Close
 
+/** @type {React.ForwardRefExoticComponent<any>} */
 const DialogOverlay = React.forwardRef(({ className, ...props }, ref) => (
     <DialogPrimitive.Overlay
         ref={ref}
         className={cn(
-            "fixed inset-0 z-50 bg-black/80  data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
+            "fixed inset-0 z-50 bg-black/60 backdrop-blur-sm data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 duration-150",
             className
         )}
         {...props} />
@@ -32,15 +33,17 @@ const DialogContent = React.forwardRef(({ className, children, ...props }, ref) 
         <DialogPrimitive.Content
             ref={ref}
             className={cn(
-                "fixed left-[50%] top-[50%] z-50 grid w-full max-w-lg translate-x-[-50%] translate-y-[-50%] gap-4 border bg-background p-6 shadow-lg duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%] sm:rounded-lg",
+                "fixed left-[50%] top-[50%] z-50 grid w-[calc(100%-2rem)] max-w-lg translate-x-[-50%] translate-y-[-50%] gap-4 border border-border/60 bg-card/95 backdrop-blur-2xl p-5 sm:p-6 shadow-2xl duration-150 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-[0.98] data-[state=open]:zoom-in-[0.98] data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%] rounded-2xl max-h-[90vh] overflow-y-auto custom-scrollbar",
                 className
             )}
-            {...props}>
+            {...props}
+            aria-describedby={props["aria-describedby"] || undefined}>
             {children}
             <DialogPrimitive.Close
-                className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground">
+                aria-label="Cerrar ventana emergente"
+                className="absolute right-3.5 top-3.5 w-8 h-8 rounded-xl bg-secondary/50 hover:bg-secondary flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors focus:outline-none focus:ring-2 focus:ring-primary">
                 <X className="h-4 w-4" />
-                <span className="sr-only">Close</span>
+                <span className="sr-only">Cerrar</span>
             </DialogPrimitive.Close>
         </DialogPrimitive.Content>
     </DialogPortal>
@@ -52,7 +55,7 @@ const DialogHeader = ({
     ...props
 }) => (
     <div
-        className={cn("flex flex-col space-y-1.5 text-center sm:text-left", className)}
+        className={cn("flex flex-col space-y-1.5 text-left", className)}
         {...props} />
 )
 DialogHeader.displayName = "DialogHeader"
@@ -62,7 +65,7 @@ const DialogFooter = ({
     ...props
 }) => (
     <div
-        className={cn("flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-2", className)}
+        className={cn("flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-2 gap-2 pt-2", className)}
         {...props} />
 )
 DialogFooter.displayName = "DialogFooter"
@@ -71,15 +74,16 @@ DialogFooter.displayName = "DialogFooter"
 const DialogTitle = React.forwardRef(({ className, ...props }, ref) => (
     <DialogPrimitive.Title
         ref={ref}
-        className={cn("text-lg font-semibold leading-none tracking-tight", className)}
+        className={cn("text-lg sm:text-xl font-bold leading-tight tracking-tight text-foreground", className)}
         {...props} />
 ))
 DialogTitle.displayName = DialogPrimitive.Title.displayName
 
+/** @type {React.ForwardRefExoticComponent<any>} */
 const DialogDescription = React.forwardRef(({ className, ...props }, ref) => (
     <DialogPrimitive.Description
         ref={ref}
-        className={cn("text-sm text-muted-foreground", className)}
+        className={cn("text-xs sm:text-sm text-muted-foreground font-medium", className)}
         {...props} />
 ))
 DialogDescription.displayName = DialogPrimitive.Description.displayName

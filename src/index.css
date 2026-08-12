@@ -1,288 +1,550 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@600;700&display=swap');
+/* ═══════════════════════════════════════════════════════════════
+   PMS JCAR LABS — Design System Unificado v2
+   ═══════════════════════════════════════════════════════════════
+   Paleta: Forest & Brass (hotelería moderna, no SaaS genérico)
+   Dirección: iOS-native feel + densidad ejecutiva
+   100% responsivo: tipografía fluida, touch targets, hover-only
+   ═══════════════════════════════════════════════════════════════ */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Playfair+Display:wght@600;700&display=swap');
 @import "tailwindcss/base";
 @import "tailwindcss/components";
 @import "tailwindcss/utilities";
 
-@layer base {
-    :root {
-        /* Premium Ivory & Emerald Theme (Light) */
-        --background: 0 0% 98%; /* Soft Ivory #FAFAFA */
-        --foreground: 224 71% 4%; /* Deep Obsidian */
-        --card: 0 0% 100%;
-        --card-foreground: 224 71% 4%;
-        --popover: 0 0% 100%;
-        --popover-foreground: 224 71% 4%;
-        --primary: 158 95% 26%; /* Deep Emerald */
-        --primary-foreground: 0 0% 100%;
-        --secondary: 42 78% 60%; /* Golden Harvest */
-        --secondary-foreground: 224 71% 4%;
-        --muted: 220 14% 96%;
-        --muted-foreground: 220 9% 46%;
-        --accent: 158 95% 26%;
-        --accent-foreground: 0 0% 100%;
-        --destructive: 0 84% 60%;
-        --destructive-foreground: 0 0% 98%;
-        --border: 220 13% 91%;
-        --input: 220 13% 91%;
-        --ring: 158 95% 26%;
-        --radius: 1.25rem;
-        
-        --success: 158 95% 26%;
-        --warning: 42 78% 60%;
-
-        /* Luxury Status Colors (Light) */
-        --state-disponible-bg: 158 95% 97%;
-        --state-disponible-fg: 158 95% 20%;
-        --state-disponible-border: 158 95% 90%;
-        
-        --state-ocupada-bg: 224 71% 97%;
-        --state-ocupada-fg: 224 71% 30%;
-        --state-ocupada-border: 224 71% 90%;
-        
-        --state-reservada-bg: 262 83% 97%;
-        --state-reservada-fg: 262 83% 40%;
-        --state-reservada-border: 262 83% 90%;
-        
-        --state-mantenimiento-bg: 42 78% 97%;
-        --state-mantenimiento-fg: 42 78% 30%;
-        --state-mantenimiento-border: 42 78% 85%;
-        
-        --state-limpieza-bg: 199 89% 97%;
-        --state-limpieza-fg: 199 89% 35%;
-        --state-limpieza-border: 199 89% 90%;
-    }
-
-    .dark {
-        /* Obsidian Jungle & Gold Theme (Dark OLED) */
-        --background: 0 0% 0%; /* Purest Black #000000 */
-        --foreground: 0 0% 98%;
-        --card: 0 0% 3%; /* Deep Charcoal #080808 */
-        --card-foreground: 0 0% 98%;
-        --popover: 0 0% 3%;
-        --popover-foreground: 0 0% 98%;
-        --primary: 158 95% 36%; /* Vibrant Emerald */
-        --primary-foreground: 0 0% 100%;
-        --secondary: 42 78% 50%; /* Rich Gold */
-        --secondary-foreground: 0 0% 100%;
-        --muted: 0 0% 8%; 
-        --muted-foreground: 0 0% 65%;
-        --accent: 158 95% 36%;
-        --accent-foreground: 0 0% 100%;
-        --destructive: 0 84% 50%;
-        --destructive-foreground: 0 0% 98%;
-        --border: 0 0% 12%; /* Elegant Divider #1F1F1F */
-        --input: 0 0% 12%;
-        --ring: 158 95% 36%;
-
-        /* Luxury Status Colors (Dark OLED) */
-        --state-disponible-bg: 158 95% 4%;
-        --state-disponible-fg: 158 95% 50%;
-        --state-disponible-border: 158 95% 12%;
-        
-        --state-ocupada-bg: 0 0% 5%;
-        --state-ocupada-fg: 0 0% 80%;
-        --state-ocupada-border: 0 0% 15%;
-        
-        --state-reservada-bg: 262 83% 5%;
-        --state-reservada-fg: 262 83% 60%;
-        --state-reservada-border: 262 83% 15%;
-        
-        --state-mantenimiento-bg: 42 78% 4%;
-        --state-mantenimiento-fg: 42 78% 55%;
-        --state-mantenimiento-border: 42 78% 12%;
-        
-        --state-limpieza-bg: 199 89% 4%;
-        --state-limpieza-fg: 199 89% 60%;
-        --state-limpieza-border: 199 89% 12%;
-    }
+:root {
+  --ease-in-out: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 @layer base {
-    * {
-        border-color: hsl(var(--border));
-        outline-color: hsl(var(--ring) / 0.3);
-        transition-property: color, background-color, border-color, text-decoration-color, fill, stroke;
-        transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-        transition-duration: 300ms;
-        -webkit-tap-highlight-color: transparent;
-    }
+  :root {
+    /* ═══ LIGHT — Ivory cálido & Forest Green ═══ */
+    --background: 40 25% 98%;
+    --foreground: 160 15% 10%;
+    --card: 0 0% 100%;
+    --card-foreground: 160 15% 10%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 160 15% 10%;
+    --primary: 160 45% 28%;
+    /* NUEVO: bosque, no esmeralda SaaS */
+    --primary-foreground: 0 0% 100%;
+    --secondary: 42 55% 52%;
+    /* NUEVO: brass tenue */
+    --secondary-foreground: 160 15% 10%;
+    --muted: 40 15% 96%;
+    --muted-foreground: 160 10% 35%;
+    --accent: 160 45% 28%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 65% 45%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 40 15% 90%;
+    --input: 40 15% 90%;
+    --ring: 160 45% 28%;
+    --radius: 0.625rem;
+    /* NUEVO: 10px iOS */
 
-    body {
-        background-color: hsl(var(--background));
-        color: hsl(var(--foreground));
-        font-family: 'Inter', sans-serif;
-        -webkit-font-smoothing: antialiased;
-        -moz-osx-font-smoothing: grayscale;
-        overscroll-behavior: none;
-    }
+    --success: 160 45% 30%;
+    --warning: 38 80% 45%;
+
+    --glass-bg: rgba(255, 255, 255, 0.85);
+    --glass-border: rgba(0, 0, 0, 0.05);
+    --glass-shadow: 0 4px 12px 0 rgba(0, 0, 0, 0.05);
+
+    --bg-base: #f2f4f1;
+    --blob-1: #dcefe6;
+    /* NUEVO: blobs verdes/dorados */
+    --blob-2: #f3e8d2;
+    --blob-3: #eef2f0;
+
+    /* ═══ Estados de habitación (suaves, premium) ═══ */
+    --state-disponible-bg: 160 45% 96%;
+    --state-disponible-fg: 160 50% 24%;
+    --state-disponible-border: 160 35% 86%;
+
+    --state-ocupada-bg: 220 45% 96%;
+    --state-ocupada-fg: 220 50% 32%;
+    --state-ocupada-border: 220 35% 86%;
+
+    --state-reservada-bg: 262 40% 97%;
+    --state-reservada-fg: 262 45% 40%;
+    --state-reservada-border: 262 35% 88%;
+
+    --state-mantenimiento-bg: 42 55% 96%;
+    --state-mantenimiento-fg: 42 60% 30%;
+    --state-mantenimiento-border: 42 45% 84%;
+
+    --state-limpieza-bg: 199 60% 96%;
+    --state-limpieza-fg: 199 65% 30%;
+    --state-limpieza-border: 199 50% 86%;
+  }
+
+  .dark {
+    /* ═══ DARK — Lobby nocturno verdoso ═══ */
+    --background: 160 12% 5%;
+    --foreground: 40 20% 92%;
+    --card: 160 12% 7%;
+    --card-foreground: 40 20% 92%;
+    --popover: 160 12% 7%;
+    --popover-foreground: 40 20% 92%;
+    --primary: 160 45% 48%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 42 55% 60%;
+    --secondary-foreground: 0 0% 100%;
+    --muted: 160 10% 10%;
+    --muted-foreground: 150 8% 70%;
+    --accent: 160 45% 48%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 65% 58%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 160 10% 14%;
+    --input: 160 10% 16%;
+    --ring: 160 45% 48%;
+
+    --bg-base: #0a0f0d;
+    --blob-1: #0d1f18;
+    --blob-2: #1a1608;
+    --blob-3: #0f1713;
+
+    --glass-bg: rgba(10, 15, 13, 0.85);
+    --glass-border: rgba(255, 255, 255, 0.1);
+    --glass-shadow: 0 4px 12px 0 rgba(0, 0, 0, 0.2);
+
+    --state-disponible-bg: 160 45% 8%;
+    --state-disponible-fg: 160 45% 55%;
+    --state-disponible-border: 160 35% 18%;
+
+    --state-ocupada-bg: 220 45% 8%;
+    --state-ocupada-fg: 220 60% 70%;
+    --state-ocupada-border: 220 35% 20%;
+
+    --state-reservada-bg: 262 40% 8%;
+    --state-reservada-fg: 262 60% 70%;
+    --state-reservada-border: 262 35% 20%;
+
+    --state-mantenimiento-bg: 42 55% 8%;
+    --state-mantenimiento-fg: 42 60% 60%;
+    --state-mantenimiento-border: 42 45% 18%;
+
+    --state-limpieza-bg: 199 60% 8%;
+    --state-limpieza-fg: 199 65% 60%;
+    --state-limpieza-border: 199 50% 18%;
+  }
 }
 
-/* PWA safe areas */
-.safe-bottom {
-    padding-bottom: env(safe-area-inset-bottom);
+@layer base {
+  * {
+    border-color: hsl(var(--border));
+    outline-color: hsl(var(--ring) / 0.5);
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  *:focus-visible {
+    outline: 2px solid hsl(var(--ring));
+    outline-offset: 2px;
+  }
+
+  *:focus:not(:focus-visible) {
+    outline: none;
+  }
+
+  svg.lucide {
+    stroke-width: 1.5px !important;
+  }
+
+  button,
+  a,
+  [role="button"],
+  input,
+  select,
+  textarea,
+  summary,
+  .transition-colors {
+    transition-property: color, background-color, border-color, text-decoration-color, fill, stroke;
+    transition-timing-function: var(--ease-out);
+    transition-duration: 200ms;
+  }
+
+  body {
+    background-color: hsl(var(--background));
+    color: hsl(var(--foreground));
+    font-family: 'Inter', sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    overscroll-behavior: none;
+  }
+
+  /* NUEVO: selección de texto con identidad */
+  ::selection {
+    background: hsl(var(--primary) / 0.2);
+  }
 }
 
-.safe-top {
-    padding-top: env(safe-area-inset-top);
-}
-
-/* Ocultar scrollbar en filtros táctiles */
-.scrollbar-hide::-webkit-scrollbar {
-    display: none;
-}
-
-.scrollbar-hide {
-    -ms-overflow-style: none;
-    scrollbar-width: none;
-}
-
+/* ═══════════════════════════════════════════════════════════════
+   NUEVO: TIPOGRAFÍA FLUIDA (responsiva sin breakpoints)
+   ═══════════════════════════════════════════════════════════════ */
 .font-display {
-    font-family: 'Playfair Display', serif;
+  font-family: 'Playfair Display', serif;
+  letter-spacing: -0.02em;
 }
 
 .font-inter {
-    font-family: 'Inter', sans-serif;
+  font-family: 'Inter', sans-serif;
 }
 
-/* ===== PREMIUM SCROLLBAR ===== */
+.text-fluid-xl {
+  font-size: clamp(1.75rem, 1.35rem + 1.6vw, 2.75rem);
+  line-height: 1.1;
+}
+
+.text-fluid-lg {
+  font-size: clamp(1.35rem, 1.1rem + 1vw, 2rem);
+  line-height: 1.15;
+}
+
+.text-fluid-md {
+  font-size: clamp(1.05rem, 0.95rem + 0.5vw, 1.35rem);
+  line-height: 1.3;
+}
+
+.kpi-value {
+  font-size: clamp(1.5rem, 1.2rem + 1.4vw, 2.25rem);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   NUEVO: LAYOUT RESPONSIVO
+   ═══════════════════════════════════════════════════════════════ */
+.container-fluid {
+  width: 100%;
+  max-width: 100rem;
+  margin-inline: auto;
+  padding-inline: clamp(1rem, 4vw, 2rem);
+}
+
+/* Matriz de habitaciones: se adapta sola a cualquier pantalla */
+.rooms-grid {
+  display: grid;
+  gap: 0.5rem;
+  grid-template-columns: repeat(auto-fill, minmax(9rem, 1fr));
+}
+
+@media (max-width: 480px) {
+  .rooms-grid {
+    grid-template-columns: repeat(auto-fill, minmax(7.5rem, 1fr));
+  }
+}
+
+/* Tablas densas: scroll horizontal nativo en móvil */
+.table-responsive {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.table-responsive table {
+  min-width: 40rem;
+}
+
+/* Touch targets iOS (mínimo 44px en táctil) */
+@media (pointer: coarse) {
+
+  .touch-target,
+  button:not(.h-auto),
+  [role="button"] {
+    min-height: 44px;
+  }
+}
+
+/* Altura de viewport real en PWA (teclados/barras móviles) */
+.h-dvh-safe {
+  height: 100dvh;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   NUEVO: COMPONENTES FIRMA (identidad hotelera)
+   ═══════════════════════════════════════════════════════════════ */
+
+/* Sello de confirmación: check-in, DIRCETUR, SUNAT, night audit */
+.stamp {
+  display: inline-block;
+  padding: 0.125rem 0.5rem;
+  border: 2px solid currentColor;
+  border-radius: 0.375rem;
+  box-shadow: inset 0 0 0 1px currentColor;
+  font-family: 'Playfair Display', serif;
+  font-size: 0.625rem;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  transform: rotate(-2deg);
+  opacity: 0.9;
+  white-space: nowrap;
+}
+
+.stamp-success {
+  color: hsl(var(--primary));
+}
+
+.stamp-gold {
+  color: hsl(var(--secondary));
+}
+
+.stamp-danger {
+  color: hsl(var(--destructive));
+}
+
+/* Placa de puerta: números de habitación */
+.room-plate {
+  display: grid;
+  place-items: center;
+  min-width: 2rem;
+  height: 2rem;
+  padding: 0 0.5rem;
+  border-radius: 0.5rem;
+  border: 1px solid hsl(var(--secondary) / 0.5);
+  background: hsl(var(--secondary) / 0.1);
+  box-shadow: inset 0 0 0 1px hsl(var(--secondary) / 0.25);
+  font-family: 'Playfair Display', serif;
+  font-weight: 600;
+  font-size: 1rem;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Total contable con doble raya (Caja, Reportes) */
+.ledger-total {
+  border-top: 4px double hsl(var(--foreground) / 0.3);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   UTILIDADES EXISTENTES (sin cambios)
+   ═══════════════════════════════════════════════════════════════ */
+.safe-bottom {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+.safe-top {
+  padding-top: env(safe-area-inset-top);
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
 .custom-scrollbar::-webkit-scrollbar {
-    width: 4px;
+  width: 4px;
 }
 
 .custom-scrollbar::-webkit-scrollbar-track {
-    background: transparent;
+  background: transparent;
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb {
-    background: hsl(var(--muted-foreground) / 0.2);
-    border-radius: 9999px;
+  background: hsl(var(--muted-foreground) / 0.2);
+  border-radius: 9999px;
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-    background: hsl(var(--muted-foreground) / 0.4);
+  background: hsl(var(--muted-foreground) / 0.4);
 }
 
-/* Global scrollbar styling */
 * {
-    scrollbar-width: thin;
-    scrollbar-color: hsl(var(--muted-foreground) / 0.15) transparent;
+  scrollbar-width: thin;
+  scrollbar-color: hsl(var(--muted-foreground) / 0.15) transparent;
 }
 
 *::-webkit-scrollbar {
-    width: 5px;
-    height: 5px;
+  width: 5px;
+  height: 5px;
 }
 
 *::-webkit-scrollbar-track {
-    background: transparent;
+  background: transparent;
 }
 
 *::-webkit-scrollbar-thumb {
-    background: hsl(var(--muted-foreground) / 0.15);
-    border-radius: 9999px;
+  background: hsl(var(--muted-foreground) / 0.15);
+  border-radius: 9999px;
 }
 
 *::-webkit-scrollbar-thumb:hover {
-    background: hsl(var(--muted-foreground) / 0.3);
+  background: hsl(var(--muted-foreground) / 0.3);
 }
 
-/* ===== SKELETON LOADER ===== */
+/* ═══ SKELETON LOADER ═══ */
 @keyframes shimmer {
-    0% { background-position: -200% 0; }
-    100% { background-position: 200% 0; }
+  0% {
+    background-position: -200% 0;
+  }
+
+  100% {
+    background-position: 200% 0;
+  }
 }
 
 .skeleton {
-    background: linear-gradient(
-        90deg,
-        hsl(var(--muted) / 0.5) 25%,
-        hsl(var(--muted) / 0.8) 50%,
-        hsl(var(--muted) / 0.5) 75%
-    );
-    background-size: 200% 100%;
-    animation: shimmer 1.8s ease-in-out infinite;
-    border-radius: 0.75rem;
+  background: linear-gradient(90deg, hsl(var(--muted) / 0.5) 25%, hsl(var(--muted) / 0.8) 50%, hsl(var(--muted) / 0.5) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.8s ease-in-out infinite;
+  border-radius: 0.625rem;
 }
 
-/* ===== BUTTON TACTILE FEEDBACK ===== */
+/* ═══ FEEDBACK TÁCTIL ═══ */
 button,
 [role="button"],
 a[href] {
-    transition: transform 0.1s ease, box-shadow 0.2s ease;
+  transition: transform 0.1s ease, box-shadow 0.2s ease;
 }
 
 button:active:not(:disabled),
 [role="button"]:active:not(:disabled) {
-    transform: scale(0.97);
+  transform: scale(0.97);
 }
 
-/* ===== INPUT FOCUS GLOW ===== */
-input:focus,
-textarea:focus,
-select:focus,
-[data-state="open"] {
-    outline: none;
-    box-shadow: 0 0 0 3px hsl(var(--primary) / 0.12);
+/* ═══ ENTERPRISE CARD (radio iOS) ═══ */
+.enterprise-card {
+  background-color: hsl(var(--card));
+  border: 1px solid hsl(var(--border) / 0.6);
+  border-radius: 0.875rem;
+  box-shadow:
+    0 0 0 1px hsl(var(--border) / 0.05),
+    0 1px 2px 0 rgba(0, 0, 0, 0.03),
+    0 4px 8px -2px rgba(0, 0, 0, 0.05),
+    0 12px 24px -4px rgba(0, 0, 0, 0.05);
+  transition: box-shadow 0.3s var(--ease-out),
+    transform 0.3s var(--ease-out),
+    border-color 0.3s var(--ease-out);
 }
 
-/* ===== PREMIUM UTILITIES ===== */
-.glass-card {
-    background-color: hsl(var(--card) / 0.6);
-    backdrop-filter: blur(64px);
-    -webkit-backdrop-filter: blur(64px);
-    border: 1px solid hsl(var(--border) / 0.5);
-    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.1);
+/* Hover solo en dispositivos con puntero real (no queda "pegado" en móvil) */
+@media (hover: hover) {
+  .enterprise-card:hover {
+    border-color: hsl(var(--border) / 0.9);
+    box-shadow:
+      0 0 0 1px hsl(var(--border) / 0.1),
+      0 2px 4px 0 rgba(0, 0, 0, 0.04),
+      0 8px 16px -4px rgba(0, 0, 0, 0.08),
+      0 20px 40px -8px rgba(0, 0, 0, 0.08);
+  }
 }
 
-.dark .glass-card {
-    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
-    background: linear-gradient(145deg, rgba(15,15,15,0.7), rgba(5,5,5,0.8));
+/* ═══ GLASS PANEL (solo flotantes) ═══ */
+.glass-panel {
+  background-color: hsl(var(--card) / 0.85);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid hsl(var(--border) / 0.5);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
 }
 
-.glow-primary {
-    box-shadow: 0 0 20px -5px hsl(var(--primary) / 0.4);
+.dark .glass-panel {
+  background-color: hsl(var(--card) / 0.90);
+  border: 1px solid hsl(var(--border) / 0.3);
+  box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
 }
 
-.glow-secondary {
-    box-shadow: 0 0 20px -5px hsl(var(--secondary) / 0.4);
+@media (max-width: 640px) {
+  .glass-panel {
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+  }
 }
 
-/* ===== PAGE TRANSITION ===== */
+/* ═══ TRANSICIONES ═══ */
 @keyframes fadeSlideIn {
-    from {
-        opacity: 0;
-        transform: translateY(12px) scale(0.99);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0) scale(1);
-    }
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.99);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
 
 .page-enter {
-    animation: fadeSlideIn 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+  animation: fadeSlideIn 0.2s var(--ease-out);
 }
 
-/* ===== MODERN BUTTONS ===== */
+.scroll-reveal {
+  opacity: 0;
+  transform: translateY(10px);
+  transition: opacity 400ms var(--ease-out), transform 400ms var(--ease-out);
+}
+
+.scroll-reveal.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+@keyframes shine {
+  from {
+    background-position: -200% 0;
+  }
+
+  to {
+    background-position: 200% 0;
+  }
+}
+
+.bar-shine {
+  background: linear-gradient(90deg, transparent 30%, rgba(255, 255, 255, 0.15) 50%, transparent 70%);
+  background-size: 200% 100%;
+  animation: shine 3s ease-in-out infinite;
+}
+
+/* ═══ BOTONES PREMIUM ═══ */
 .btn-premium {
-    position: relative;
-    overflow: hidden;
-    transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s ease;
 }
 
 .btn-premium:active {
-    transform: scale(0.95);
+  transform: scale(0.95);
 }
 
 .btn-premium::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background-color: rgba(255, 255, 255, 0.1);
-    opacity: 0;
-    transition: opacity 0.3s ease;
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-color: rgba(255, 255, 255, 0.1);
+  opacity: 0;
+  transition: opacity 0.3s ease;
 }
 
-.btn-premium:hover::after {
+@media (hover: hover) {
+  .btn-premium:hover::after {
     opacity: 1;
-}
+  }
+}
+
+/* ═══ ODOMETRO ═══ */
+@layer utilities {
+  .odometer-digit {
+    display: inline-block;
+    height: 1em;
+    line-height: 1em;
+    overflow: hidden;
+    transition: transform 0.6s cubic-bezier(0.23, 1, 0.32, 1);
+  }
+}
+
+/* ═══ ACCESIBILIDAD: MOVIMIENTO REDUCIDO ═══ */
+@media (prefers-reduced-motion: reduce) {
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

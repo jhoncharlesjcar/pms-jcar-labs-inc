@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, memo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { db } from '@/api/db';
 import { Plus, Pencil, Trash2, Check } from 'lucide-react';
@@ -21,7 +21,7 @@ const CATEGORIAS = [
 
 const emptyForm = { nombre: '', categoria: 'restaurante', precio: '', descripcion: '', emoji: '', disponible: true };
 
-export default function CatalogoServicios({ onAgregar }) {
+const CatalogoServicios = memo(function CatalogoServicios({ onAgregar }) {
     const qc = useQueryClient();
     const { hotelActual } = useHotel();
     const hotelId = hotelActual?.id;
@@ -59,13 +59,13 @@ export default function CatalogoServicios({ onAgregar }) {
             {/* Filtros de categoría */}
             <div className="flex gap-2 flex-wrap">
                 <button onClick={() => setCategoriaFiltro('todos')}
-                    className={cn("px-3 py-1.5 rounded-xl text-xs font-medium border transition-all",
+                    className={cn("px-3 py-1.5 rounded-xl text-xs font-medium border transition-[transform,opacity]",
                         categoriaFiltro === 'todos' ? "bg-primary text-primary-foreground border-primary" : "bg-card border-border text-muted-foreground hover:bg-secondary")}>
                     Todos
                 </button>
                 {CATEGORIAS.map(c => (
                     <button key={c.value} onClick={() => setCategoriaFiltro(c.value)}
-                        className={cn("px-3 py-1.5 rounded-xl text-xs font-medium border transition-all",
+                        className={cn("px-3 py-1.5 rounded-xl text-xs font-medium border transition-[transform,opacity]",
                             categoriaFiltro === c.value ? "bg-primary text-primary-foreground border-primary" : "bg-card border-border text-muted-foreground hover:bg-secondary")}>
                         {c.emoji} {c.label}
                     </button>
@@ -77,7 +77,7 @@ export default function CatalogoServicios({ onAgregar }) {
                 {disponibles.map(s => {
                     const cat = CATEGORIAS.find(c => c.value === s.categoria);
                     return (
-                        <div key={s.id} className="bg-card border border-border rounded-xl p-3 hover:border-primary/50 transition-all group relative">
+                        <div key={s.id} className="bg-card border border-border rounded-xl p-3 hover:border-primary/50 transition-[transform,opacity] group relative">
                             {/* Botones editar/eliminar */}
                             <div className="absolute top-2 right-2 hidden group-hover:flex gap-1">
                                 <button onClick={() => abrirEditar(s)} className="w-6 h-6 bg-secondary rounded-lg flex items-center justify-center hover:bg-primary/10">
@@ -99,7 +99,7 @@ export default function CatalogoServicios({ onAgregar }) {
 
                 {/* Botón agregar nuevo */}
                 <button onClick={abrirNuevo}
-                    className="border-2 border-dashed border-border rounded-xl p-3 flex flex-col items-center justify-center gap-1 hover:border-primary/50 hover:bg-primary/5 transition-all min-h-[100px]">
+                    className="border-2 border-dashed border-border rounded-xl p-3 flex flex-col items-center justify-center gap-1 hover:border-primary/50 hover:bg-primary/5 transition-[transform,opacity] min-h-[100px]">
                     <Plus className="w-5 h-5 text-muted-foreground" />
                     <span className="text-xs text-muted-foreground">Agregar</span>
                 </button>
@@ -155,4 +155,6 @@ export default function CatalogoServicios({ onAgregar }) {
             </Dialog>
         </div>
     );
-}
+});
+CatalogoServicios.displayName = 'CatalogoServicios';
+export default CatalogoServicios;

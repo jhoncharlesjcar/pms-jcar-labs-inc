@@ -14,6 +14,21 @@ export const buildReceiptTemplate = (data) => {
     </tr>
   `).join('');
 
+  // Generación de QR SUNAT regulatorio
+  const rucEmisor = data.ruc || '20000000000';
+  const tipoComp = data.receiptType?.toLowerCase().includes('factura') ? '01' : '03'; // 01 = Factura, 03 = Boleta
+  const parts = (data.receiptNumber || 'B001-00000001').split('-');
+  const serie = parts[0] || 'B001';
+  const numero = parts[1] || '00000001';
+  const totalVal = data.total || 0;
+  const igvVal = data.igv !== undefined ? data.igv : (totalVal * 0.18 / 1.18); // fallback a igv del total
+  const fechaStr = data.date ? new Date(data.date).toISOString().split('T')[0] : new Date().toISOString().split('T')[0];
+  const docAdq = data.guestDocument || '00000000';
+  const tipoDocAdq = docAdq.length === 11 ? '6' : '1'; // 6 = RUC, 1 = DNI
+  
+  const qrString = `${rucEmisor}|${tipoComp}|${serie}|${numero}|${Number(igvVal).toFixed(2)}|${Number(totalVal).toFixed(2)}|${fechaStr}|${tipoDocAdq}|${docAdq}|`;
+  const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=110x110&data=${encodeURIComponent(qrString)}`;
+
   return `
     <div class="text-center mb-2">
       <div class="hotel-name">${data.hotelName || 'HOTEL'}</div>
@@ -78,6 +93,15 @@ export const buildReceiptTemplate = (data) => {
         <span>Pago con:</span>
         <span>${data.paymentMethod}</span>
       </div>` : ''}
+    </div>
+    
+    <div class="divider-solid"></div>
+    
+    <!-- Bloque QR Regulatorio SUNAT -->
+    <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; margin: 12px 0;">
+      <img src="${qrUrl}" alt="QR SUNAT" style="width: 100px; height: 100px; margin: 4px auto;" />
+      <div style="font-size: 8px; color: #555; margin-top: 4px; font-family: monospace;">Representación impresa de la Boleta Electrónica</div>
+      <div style="font-size: 8px; color: #555; font-family: monospace;">Consulte en e-menu.sunat.gob.pe</div>
     </div>
     
     <div class="divider-solid"></div>

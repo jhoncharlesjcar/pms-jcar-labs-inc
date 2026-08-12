@@ -1,48 +1,157 @@
 import { Outlet, Link, useLocation } from 'react-router-dom';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, memo } from 'react';
 import {
     BedDouble, CalendarDays, Settings,
     Menu, X, Hotel, LogOut, ShoppingCart, Code2, Building2,
-    LayoutGrid, Users, CreditCard, FileText, Wallet, Sun, Moon
+    LayoutGrid, Users, CreditCard, FileText, Wallet, Sun, Moon, Package, TrendingUp, Zap
 } from 'lucide-react';
+
 import { db } from '@/api/db';
-import { useAuth } from '@/lib/AuthContext';
+import { useAuth } from '@/contexts/AuthContext';
 import { cn } from '@/lib/utils';
 import SelectorHotel from '@/components/SelectorHotel';
+import { GlobalCommand } from '@/components/GlobalCommand';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import GestionHotelesAdmin from '@/components/admin/GestionHotelesAdmin';
-import { Switch } from '@/components/ui/switch';
-import { motion } from 'framer-motion';
 
-const navItems = [
-    { path: '/', label: 'Dashboard', icon: LayoutGrid, color: 'bg-[#007041]' }, 
-    { path: '/habitaciones', label: 'Habitaciones', icon: BedDouble, color: 'bg-[#2D63ED]' }, 
-    { path: '/recepcion', label: 'Recepción', icon: CalendarDays, color: 'bg-[#7C3AED]' }, 
-    { path: '/huespedes', label: 'Huéspedes', icon: Users, color: 'bg-[#10b981]' }, 
-    { path: '/ventas', label: 'Ventas y Tickets', icon: CreditCard, color: 'bg-[#0284C7]' }, 
-    { path: '/caja', label: 'Caja', icon: Wallet, color: 'bg-[#8B5CF6]' }, 
-    { path: '/reportes', label: 'Reportes', icon: FileText, color: 'bg-[#4F46E5]' }, 
-    { path: '/pos', label: 'Punto de Venta', icon: ShoppingCart, color: 'bg-[#D97706]' }, 
-    { path: '/configuracion', label: 'Configuración', icon: Settings, color: 'bg-[#4B5563]' }, 
+import { gsap } from 'gsap';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import PageTransition from '@/components/PageTransition';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/config/supabase';
+import { useHotelData } from '@/hooks/use-hotel-data';
+
+// ScrollTrigger debe usar #main-content como contenedor de scroll
+import BroomIcon from '@/components/ui/icons/BroomIcon';
+
+// (El scroller por defecto se configura dinámicamente dentro de Layout)
+
+const navGroups = [
+    {
+        title: 'RECEPCIÓN Y HABITACIONES',
+        items: [
+            { path: '/', label: 'Dashboard', icon: LayoutGrid },
+            { path: '/recepcion', label: 'Recepción', icon: CalendarDays },
+            { path: '/habitaciones', label: 'Habitaciones', icon: BedDouble },
+            { path: '/huespedes', label: 'Huéspedes', icon: Users },
+            { path: '/limpieza', label: 'Limpieza', icon: BroomIcon },
+        ]
+    },
+    {
+        title: 'FINANZAS E INVENTARIO',
+        items: [
+            { path: '/ventas', label: 'Ventas y Tickets', icon: CreditCard },
+            { path: '/caja', label: 'Caja', icon: Wallet },
+            { path: '/pos', label: 'Punto de Venta', icon: ShoppingCart },
+            { path: '/insumos', label: 'Insumos y Suministros', icon: Package },
+        ]
+    },
+    {
+        title: 'ANALÍTICA Y CONFIGURACIÓN',
+        items: [
+            { path: '/revenue', label: 'Revenue & BI', icon: TrendingUp },
+            { path: '/reportes', label: 'Reportes', icon: FileText },
+            { path: '/configuracion', label: 'Configuración', icon: Settings },
+        ]
+    }
 ];
 
 const ROLE_LABELS = {
-    admin: { label: 'Administrador', color: 'bg-primary/10 text-primary' },
-    recepcionista: { label: 'Recepcionista', color: 'bg-green-100 text-green-700' },
-    developer: { label: 'Developer', color: 'bg-amber-100 text-amber-700' },
-    user: { label: 'Usuario', color: 'bg-secondary text-secondary-foreground' },
+    admin: { label: 'Admin', color: 'text-primary' },
+    recepcionista: { label: 'Recepción', color: 'text-emerald-500' },
+    developer: { label: 'Dev', color: 'text-amber-500' },
+    user: { label: 'Usuario', color: 'text-muted-foreground' },
 };
 
-export default function Layout() {
+const Layout = memo(function Layout() {
     const [sidebarOpen, setSidebarOpen] = useState(false);
+    const [isCollapsed, setIsCollapsed] = useState(() => localStorage.getItem('sidebar_collapsed') === 'true');
     const location = useLocation();
     const { user } = useAuth();
+    const { hotelId } = useHotelData();
 
     const isDeveloper = user?.role === 'developer';
     const isAdmin = user?.role === 'admin';
+    const navRef = useRef(null);
+    const sidebarTweenRef = useRef(null);
+
+    // Sidebar collapse shortcut
+    useEffect(() => {
+        const handleKeyDown = (e) => {
+            if (e.ctrlKey && e.key === 'b') {
+                e.preventDefault();
+                setIsCollapsed(prev => {
+                    const newVal = !prev;
+                    localStorage.setItem('sidebar_collapsed', newVal.toString());
+                    return newVal;
+                });
+            }
+        };
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, []);
+
+    // Badges query
+    const { data: dbStats } = useQuery({
+        queryKey: ["dashboardStats", hotelId],
+        queryFn: async () => {
+            if (!hotelId) return null;
+            const { data, error } = await supabase.rpc('get_dashboard_stats', { p_hotel_id: hotelId });
+            if (error) return null;
+            return data;
+        },
+        enabled: !!hotelId,
+        refetchInterval: 60000
+    });
+
+    const getBadge = (path) => {
+        if (!dbStats) return 0;
+        if (path === '/limpieza') return dbStats.limpieza || 0;
+        if (path === '/recepcion') return dbStats.ocupadas_y_pendientes > 0 ? 1 : 0; // Simple indicador
+        return 0;
+    };
+
+    // GSAP stagger en items de navegación al montar la app
+    useEffect(() => {
+        if (!navRef.current) return;
+        const items = navRef.current.querySelectorAll(':scope > div > a, :scope > div > button');
+        if (items.length === 0) return;
+
+        if (sidebarTweenRef.current) sidebarTweenRef.current.kill();
+
+        const tween = gsap.fromTo(
+            items,
+            { opacity: 0, x: -10 },
+            {
+                opacity: 1,
+                x: 0,
+                duration: 0.35,
+                ease: 'power2.out',
+                stagger: {
+                    each: 0.04,
+                    from: 'start',
+                },
+                delay: 0.1,
+            }
+        );
+
+        sidebarTweenRef.current = tween;
+        return () => { if (sidebarTweenRef.current) { sidebarTweenRef.current.kill(); sidebarTweenRef.current = null; } };
+    }, [isCollapsed]);
+
     const roleInfo = ROLE_LABELS[user?.role] || ROLE_LABELS['user'];
     const [gestionModal, setGestionModal] = useState(false);
     const [isDark, setIsDark] = useState(() => document.documentElement.classList.contains('dark'));
+
+    // Refrescar ScrollTrigger al montar
+    useEffect(() => {
+        ScrollTrigger.defaults({ scroller: '#main-content' });
+        ScrollTrigger.refresh();
+        
+        return () => {
+            ScrollTrigger.defaults({ scroller: "body" }); // Restaurar al desmontar
+        }
+    }, []);
 
     // Check theme on mount
     useEffect(() => {
@@ -74,184 +183,240 @@ export default function Layout() {
                 <div className="fixed inset-0 bg-black/40 z-20 lg:hidden backdrop-blur-sm" onClick={() => setSidebarOpen(false)} />
             )}
 
-            {/* Sidebar (Premium Glass) */}
+            {/* Sidebar (Enterprise SaaS) */}
             <aside className={cn(
-                "fixed top-0 left-0 h-full w-[280px] sm:w-72 bg-card/40 backdrop-blur-3xl border-r border-border/50 z-50 flex flex-col transition-all duration-700 ease-in-out shadow-2xl",
-                sidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
+                "fixed top-0 left-0 h-screen bg-card border-r border-border z-50 flex flex-col transition-all duration-300 ease-in-out shadow-sm",
+                sidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0",
+                isCollapsed ? "w-64 lg:w-[72px]" : "w-64"
             )}>
-                {/* Logo Section with Glow */}
-                <div className="p-8 border-b border-border/10">
-                    <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 bg-primary/20 backdrop-blur-xl rounded-2xl flex items-center justify-center border border-primary/30 shadow-lg shadow-primary/10 group overflow-hidden relative">
-                            <Hotel className="w-6 h-6 text-primary group-hover:scale-110 transition-transform" />
-                            <div className="absolute inset-0 bg-gradient-to-tr from-primary/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-                        </div>
-                        <div>
-                            <p className="font-display text-lg font-black text-foreground leading-tight tracking-tight">ANGELICA FREY</p>
-                            <p className="text-[10px] font-bold text-muted-foreground/60 uppercase tracking-widest">Gestión de Hospedaje</p>
-                        </div>
+                {/* Header Marca & Logo */}
+                <div className={cn("p-5 border-b border-border/50 flex items-center gap-3 transition-all duration-300", isCollapsed ? "justify-center px-2" : "")}>
+                    <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center shadow-xs flex-shrink-0" title="PMS JCAR LABS">
+                        <Hotel className="w-4.5 h-4.5 text-primary-foreground" />
                     </div>
+                    {!isCollapsed && (
+                        <div className="min-w-0 flex-1 opacity-100 transition-opacity duration-300 delay-100">
+                            <p className="font-display font-bold text-[15px] text-foreground leading-none tracking-tight truncate">PMS JCAR LABS</p>
+                        </div>
+                    )}
                 </div>
 
-                {/* Selector de hotel (Premium Styling) */}
-                {!isDeveloper && (
-                    <div className="px-5 pt-8">
-                        <div className="bg-secondary/5 border border-secondary/10 p-1 rounded-[1.5rem]">
-                            <SelectorHotel />
-                        </div>
+                {/* Selector de Hotel */}
+                {!isDeveloper && !isCollapsed && (
+                    <div className="px-3 pt-3 animate-in fade-in zoom-in duration-300">
+                        <SelectorHotel />
                     </div>
                 )}
 
-                {/* Main Navigation */}
-                <nav className="flex-1 px-5 pt-8 space-y-2 overflow-y-auto custom-scrollbar">
-                    <p className="text-[9px] font-black text-muted-foreground/40 uppercase tracking-[0.4em] px-5 mb-6">Navegación</p>
-                    {navItems.map(({ path, label, icon: Icon, color }) => {
-                        const active = location.pathname === path;
-                        return (
-                            <Link
-                                key={path}
-                                to={path}
-                                onClick={() => setSidebarOpen(false)}
-                                className={cn(
-                                    "flex items-center gap-4 px-5 py-3.5 rounded-[1.25rem] text-sm transition-all duration-500 group relative overflow-hidden",
-                                    active
-                                        ? "bg-primary text-white shadow-xl shadow-primary/20 font-bold"
-                                        : "text-muted-foreground hover:bg-secondary/10 hover:text-foreground"
-                                )}
-                            >
-                                <div className={cn(
-                                    "w-8 h-8 rounded-xl flex items-center justify-center shadow-sm transition-all duration-500 group-hover:rotate-6",
-                                    active ? "bg-white/20" : color
-                                )}>
-                                    <Icon className={cn("w-4 h-4", active ? "text-white" : "text-white")} />
-                                </div>
-                                <span className="flex-1 tracking-tight">{label}</span>
-                                {active && (
-                                    <motion.div layoutId="nav-active" className="absolute left-0 w-1 h-6 bg-white/40 rounded-r-full" />
-                                )}
-                            </Link>
-                        );
-                    })}
+                {/* Búsqueda Global */}
+                {!isCollapsed && (
+                    <div className="px-3 pt-2 animate-in fade-in duration-300">
+                        <GlobalCommand />
+                    </div>
+                )}
 
-                    {/* Admin Section Separator */}
-                    {(isAdmin || isDeveloper) && (
-                        <div className="pt-8 pb-4">
-                            <div className="h-px bg-gradient-to-r from-transparent via-border/50 to-transparent mx-5" />
-                        </div>
-                    )}
-
-                    {isAdmin && (
-                        <button
-                            onClick={() => { setGestionModal(true); setSidebarOpen(false); }}
-                            className="flex items-center gap-4 px-5 py-3.5 rounded-[1.25rem] text-sm font-bold transition-all w-full text-blue-500 hover:bg-blue-500/10 border border-blue-500/5 group"
-                        >
-                            <div className="w-8 h-8 bg-blue-500 rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/20 group-hover:scale-110 transition-transform">
-                                <Building2 className="w-4 h-4 text-white" />
-                            </div>
-                            <span className="flex-1 text-left tracking-tight">Hoteles & Staff</span>
-                        </button>
-                    )}
-
-                    {isDeveloper && (
-                        <Link
-                            to="/dev"
-                            onClick={() => setSidebarOpen(false)}
-                            className={cn(
-                                "flex items-center gap-4 px-5 py-3.5 rounded-[1.25rem] text-sm font-bold transition-all border group",
-                                location.pathname === '/dev'
-                                    ? "bg-amber-500 text-white shadow-xl shadow-amber-500/20 border-transparent"
-                                    : "text-amber-600 hover:bg-amber-500/10 border-amber-500/10 hover:border-amber-500/30"
+                {/* Navegación Principal Estructurada */}
+                <nav ref={navRef} className={cn("flex-1 pt-3 space-y-4 overflow-y-auto custom-scrollbar", isCollapsed ? "px-2" : "px-3")}>
+                    {navGroups.map((group) => (
+                        <div key={group.title} className="space-y-1">
+                            {!isCollapsed ? (
+                                <p className="text-[10px] font-bold text-muted-foreground/70 uppercase tracking-widest px-3 mb-1.5 select-none animate-in fade-in">
+                                    {group.title}
+                                </p>
+                            ) : (
+                                <div className="h-px bg-border/40 mx-2 mb-2 mt-4 first:mt-0" />
                             )}
-                        >
-                            <div className={cn(
-                                "w-8 h-8 rounded-xl flex items-center justify-center shadow-lg transition-transform group-hover:-rotate-12",
-                                location.pathname === '/dev' ? "bg-white/20" : "bg-amber-500"
-                            )}>
-                                <Code2 className="w-4 h-4 text-white" />
-                            </div>
-                            <span className="flex-1 tracking-tight">Panel Dev Labs</span>
-                        </Link>
+                            {group.items.map(({ path, label, icon: Icon }) => {
+                                const active = location.pathname === path;
+                                const badge = getBadge(path);
+                                return (
+                                    <Link
+                                        key={path}
+                                        to={path}
+                                        onClick={() => setSidebarOpen(false)}
+                                        title={isCollapsed ? label : undefined}
+                                        className={cn(
+                                            "flex items-center rounded-lg text-sm font-medium transition-colors group relative",
+                                            isCollapsed ? "justify-center p-3" : "gap-3 px-3 py-2.5",
+                                            active
+                                                ? "bg-primary/10 text-primary font-semibold"
+                                                : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                                        )}
+                                    >
+                                        {active && !isCollapsed && (
+                                            <span className="w-1 h-5 rounded-full bg-primary absolute left-0 shadow-sm" />
+                                        )}
+                                        {active && isCollapsed && (
+                                            <span className="w-1 h-5 rounded-full bg-primary absolute left-0 shadow-sm rounded-l-none" />
+                                        )}
+                                        <div className="relative flex-shrink-0">
+                                            <Icon className={cn("w-4.5 h-4.5 transition-transform group-hover:scale-110", active ? "text-primary" : "text-muted-foreground group-hover:text-foreground")} />
+                                            {badge > 0 && isCollapsed && (
+                                                <span className="absolute -top-1.5 -right-1.5 w-3.5 h-3.5 bg-destructive text-destructive-foreground text-[8px] font-bold rounded-full flex items-center justify-center border-2 border-card" />
+                                            )}
+                                        </div>
+                                        {!isCollapsed && (
+                                            <>
+                                                <span className="flex-1 truncate animate-in fade-in duration-300">{label}</span>
+                                                {badge > 0 && (
+                                                    <span className="ml-auto px-1.5 py-0.5 text-[9px] font-black bg-destructive text-destructive-foreground rounded-full min-w-[18px] text-center shadow-xs animate-in fade-in zoom-in">
+                                                        {badge}
+                                                    </span>
+                                                )}
+                                            </>
+                                        )}
+                                    </Link>
+                                );
+                            })}
+                        </div>
+                    ))}
+
+                    {/* Admin / Dev Section */}
+                    {(isAdmin || isDeveloper) && (
+                        <div className="pt-3 pb-1">
+                            <div className="h-px bg-border/40 mx-2 mb-2" />
+                            {isAdmin && (
+                                <button
+                                    onClick={() => { setGestionModal(true); setSidebarOpen(false); }}
+                                    className="flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-semibold text-blue-600 dark:text-blue-400 hover:bg-blue-500/10 w-full transition-colors"
+                                >
+                                    <Building2 className="w-4 h-4 text-blue-500 flex-shrink-0" />
+                                    <span className="flex-1 text-left truncate">Hoteles & Staff</span>
+                                </button>
+                            )}
+                            {isDeveloper && (
+                                <Link
+                                    to="/dev"
+                                    onClick={() => setSidebarOpen(false)}
+                                    className={cn(
+                                        "flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-semibold transition-colors mt-1",
+                                        location.pathname === '/dev'
+                                            ? "bg-amber-500 text-white shadow-sm"
+                                            : "text-amber-600 dark:text-amber-400 hover:bg-amber-500/10"
+                                    )}
+                                >
+                                    <Code2 className="w-4 h-4 text-amber-500 flex-shrink-0" />
+                                    <span className="flex-1 truncate">Panel Dev Labs</span>
+                                </Link>
+                            )}
+                        </div>
                     )}
                 </nav>
 
-                {/* Bottom Section (Premium Theme Switch & Profile) */}
-                <div className="p-6 space-y-6">
-                    {/* Theme Switcher Compact */}
-                    <div className="px-4 py-3 bg-secondary/5 rounded-2xl border border-border/10 flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                            <div className="w-8 h-8 rounded-lg bg-background/50 flex items-center justify-center border border-border/50">
-                                {isDark ? <Moon className="w-4 h-4 text-primary" /> : <Sun className="w-4 h-4 text-primary" />}
-                            </div>
-                            <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">Tema {isDark ? 'Oscuro' : 'Claro'}</span>
-                        </div>
-                        <Switch 
-                            checked={isDark} 
-                            onCheckedChange={toggleTheme}
-                            className="data-[state=checked]:bg-primary"
-                        />
-                    </div>
-
-                    {user && (
-                        <div className="p-4 bg-card/60 backdrop-blur-xl rounded-3xl border border-border/20 shadow-xl group hover:border-primary/30 transition-all">
-                            <div className="flex items-center gap-4">
-                                <div className="w-10 h-10 bg-gradient-to-tr from-primary to-emerald-400 rounded-2xl flex items-center justify-center flex-shrink-0 shadow-lg group-hover:rotate-3 transition-transform">
-                                    <span className="text-sm font-black text-white">
-                                        {(user.full_name || user.email || '?')[0].toUpperCase()}
-                                    </span>
+                {/* Footer Usuario & Acciones Rápidas */}
+                <div className={cn("p-4 border-t border-border/50 bg-muted/20 transition-all duration-300", isCollapsed ? "px-2" : "")}>
+                    <div className={cn("flex items-center gap-2", isCollapsed ? "flex-col" : "justify-between")}>
+                        {user && (
+                            <div className={cn("flex items-center min-w-0 flex-1", isCollapsed ? "justify-center w-full" : "gap-2.5")}>
+                                <div className="w-8 h-8 rounded-full bg-primary/10 text-primary font-bold text-xs flex items-center justify-center flex-shrink-0 border border-primary/20" title={user.full_name || user.email}>
+                                    {(user.full_name || user.email || '?')[0].toUpperCase()}
                                 </div>
-                                <div className="min-w-0 flex-1">
-                                    <p className="text-xs font-black text-foreground truncate tracking-tight">{user.full_name || user.email}</p>
-                                    <div className={cn("inline-flex items-center gap-1.5 px-2 py-0.5 rounded-lg mt-1 bg-primary/10", roleInfo.color.split(' ')[1])}>
-                                        <div className="w-1 h-1 rounded-full bg-current" />
-                                        <p className="text-[8px] font-black uppercase tracking-widest">
+                                {!isCollapsed && (
+                                    <div className="min-w-0 flex-1 opacity-100 transition-opacity animate-in fade-in duration-300">
+                                        <p className="text-sm font-semibold text-foreground truncate leading-none">{user.full_name || user.email}</p>
+                                        <p className={cn("text-xs font-medium mt-1", roleInfo.color)}>
                                             {roleInfo.label}
                                         </p>
                                     </div>
-                                </div>
+                                )}
                             </div>
+                        )}
+                        <div className={cn("flex items-center flex-shrink-0", isCollapsed ? "flex-col gap-2 mt-3" : "gap-1")}>
+                            <button
+                                aria-label="Cambiar tema"
+                                onClick={toggleTheme}
+                                title={isDark ? "Modo Claro" : "Modo Oscuro"}
+                                className="w-8 h-8 rounded-lg bg-secondary/50 hover:bg-secondary flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors"
+                            >
+                                {isDark ? <Moon className="w-3.5 h-3.5 text-amber-400" /> : <Sun className="w-3.5 h-3.5 text-amber-500" />}
+                            </button>
+                            <button
+                                aria-label="Cerrar sesión"
+                                onClick={async () => { await db.auth.logout(); }}
+                                title="Cerrar sesión"
+                                className="w-8 h-8 rounded-lg bg-secondary/50 hover:bg-destructive/15 text-muted-foreground hover:text-destructive flex items-center justify-center transition-colors"
+                            >
+                                <LogOut className="w-3.5 h-3.5" />
+                            </button>
                         </div>
-                    )}
-
-                    <button
-                        onClick={async () => { await db.auth.logout(); }}
-                        className="flex items-center gap-4 px-6 py-4 rounded-[1.5rem] text-xs font-black text-red-500 hover:bg-red-500 hover:text-white transition-all w-full border border-red-500/10 shadow-sm hover:shadow-red-500/20 group"
-                    >
-                        <LogOut className="w-4 h-4 transition-transform group-hover:-translate-x-1" />
-                        CERRAR SESIÓN
-                    </button>
+                    </div>
                 </div>
             </aside>
 
             {/* Main Content Area */}
-            <div className="flex-1 lg:ml-72 flex flex-col min-h-screen transition-all duration-500 overflow-x-hidden">
-                {/* Mobile Header */}
-                <header className="lg:hidden flex items-center justify-between px-5 py-4 bg-background/80 backdrop-blur-2xl border-b border-border/50 sticky top-0 z-40 safe-top">
+            <div className={cn(
+                "flex-1 flex flex-col h-screen transition-all duration-300 overflow-x-hidden",
+                isCollapsed ? "lg:ml-[72px]" : "lg:ml-64"
+            )}>
+                {/* Mobile Header Enterprise */}
+                <header className="lg:hidden flex items-center justify-between px-5 py-3 bg-card border-b border-border sticky top-0 z-40 safe-top shadow-xs">
                     <div className="flex items-center gap-3">
-                        <div className="w-9 h-9 bg-primary/10 rounded-xl flex items-center justify-center border border-primary/20">
-                            <Hotel className="w-5 h-5 text-primary" />
+                        <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center shadow-xs">
+                            <Hotel className="w-4 h-4 text-primary-foreground" />
                         </div>
-                        <span className="font-display font-black text-foreground tracking-tighter">ANGELICA FREY</span>
+                        <span className="font-display font-bold text-lg text-foreground tracking-tight">PMS JCAR</span>
                     </div>
                     <button 
+                        aria-label="Abrir menú de navegación"
                         onClick={() => setSidebarOpen(!sidebarOpen)} 
-                        className="w-12 h-12 rounded-xl bg-card border border-border/80 shadow-sm flex items-center justify-center active:scale-90 active:bg-primary/15 active:border-primary/30 active:text-primary transition-all duration-150 select-none cursor-pointer"
+                        className="w-10 h-10 rounded-lg text-muted-foreground hover:bg-muted flex items-center justify-center active:scale-95 transition-all select-none cursor-pointer"
                         style={{ WebkitTapHighlightColor: 'transparent' }}
                     >
                         {sidebarOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
                     </button>
                 </header>
 
-                <main className="flex-1 p-4 sm:p-6 lg:p-10 max-w-[100vw] overflow-x-hidden pb-10">
-                    <Outlet />
+                <main id="main-content" className="flex-1 p-4 sm:p-6 lg:p-8 max-w-[1800px] w-full mx-auto overflow-x-hidden overflow-y-auto pb-24 lg:pb-10 custom-scrollbar relative">
+                    <PageTransition key={location.pathname}>
+                        <Outlet />
+                    </PageTransition>
                 </main>
+
+                {/* Mobile Bottom Navigation (Solo visible < 1024px) */}
+                <nav className="lg:hidden fixed bottom-0 left-0 right-0 h-16 bg-card/90 backdrop-blur-xl border-t border-border/50 flex items-center justify-around px-2 z-40 safe-bottom">
+                    {[
+                        { path: '/', label: 'Inicio', icon: LayoutGrid },
+                        { path: '/recepcion', label: 'Recepción', icon: CalendarDays },
+                        { path: '/habitaciones', label: 'Rooms', icon: BedDouble },
+                        { path: '/pos', label: 'POS', icon: ShoppingCart }
+                    ].map(({ path, label, icon: Icon }) => {
+                        const active = location.pathname === path;
+                        const badge = getBadge(path);
+                        return (
+                            <Link
+                                key={path}
+                                to={path}
+                                className={cn(
+                                    "flex flex-col items-center justify-center w-full h-full gap-1 transition-colors relative",
+                                    active ? "text-primary" : "text-muted-foreground hover:text-foreground"
+                                )}
+                            >
+                                <div className="relative">
+                                    <Icon className={cn("w-5 h-5", active && "animate-pulse")} />
+                                    {badge > 0 && (
+                                        <span className="absolute -top-1.5 -right-2 w-3.5 h-3.5 bg-destructive text-destructive-foreground text-[8px] font-bold rounded-full flex items-center justify-center border-2 border-card"></span>
+                                    )}
+                                </div>
+                                <span className={cn("text-[9px] font-semibold tracking-wide", active && "font-bold")}>{label}</span>
+                            </Link>
+                        );
+                    })}
+                    <button
+                        onClick={() => setSidebarOpen(true)}
+                        className="flex flex-col items-center justify-center w-full h-full gap-1 transition-colors text-muted-foreground hover:text-foreground"
+                    >
+                        <Menu className="w-5 h-5" />
+                        <span className="text-[9px] font-semibold tracking-wide">Más</span>
+                    </button>
+                </nav>
             </div>
 
             {/* Modal Gestión Hoteles & Staff */}
             <Dialog open={gestionModal} onOpenChange={setGestionModal}>
-                <DialogContent className="max-w-xl max-h-[90vh] overflow-y-auto bg-card/95 backdrop-blur-3xl border-border/50 shadow-2xl rounded-[2.5rem]">
+                <DialogContent className="max-w-xl max-h-[90vh] overflow-y-auto glass-panel border-border/80 shadow-xl rounded-xl">
                     <DialogHeader>
                         <DialogTitle className="font-display flex items-center gap-3 text-2xl">
-                            <div className="p-2 bg-blue-500/10 rounded-xl">
+                            <div className="p-2 bg-blue-500/10 rounded-lg">
                                 <Building2 className="w-6 h-6 text-blue-500" />
                             </div>
                             Hoteles & Staff
@@ -262,4 +427,6 @@ export default function Layout() {
             </Dialog>
         </div>
     );
-}
+});
+Layout.displayName = 'LayoutLegacy';
+export default Layout;

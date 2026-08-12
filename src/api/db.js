@@ -1,4 +1,7 @@
 import { supabase } from '@/lib/supabaseClient';
+import logger from '@/lib/logger';
+import { enqueueMutation } from '@/lib/sync-queue';
+import { generateUUID } from '@/lib/utils';
 
 /**
  * Capa de acceso a datos — Supabase
@@ -28,6 +31,9 @@ const TABLE_MAP = {
     CategoriaProducto: 'categorias_productos',
     Egreso: 'egresos',
     CierreCaja: 'cierres_caja',
+    TarifaDinamica: 'tarifas_dinamicas',
+    LoyaltyAccount: 'loyalty_accounts',
+    LoyaltyTransaction: 'loyalty_transactions',
 };
 
 /**
@@ -50,8 +56,9 @@ function createEntityProxy(tableName) {
                 const column = isDesc ? orderBy.slice(1) : orderBy;
                 query = query.order(column, { ascending: !isDesc });
             } else {
-                // Todas las tablas en este esquema usan created_date en lugar de created_at
-                query = query.order('created_date', { ascending: false });
+                // Todas las tablas en este esquema usan created_date en lugar de created_at, excepto algunas
+                const dateColumn = ['usuarios', 'hoteles'].includes(tableName) ? 'created_at' : 'created_date';
+                query = query.order(dateColumn, { ascending: false });
             }
 
             if (limit) {
@@ -60,7 +67,7 @@ function createEntityProxy(tableName) {
 
             const { data, error } = await query;
             if (error) {
-                console.error(`Error listing ${tableName}:`, error);
+                logger.error(`Error listing ${tableName}:`, error);
                 throw error;
             }
             return data || [];
@@ -73,19 +80,37 @@ function createEntityProxy(tableName) {
          */
         async create(record) {
             const cleanData = { ...record };
-            delete cleanData.id; // Supabase genera el UUID automáticamente
+            // Si viene con ID, lo respetamos (ej. reintento o forzado). Si no, generamos uno local para uso offline
+            if (!cleanData.id) {
+                cleanData.id = generateUUID();
+            }
 
-            const { data, error } = await supabase
-                .from(tableName)
-                .insert(cleanData)
-                .select()
-                .single();
+            if (!navigator.onLine) {
+                logger.warn(`Modo offline: Encolando creación en ${tableName}`, cleanData);
+                await enqueueMutation('create', tableName, cleanData, cleanData.id);
+                // Retorno optimista
+                return { ...cleanData, created_date: new Date().toISOString() };
+            }
 
-            if (error) {
-                console.error(`Error creating in ${tableName}:`, error);
+            try {
+                const { data, error } = await supabase
+                    .from(tableName)
+                    .insert(cleanData)
+                    .select()
+                    .single();
+
+                if (error) throw error;
+                return data;
+            } catch (error) {
+                // FetchError o error de red de Supabase
+                if (error.message?.includes('FetchError') || error.message?.includes('Failed to fetch')) {
+                    logger.warn(`Error de red: Encolando creación en ${tableName}`, cleanData);
+                    await enqueueMutation('create', tableName, cleanData, cleanData.id);
+                    return { ...cleanData, created_date: new Date().toISOString() };
+                }
+                logger.error(`Error creating in ${tableName}:`, error);
                 throw error;
             }
-            return data;
         },
 
         /**
@@ -95,21 +120,36 @@ function createEntityProxy(tableName) {
          * @returns {Promise<object>} El registro actualizado
          */
         async update(id, updates) {
-            const cleanUpdates = { ...updates, updated_date: new Date().toISOString() };
-            delete cleanUpdates.id; // No actualizar el ID
+            const cleanUpdates = { ...updates };
+            delete cleanUpdates.id; // Nunca actualizar el ID
+            delete cleanUpdates.created_date; // No sobreescribir la fecha de creación
+            delete cleanUpdates.created_at;
 
-            const { data, error } = await supabase
-                .from(tableName)
-                .update(cleanUpdates)
-                .eq('id', id)
-                .select()
-                .single();
+            if (!navigator.onLine) {
+                logger.warn(`Modo offline: Encolando actualización en ${tableName} [${id}]`, cleanUpdates);
+                await enqueueMutation('update', tableName, cleanUpdates, id);
+                return { id, ...cleanUpdates }; // Mock
+            }
 
-            if (error) {
-                console.error(`Error updating in ${tableName}:`, error);
+            try {
+                const { data, error } = await supabase
+                    .from(tableName)
+                    .update(cleanUpdates)
+                    .eq('id', id)
+                    .select()
+                    .single();
+
+                if (error) throw error;
+                return data;
+            } catch (error) {
+                if (error.message?.includes('FetchError') || error.message?.includes('Failed to fetch')) {
+                    logger.warn(`Error de red: Encolando actualización en ${tableName} [${id}]`, cleanUpdates);
+                    await enqueueMutation('update', tableName, cleanUpdates, id);
+                    return { id, ...cleanUpdates };
+                }
+                logger.error(`Error updating in ${tableName}:`, error);
                 throw error;
             }
-            return data;
         },
 
         /**
@@ -118,13 +158,26 @@ function createEntityProxy(tableName) {
          * @returns {Promise<void>}
          */
         async delete(id) {
-            const { error } = await supabase
-                .from(tableName)
-                .delete()
-                .eq('id', id);
+            if (!navigator.onLine) {
+                logger.warn(`Modo offline: Encolando eliminación en ${tableName} [${id}]`);
+                await enqueueMutation('delete', tableName, null, id);
+                return;
+            }
 
-            if (error) {
-                console.error(`Error deleting from ${tableName}:`, error);
+            try {
+                const { error } = await supabase
+                    .from(tableName)
+                    .delete()
+                    .eq('id', id);
+
+                if (error) throw error;
+            } catch (error) {
+                if (error.message?.includes('FetchError') || error.message?.includes('Failed to fetch')) {
+                    logger.warn(`Error de red: Encolando eliminación en ${tableName} [${id}]`);
+                    await enqueueMutation('delete', tableName, null, id);
+                    return;
+                }
+                logger.error(`Error deleting from ${tableName}:`, error);
                 throw error;
             }
         },
@@ -154,7 +207,7 @@ function createEntityProxy(tableName) {
 
             const { data, error } = await query;
             if (error) {
-                console.error(`Error filtering ${tableName}:`, error);
+                logger.error(`Error filtering ${tableName}:`, error);
                 throw error;
             }
             return data || [];
@@ -171,22 +224,23 @@ for (const [entityName, tableName] of Object.entries(TABLE_MAP)) {
 // Auth wrapper
 const auth = {
     async logout() {
-        console.log('--- LOGOUT INICIADO ---');
+        logger.debug('--- LOGOUT INICIADO ---');
         try {
             const { error } = await supabase.auth.signOut();
-            if (error) console.error('Error Supabase signOut:', error);
+            if (error) logger.error('Error Supabase signOut:', error);
             
-            // Limpieza agresiva de persistencia
-            localStorage.clear();
+            // Limpieza selectiva para no borrar configuraciones (tema, pwa)
+            Object.keys(localStorage).forEach(k => k.startsWith('sb-') && localStorage.removeItem(k));
             sessionStorage.clear();
             
-            console.log('Limpieza completada. Redireccionando...');
+            logger.debug('Limpieza completada. Redireccionando...');
             
             // Redirección forzada
             window.location.replace(window.location.origin);
         } catch (err) {
-            console.error('Error crítico en logout:', err);
-            localStorage.clear();
+            logger.error('Error crítico en logout:', err);
+            Object.keys(localStorage).forEach(k => k.startsWith('sb-') && localStorage.removeItem(k));
+            sessionStorage.clear();
             window.location.replace(window.location.origin);
         }
     },
@@ -216,11 +270,14 @@ const users = {
             if (error) throw error;
             return data;
         } catch (err) {
-            console.error('Error inviting user:', err);
+            logger.error('Error inviting user:', err);
             throw err;
         }
     },
 };
+
+// Cache para instancias scoped por hotel_id (evita re-crear proxies en cada llamada)
+const _scopedCache = new Map();
 
 // Exportación principal — API de acceso a datos
 export const db = {
@@ -229,10 +286,13 @@ export const db = {
     users,
     /**
      * Crea una instancia de entidades filtrada automáticamente por hotel_id
+     * Usa cache interna para evitar re-crear objetos proxy en cada render
      * @param {string} hotelId 
      */
     forHotel(hotelId) {
         if (!hotelId) return entities;
+        
+        if (_scopedCache.has(hotelId)) return _scopedCache.get(hotelId);
         
         const scoped = {};
         for (const [name, proxy] of Object.entries(entities)) {
@@ -246,6 +306,7 @@ export const db = {
                 create: (data) => proxy.create({ ...data, [filterKey]: hotelId }),
             };
         }
+        _scopedCache.set(hotelId, scoped);
         return scoped;
     }
 };

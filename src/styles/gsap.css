@@ -1,0 +1,77 @@
+/* =========================================================
+   GSAP + Lenis Premium Scroll Animations
+   ========================================================= */
+
+/* ─── Scroll Reveal Base States ─────────────────────────── */
+[data-reveal] {
+  opacity: 0;
+  will-change: transform, opacity;
+}
+
+[data-reveal="fade-up"] {
+  transform: translateY(30px);
+}
+
+[data-reveal="fade-down"] {
+  transform: translateY(-30px);
+}
+
+[data-reveal="fade-left"] {
+  transform: translateX(-30px);
+}
+
+[data-reveal="fade-right"] {
+  transform: translateX(30px);
+}
+
+[data-reveal="scale-in"] {
+  transform: scale(0.9);
+}
+
+/* ─── Parallax Wrapper ──────────────────────────────────── */
+.parallax-wrapper {
+  overflow: hidden;
+  will-change: transform;
+}
+
+.parallax-element {
+  will-change: transform;
+}
+
+/* ─── Progress Bar Animation ────────────────────────────── */
+.gsap-progress {
+  width: 0%;
+  will-change: width;
+}
+
+/* ─── Counter Animation ──────────────────────────────────── */
+.gsap-counter {
+  font-variant-numeric: tabular-nums;
+}
+
+/* ─── Stagger Grid ───────────────────────────────────────── */
+.gsap-stagger-grid > * {
+  opacity: 0;
+  transform: translateY(20px);
+}
+
+/* ─── Lenis Scrollbar Custom (optional) ─────────────────── */
+html.lenis {
+  height: auto;
+}
+
+.lenis.lenis-smooth {
+  scroll-behavior: auto;
+}
+
+.lenis.lenis-smooth [data-lenis-prevent] {
+  overscroll-behavior: contain;
+}
+
+.lenis.lenis-stopped {
+  overflow: hidden;
+}
+
+.lenis.lenis-scrolling iframe {
+  pointer-events: none;
+}

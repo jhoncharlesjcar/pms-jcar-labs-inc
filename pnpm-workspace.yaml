@@ -1,0 +1,5 @@
+allowBuilds:
+  core-js: true
+  esbuild: true
+  tesseract.js: false
+  unrs-resolver: false

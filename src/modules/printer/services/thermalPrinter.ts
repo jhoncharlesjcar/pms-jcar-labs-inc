@@ -83,6 +83,8 @@ export const generatePlainTextTicket = (data, lineWidth = 32) => {
   return ticket;
 };
 
+import logger from '@/lib/logger';
+
 /**
  * Detects if the current device is Android
  * @returns {boolean}
@@ -106,16 +108,17 @@ export const printThermalTicket = (data, paperWidth = 58) => {
 
     if (isAndroid()) {
       // Android: Send via RawBT intent URL scheme
-      // 1. Encode text to prevent UTF-8 corruption
-      const encodedText = encodeURIComponent(plainText);
-      const base64Text = btoa(unescape(encodedText));
+      // 1. Encode text to prevent UTF-8 corruption (robust method, no deprecated APIs)
+      const encoder = new TextEncoder();
+      const bytes = encoder.encode(plainText);
+      const base64Text = btoa(String.fromCharCode(...bytes));
       
       // 2. Dispatch rawbt:base64 URI scheme
       window.location.href = `rawbt:base64,${base64Text}`;
       return true;
     } else {
       // Desktop: Fallback to window.print using a temporary invisible container or simple alert
-      console.log('Desktop detected. Printing via window.print()');
+      logger.debug('Desktop detected. Printing via window.print()');
       
       // To strictly follow NO iframes, NO HTML canvas, we open a pure text popup and print it
       const printWindow = window.open('', '_blank', 'width=400,height=600');
@@ -132,18 +135,18 @@ export const printThermalTicket = (data, paperWidth = 58) => {
           </html>
         `);
         printWindow.document.close();
-        printWindow.focus();
-        // Short delay to allow render before print
-        setTimeout(() => {
+        // Use onload event instead of fragile timeout
+        printWindow.onload = () => {
+          printWindow.focus();
           printWindow.print();
           printWindow.close();
-        }, 250);
+        };
         return true;
       }
       return false;
     }
   } catch (err) {
-    console.error('[ThermalPrinter Service] Error generating ticket:', err);
+    logger.error('[ThermalPrinter Service] Error generating ticket:', err);
     return false;
   }
 };

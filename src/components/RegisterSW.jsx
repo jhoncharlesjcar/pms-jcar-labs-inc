@@ -1,8 +1,8 @@
-import { useEffect } from 'react';
+import { useEffect, memo } from 'react';
 import { registerSW } from 'virtual:pwa-register';
 import { toast } from 'sonner';
 
-export default function RegisterSW() {
+const RegisterSW = memo(function RegisterSW() {
   useEffect(() => {
     registerSW({
       onNeedRefresh() {
@@ -20,4 +20,6 @@ export default function RegisterSW() {
   }, []);
 
   return null;
-}
+});
+RegisterSW.displayName = 'RegisterSW';
+export default RegisterSW;

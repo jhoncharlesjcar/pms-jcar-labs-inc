@@ -1,6 +1,7 @@
+import { memo } from 'react';
 import { Trash2, Plus, Minus, ShoppingCart } from 'lucide-react';
 
-export default function CarritoPOS({ items, onCambiarCantidad, onEliminar, subtotalEstadia, reservaSeleccionada }) {
+const CarritoPOS = memo(function CarritoPOS({ items, onCambiarCantidad, onEliminar, subtotalEstadia, reservaSeleccionada }) {
     const subtotalExtras = items.reduce((s, i) => s + i.precio * i.cantidad, 0);
     const total = subtotalEstadia + subtotalExtras;
 
@@ -92,4 +93,6 @@ export default function CarritoPOS({ items, onCambiarCantidad, onEliminar, subto
             )}
         </div>
     );
-}
+});
+CarritoPOS.displayName = 'CarritoPOS';
+export default CarritoPOS;

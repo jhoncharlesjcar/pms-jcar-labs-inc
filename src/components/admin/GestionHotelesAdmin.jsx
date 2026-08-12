@@ -1,7 +1,8 @@
-import { useState } from 'react';
+// @ts-nocheck
+import { useState, memo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { db } from '@/api/db';
-import { useAuth } from '@/lib/AuthContext';
+import { useAuth } from '@/contexts/AuthContext';
 import {
     Building2, Plus, Pencil, Trash2, ToggleLeft, ToggleRight,
     UserPlus, Mail, Check, RefreshCw, Lock, Unlock, Key
@@ -12,6 +13,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { cn } from '@/lib/utils';
+import { toast } from 'sonner';
 
 const ROLES_STAFF = [
     { value: 'admin', label: '👑 Admin' },
@@ -20,7 +22,7 @@ const ROLES_STAFF = [
 
 const emptyHotel = { nombre: '', ruc: '', direccion: '', ciudad: '', telefono: '', email: '', hora_checkin: '14:00', hora_checkout: '12:00', activo: true, notas: '' };
 
-export default function GestionHotelesAdmin({ onClose }) {
+const GestionHotelesAdmin = memo(function GestionHotelesAdmin() {
     const { user } = useAuth();
     const qc = useQueryClient();
 
@@ -178,7 +180,7 @@ export default function GestionHotelesAdmin({ onClose }) {
             <div className="flex gap-1 border-b border-border">
                 {['hoteles', 'staff'].map(t => (
                     <button key={t} onClick={() => setTab(t)}
-                        className={cn("px-4 py-2.5 text-sm font-medium border-b-2 transition-all -mb-px capitalize",
+                        className={cn("px-4 py-2.5 text-sm font-medium border-b-2 transition-[transform,opacity] -mb-px capitalize",
                             tab === t ? "border-primary text-primary" : "border-transparent text-muted-foreground hover:text-foreground")}>
                         {t === 'hoteles' ? '🏨 Hoteles' : '👥 Staff'}
                     </button>
@@ -208,7 +210,12 @@ export default function GestionHotelesAdmin({ onClose }) {
                                 <button onClick={() => { setEditHotel(h); setHotelForm({ ...h }); setHotelModal(true); }} className="p-2 rounded-lg hover:bg-secondary">
                                     <Pencil className="w-4 h-4 text-muted-foreground" />
                                 </button>
-                                <button onClick={() => { if (confirm(`¿Eliminar "${h.nombre}"?`)) deleteHotel.mutate(h.id); }} className="p-2 rounded-lg hover:bg-red-50 hover:text-red-600">
+                                <button onClick={() => { 
+                                    toast(`¿Eliminar "${h.nombre}"?`, {
+                                        action: { label: 'Eliminar', onClick: () => deleteHotel.mutate(h.id) },
+                                        cancel: { label: 'Cancelar' }
+                                    });
+                                }} className="p-2 rounded-lg hover:bg-red-50 hover:text-red-600">
                                     <Trash2 className="w-4 h-4 text-muted-foreground" />
                                 </button>
                             </div>
@@ -321,4 +328,6 @@ export default function GestionHotelesAdmin({ onClose }) {
             </Dialog>
         </div>
     );
-}
+});
+GestionHotelesAdmin.displayName = 'GestionHotelesAdmin';
+export default GestionHotelesAdmin;

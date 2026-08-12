@@ -1,10 +1,11 @@
-import { useState } from 'react';
+import { useState, memo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { db } from '@/api/db';
 import { Key, Plus, Copy, Check, Trash2, RefreshCw, ShieldCheck, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { toast } from 'sonner';
 
 // Generador de código aleatorio
 const generarCodigo = () => {
@@ -13,7 +14,7 @@ const generarCodigo = () => {
     return `${segment(4)}-${segment(4)}-${segment(4)}`;
 };
 
-export default function GeneradorCodigos() {
+const GeneradorCodigos = memo(function GeneradorCodigos() {
     const qc = useQueryClient();
     const [descripcion, setDescripcion] = useState('');
     const [copiado, setCopiado] = useState(null);
@@ -25,7 +26,7 @@ export default function GeneradorCodigos() {
 
     const crearCodigo = useMutation({
         mutationFn: (data) => db.entities.CodigoDesbloqueo.create(data),
-        onSuccess: () => { qc.invalidateQueries({ queryKey: ['codigos-desbloqueo'] }); setDescripcion(''); setCodigoNuevo(''); },
+        onSuccess: () => { qc.invalidateQueries({ queryKey: ['codigos-desbloqueo'] }); setDescripcion(''); },
     });
 
     const deleteCodigo = useMutation({
@@ -35,7 +36,9 @@ export default function GeneradorCodigos() {
 
     const generarYCrear = () => {
         const codigo = generarCodigo();
-        crearCodigo.mutate({ codigo, descripcion: descripcion || 'Sin descripción', usado: false });
+        /** @type {any} */
+        const payload = { codigo, descripcion: descripcion || 'Sin descripción', usado: false };
+        crearCodigo.mutate(payload);
     };
 
     const copiar = (codigo) => {
@@ -49,67 +52,75 @@ export default function GeneradorCodigos() {
 
     return (
         <div className="space-y-5">
+        <div className="space-y-4">
             <div className="flex items-center gap-2">
-                <Key className="w-5 h-5 text-amber-500" />
-                <h3 className="font-semibold text-foreground">Códigos de Desbloqueo</h3>
+                <Key className="w-4 h-4 text-amber-500" />
+                <h3 className="font-extrabold text-sm tracking-tight text-foreground">Códigos de Desbloqueo</h3>
             </div>
 
-            <p className="text-xs text-muted-foreground bg-secondary rounded-xl p-3">
+            <p className="text-[10px] font-bold text-muted-foreground bg-secondary/50 rounded-xl p-3 border border-border/40">
                 Genera códigos únicos de un solo uso para que los administradores puedan agregar hoteles o gestionar staff. Cada código solo puede usarse <strong>una vez</strong>.
             </p>
 
             {/* Formulario nuevo código */}
-            <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 space-y-3">
-                <p className="text-sm font-semibold text-amber-800">Generar nuevo código</p>
+            {/* Formulario nuevo código */}
+            <div className="bg-amber-500/10 border border-amber-500/20 rounded-xl p-3 space-y-2 backdrop-blur-sm">
+                <p className="text-[9px] font-black uppercase tracking-widest text-amber-600 dark:text-amber-500">Generar nuevo código</p>
                 <div>
-                    <Label className="text-xs">Descripción (para qué admin / hotel)</Label>
+                    <Label className="text-[9px] font-black uppercase tracking-widest text-amber-600/80 dark:text-amber-500/80">Descripción (para qué admin / hotel)</Label>
                     <Input
-                        className="mt-1 text-sm"
+                        className="mt-1 text-xs h-9 px-3 rounded-md font-bold shadow-inner border-amber-500/20 bg-background/50"
                         value={descripcion}
                         onChange={e => setDescripcion(e.target.value)}
                         placeholder="Ej: Para Hotel Los Andes - Waldesmit"
                     />
                 </div>
                 <Button
-                    className="w-full gap-2 bg-amber-500 hover:bg-amber-600"
+                    className="w-full gap-2 bg-amber-500 hover:bg-amber-600 h-9 text-[10px] font-extrabold uppercase tracking-widest rounded-md mt-1 shadow-sm"
                     onClick={generarYCrear}
                     disabled={crearCodigo.isPending}
                 >
-                    {crearCodigo.isPending ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
-                    Generar Código de Desbloqueo
+                    {crearCodigo.isPending ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Plus className="w-3.5 h-3.5" />}
+                    Generar Código
                 </Button>
             </div>
 
             {/* Códigos disponibles */}
+            {/* Códigos disponibles */}
             <div className="space-y-2">
-                <div className="flex items-center gap-2">
-                    <ShieldCheck className="w-4 h-4 text-green-500" />
-                    <p className="text-sm font-semibold text-foreground">Disponibles ({disponibles.length})</p>
+                <div className="flex items-center gap-1.5 mb-1.5 ml-1">
+                    <ShieldCheck className="w-3.5 h-3.5 text-green-500" />
+                    <p className="text-[10px] font-black uppercase tracking-widest text-foreground">Disponibles ({disponibles.length})</p>
                 </div>
                 {disponibles.length === 0 && (
-                    <p className="text-xs text-muted-foreground text-center py-4 border border-dashed rounded-xl">Sin códigos disponibles</p>
+                    <p className="text-[10px] text-muted-foreground text-center py-3 font-bold border border-dashed border-border/40 rounded-xl bg-card/20">Sin códigos disponibles</p>
                 )}
                 {disponibles.map(c => (
-                    <div key={c.id} className="bg-card border border-green-200 rounded-xl p-3 flex items-center gap-3">
+                    <div key={c.id} className="bg-card/60 backdrop-blur-sm border border-border/40 rounded-xl p-2.5 flex items-center gap-3 shadow-sm hover:border-green-500/30 transition-colors">
                         <div className="flex-1 min-w-0">
-                            <p className="font-mono font-bold text-foreground tracking-wider text-sm">{c.codigo}</p>
-                            {c.descripcion && <p className="text-xs text-muted-foreground mt-0.5 truncate">{c.descripcion}</p>}
+                            <p className="font-mono font-black text-foreground tracking-widest text-xs">{c.codigo}</p>
+                            {c.descripcion && <p className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground mt-0.5 truncate">{c.descripcion}</p>}
                         </div>
                         <button
                             onClick={() => copiar(c.codigo)}
-                            className="p-2 rounded-lg hover:bg-secondary transition-all flex-shrink-0"
+                            className="p-1.5 rounded-md hover:bg-secondary transition-[transform,opacity] flex-shrink-0"
                             title="Copiar código"
                         >
                             {copiado === c.codigo
-                                ? <Check className="w-4 h-4 text-green-600" />
-                                : <Copy className="w-4 h-4 text-muted-foreground" />
+                                ? <Check className="w-3.5 h-3.5 text-green-600" />
+                                : <Copy className="w-3.5 h-3.5 text-muted-foreground" />
                             }
                         </button>
                         <button
-                            onClick={() => { if (confirm('¿Eliminar este código?')) deleteCodigo.mutate(c.id); }}
-                            className="p-2 rounded-lg hover:bg-red-50 hover:text-red-600 transition-all flex-shrink-0"
+                            onClick={() => {
+                                toast('¿Eliminar este código?', {
+                                    action: { label: 'Eliminar', onClick: () => deleteCodigo.mutate(c.id) },
+                                    cancel: { label: 'Cancelar', onClick: () => {} }
+                                });
+                            }}
+                            className="p-1.5 rounded-md hover:bg-red-500/10 hover:text-red-500 transition-[transform,opacity] flex-shrink-0"
                         >
-                            <Trash2 className="w-4 h-4 text-muted-foreground" />
+                            <Trash2 className="w-3.5 h-3.5 text-muted-foreground" />
                         </button>
                     </div>
                 ))}
@@ -117,26 +128,29 @@ export default function GeneradorCodigos() {
 
             {/* Códigos usados */}
             {usados.length > 0 && (
-                <div className="space-y-2">
-                    <div className="flex items-center gap-2">
-                        <AlertCircle className="w-4 h-4 text-muted-foreground" />
-                        <p className="text-sm font-semibold text-muted-foreground">Usados ({usados.length})</p>
+                <div className="space-y-2 mt-4">
+                    <div className="flex items-center gap-1.5 mb-1.5 ml-1">
+                        <AlertCircle className="w-3.5 h-3.5 text-muted-foreground" />
+                        <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Usados ({usados.length})</p>
                     </div>
                     {usados.map(c => (
-                        <div key={c.id} className="bg-secondary/50 border border-border rounded-xl p-3 flex items-center gap-3 opacity-60">
+                        <div key={c.id} className="bg-muted/10 border border-border/40 rounded-xl p-2.5 flex items-center gap-3 opacity-60">
                             <div className="flex-1 min-w-0">
-                                <p className="font-mono text-sm text-muted-foreground line-through tracking-wider">{c.codigo}</p>
-                                <p className="text-xs text-muted-foreground mt-0.5">
+                                <p className="font-mono text-xs font-black text-muted-foreground line-through tracking-widest">{c.codigo}</p>
+                                <p className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground mt-0.5">
                                     Usado por: {c.usado_por || 'desconocido'} {c.fecha_uso ? `· ${c.fecha_uso}` : ''}
                                 </p>
                             </div>
-                            <button onClick={() => deleteCodigo.mutate(c.id)} className="p-2 rounded-lg hover:bg-red-50 hover:text-red-600 transition-all flex-shrink-0">
-                                <Trash2 className="w-3.5 h-3.5 text-muted-foreground" />
+                            <button onClick={() => deleteCodigo.mutate(c.id)} className="p-1.5 rounded-md hover:bg-red-500/10 hover:text-red-500 transition-[transform,opacity] flex-shrink-0">
+                                <Trash2 className="w-3 h-3 text-muted-foreground" />
                             </button>
                         </div>
                     ))}
                 </div>
             )}
         </div>
+        </div>
     );
-}
+});
+GeneradorCodigos.displayName = 'GeneradorCodigos';
+export default GeneradorCodigos;

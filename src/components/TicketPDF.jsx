@@ -1,11 +1,25 @@
-import { useRef } from 'react';
+import { useRef, memo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Printer, Share2 } from 'lucide-react';
 import { shareTicket } from '@/modules/printer/services/sharePrinter';
 import { generatePlainTextTicket } from '@/modules/printer/services/thermalPrinter';
 
-export default function TicketPDF({ venta, config }) {
+const TicketPDF = memo(function TicketPDF({ venta, config }) {
     const ticketRef = useRef();
+
+    const rucEmisor = config.ruc || '20000000000';
+    const tipoComp = venta.tipo_comprobante === 'factura' ? '01' : '03'; // Factura o Boleta
+    const parts = (venta.numero_ticket || 'T000001').split('-');
+    const serie = parts[0]?.startsWith('T') ? 'B001' : (parts[0] || 'B001'); // B001/F001 format
+    const numero = parts[1] || parts[0]?.replace('T', '') || '00000001';
+    const totalVal = venta.total || 0;
+    const igvVal = totalVal * 0.18 / 1.18;
+    const fechaStr = venta.fecha_pago ? new Date(venta.fecha_pago).toISOString().split('T')[0] : new Date().toISOString().split('T')[0];
+    const docAdq = venta.huesped_dni || '00000000';
+    const tipoDocAdq = docAdq.length === 11 ? '6' : '1'; // 6 = RUC, 1 = DNI
+    
+    const qrString = `${rucEmisor}|${tipoComp}|${serie}|${numero}|${Number(igvVal).toFixed(2)}|${Number(totalVal).toFixed(2)}|${fechaStr}|${tipoDocAdq}|${docAdq}|`;
+    const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=110x110&data=${encodeURIComponent(qrString)}`;
 
     const imprimir = () => {
         const contenido = ticketRef.current.innerHTML;
@@ -44,7 +58,7 @@ export default function TicketPDF({ venta, config }) {
         
         // Data estructurada para generar texto plano perfecto
         const rawData = {
-            hotelName: config.nombre || 'HOSPEDAJE',
+            hotelName: config.nombre || 'PMS JCAR LABS',
             ruc: config.ruc,
             address: config.direccion,
             title: `TICKET INTERNO #${venta.numero_ticket}`,
@@ -74,7 +88,7 @@ export default function TicketPDF({ venta, config }) {
             <div ref={ticketRef} style={{ display: 'none' }}>
                 <div className="ticket">
                     <div className="center">
-                        <div className="big">{config.nombre || 'HOSPEDAJE'}</div>
+                        <div className="big">{config.nombre || 'PMS JCAR LABS'}</div>
                         {config.ruc && <div className="small">RUC: {config.ruc}</div>}
                         {config.direccion && <div className="small">{config.direccion}</div>}
                         {config.telefono && <div className="small">Tel: {config.telefono}</div>}
@@ -97,7 +111,18 @@ export default function TicketPDF({ venta, config }) {
                     <div className="line"></div>
                     <div className="total-row"><span>TOTAL:</span><span>S/ {venta.total?.toFixed(2)}</span></div>
                     <div className="row"><span>Método de pago:</span><span className="tag">{venta.metodo_pago?.toUpperCase()}</span></div>
+                    
                     <div className="line"></div>
+                    
+                    {/* Código QR Regulatorio SUNAT */}
+                    <div className="center" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', margin: '10px 0' }}>
+                        <img src={qrUrl} alt="QR SUNAT" style={{ width: '90px', height: '90px', margin: '0 auto' }} />
+                        <div className="small" style={{ fontSize: '8px', marginTop: '4px' }}>Representación impresa de la Boleta Electrónica</div>
+                        <div className="small" style={{ fontSize: '8px' }}>Consulte en e-menu.sunat.gob.pe</div>
+                    </div>
+                    
+                    <div className="line"></div>
+                    
                     <div className="center small">
                         {config.mensaje_ticket || '¡Gracias por su preferencia!'}
                     </div>
@@ -111,7 +136,7 @@ export default function TicketPDF({ venta, config }) {
 
             {/* Previsualización bonita */}
             <div className="bg-white border border-dashed border-gray-300 rounded-xl p-5 font-mono text-xs text-gray-800 text-center space-y-1 max-w-xs mx-auto">
-                <p className="font-bold text-base">{config.nombre || 'HOSPEDAJE'}</p>
+                <p className="font-bold text-base">{config.nombre || 'PMS JCAR LABS'}</p>
                 {config.ruc && <p className="text-gray-500">RUC: {config.ruc}</p>}
                 <p className="text-gray-500">{config.direccion || ''}</p>
                 <div className="border-t border-dashed my-2" />
@@ -123,6 +148,14 @@ export default function TicketPDF({ venta, config }) {
                 <div className="border-t border-dashed my-2" />
                 <div className="flex justify-between font-bold text-sm"><span>TOTAL</span><span>S/ {venta.total?.toFixed(2)}</span></div>
                 <div className="flex justify-between"><span>Pago:</span><span className="capitalize">{venta.metodo_pago}</span></div>
+                <div className="border-t border-dashed my-2" />
+                
+                {/* Código QR Regulatorio SUNAT */}
+                <div className="flex flex-col items-center justify-center py-2">
+                    <img src={qrUrl} alt="QR SUNAT" className="w-20 h-20 mx-auto" />
+                    <p className="text-gray-400 text-[8px] mt-1">Representación impresa de la Boleta Electrónica</p>
+                </div>
+                
                 <div className="border-t border-dashed my-2" />
                 <p className="text-gray-400 text-[10px]">{config.mensaje_ticket || '¡Gracias por su preferencia!'}</p>
             </div>
@@ -137,4 +170,6 @@ export default function TicketPDF({ venta, config }) {
             </div>
         </div>
     );
-}
+});
+TicketPDF.displayName = 'TicketPDF';
+export default TicketPDF;

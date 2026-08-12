@@ -1,0 +1,62 @@
+import { format } from 'date-fns';
+import { toast } from 'sonner';
+import { registrarLog } from '@/lib/auditLogger';
+
+/**
+ * Servicio para generar y enviar mensajes de WhatsApp estandarizados.
+ */
+export const WhatsAppService = {
+    /**
+     * Genera un mensaje y abre la URL de WhatsApp para una reserva
+     * @param {Object} reserva - Los datos de la reserva
+     * @param {Object} config - Configuración del hotel (para el nombre)
+     * @param {Object} context - { hotelId, user } para auditoría
+     */
+    enviarMensajeReserva: (reserva, config, context = {}) => {
+        const telefono = reserva.huesped_telefono ? reserva.huesped_telefono.trim() : '';
+        if (!telefono) {
+            toast.error("El huésped no tiene número de teléfono registrado");
+            return false;
+        }
+        
+        const numeroLimpio = telefono.replace(/\D/g, '');
+        
+        let numeroFinal = numeroLimpio;
+        if (numeroLimpio.length === 9 && numeroLimpio.startsWith('9')) {
+            numeroFinal = '51' + numeroLimpio;
+        }
+
+        // Usar mediodía UTC para evitar que la zona horaria desplace la fecha al día anterior
+        const entrada = new Date(reserva.fecha_entrada + 'T12:00:00');
+        const salida = new Date(reserva.fecha_salida + 'T12:00:00');
+        const entradaStr = isNaN(entrada.getTime()) ? '---' : format(entrada, 'dd/MM/yyyy');
+        const salidaStr = isNaN(salida.getTime()) ? '---' : format(salida, 'dd/MM/yyyy');
+
+        let mensaje = '';
+        const hotelNombre = config?.nombre || 'Nuestro Hospedaje';
+        
+        if (reserva.estado === 'pendiente') {
+            mensaje = `¡Hola, ${reserva.huesped_nombre}! 👋\n\nGracias por elegir *${hotelNombre}*.\nConfirmamos tu reserva para la *Habitación #${reserva.habitacion_numero}* 🏨.\n\n📅 *Llegada:* ${entradaStr}\n📅 *Salida:* ${salidaStr}\n💵 *Monto Total:* S/ ${reserva.total?.toFixed(2)}\n\n¡Estamos listos para recibirte! Si tienes alguna duda o requerimiento especial, escríbenos por aquí. 😊`;
+        } else if (reserva.estado === 'activa') {
+            mensaje = `¡Hola, ${reserva.huesped_nombre}! 👋\n\nEsperamos que estés disfrutando tu estadía en *${hotelNombre}* (Habitación #${reserva.habitacion_numero}).\n\nTe recordamos que tu fecha de salida es el *${salidaStr}*.\n\nSi necesitas servicio a la habitación, limpieza extra o tienes alguna consulta, ¡estamos a tu disposición! ✨`;
+        } else {
+            mensaje = `¡Hola, ${reserva.huesped_nombre}! 👋\n\nQueremos agradecerte por haberte hospedado en *${hotelNombre}* (Reserva #${reserva.numero_reserva}).\n\nEsperamos que hayas tenido un excelente viaje. ¡Te esperamos pronto! 🌟`;
+        }
+
+        const url = `https://api.whatsapp.com/send?phone=${numeroFinal}&text=${encodeURIComponent(mensaje)}`;
+        window.open(url, '_blank');
+        
+        if (context.hotelId && context.user) {
+            registrarLog({
+                hotelId: context.hotelId,
+                user: context.user,
+                accion: 'WHATSAPP_ENVIADO',
+                descripcion: `WhatsApp enviado a ${reserva.huesped_nombre} (${telefono}) para reserva #${reserva.numero_reserva}`,
+                modulo: 'recepcion',
+            });
+        }
+        
+        toast.success("Enlace de WhatsApp abierto");
+        return true;
+    }
+};

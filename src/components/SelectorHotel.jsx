@@ -1,10 +1,10 @@
+import { useState, memo } from 'react';
 import { useHotel } from '@/lib/HotelContext';
-import { useAuth } from '@/lib/AuthContext';
+import { useAuth } from '@/contexts/AuthContext';
 import { Building2, ChevronDown, Check } from 'lucide-react';
-import { useState } from 'react';
 import { cn } from '@/lib/utils';
 
-export default function SelectorHotel({ mobile = false }) {
+const SelectorHotel = memo(function SelectorHotel({ mobile = false }) {
     const { hotelActual, hoteles, cambiarHotel } = useHotel();
     const { user } = useAuth();
     const [open, setOpen] = useState(false);
@@ -18,7 +18,7 @@ export default function SelectorHotel({ mobile = false }) {
             <button
                 onClick={() => setOpen(!open)}
                 className={cn(
-                    "flex items-center gap-2 w-full px-3 py-2.5 rounded-xl border transition-all text-left",
+                    "flex items-center gap-2 w-full px-3 py-2.5 rounded-xl border transition-[transform,opacity] text-left",
                     "bg-amber-50 border-amber-200 hover:bg-amber-100",
                     mobile && "text-sm"
                 )}
@@ -42,7 +42,7 @@ export default function SelectorHotel({ mobile = false }) {
                                     key={h.id}
                                     onClick={() => { cambiarHotel(h); setOpen(false); }}
                                     className={cn(
-                                        "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left transition-all",
+                                        "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left transition-[transform,opacity]",
                                         hotelActual?.id === h.id
                                             ? "bg-primary/10 text-primary"
                                             : "hover:bg-secondary text-foreground"
@@ -62,4 +62,6 @@ export default function SelectorHotel({ mobile = false }) {
             )}
         </div>
     );
-}
+});
+SelectorHotel.displayName = 'SelectorHotel';
+export default SelectorHotel;

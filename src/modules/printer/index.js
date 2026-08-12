@@ -22,3 +22,5 @@ export {
   formatCurrency,
   formatDate
 } from './utils/formatters.js';
+
+export { printEscPos } from './services/printEscPos.js';

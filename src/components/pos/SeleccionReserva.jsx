@@ -1,11 +1,11 @@
+import { useState, memo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { db } from '@/api/db';
 import { Search, BedDouble, X } from 'lucide-react';
 import { Input } from '@/components/ui/input';
-import { useState } from 'react';
 import { useHotel } from '@/lib/HotelContext';
 
-export default function SeleccionReserva({ reservaSeleccionada, onSeleccionar, onLimpiar }) {
+const SeleccionReserva = memo(function SeleccionReserva({ reservaSeleccionada, onSeleccionar, onLimpiar }) {
     const [busqueda, setBusqueda] = useState('');
     const { hotelActual } = useHotel();
     const hotelId = hotelActual?.id;
@@ -48,7 +48,7 @@ export default function SeleccionReserva({ reservaSeleccionada, onSeleccionar, o
                 <div className="space-y-1 max-h-48 overflow-y-auto">
                     {filtradas.map(r => (
                         <button key={r.id} onClick={() => { onSeleccionar(r); setBusqueda(''); }}
-                            className="w-full flex items-center gap-3 p-2.5 rounded-xl bg-card border border-border hover:border-primary/50 hover:bg-primary/5 transition-all text-left">
+                            className="w-full flex items-center gap-3 p-2.5 rounded-xl bg-card border border-border hover:border-primary/50 hover:bg-primary/5 transition-[transform,opacity] text-left">
                             <div className="w-7 h-7 bg-primary/10 rounded-lg flex items-center justify-center flex-shrink-0">
                                 <BedDouble className="w-3.5 h-3.5 text-primary" />
                             </div>
@@ -63,4 +63,6 @@ export default function SeleccionReserva({ reservaSeleccionada, onSeleccionar, o
             )}
         </div>
     );
-}
+});
+SeleccionReserva.displayName = 'SeleccionReserva';
+export default SeleccionReserva;

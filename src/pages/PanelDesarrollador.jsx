@@ -1,7 +1,7 @@
-import { useState } from 'react';
+import { useState, memo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { db } from '@/api/db';
-import { useAuth } from '@/lib/AuthContext';
+import { useAuth } from '@/contexts/AuthContext';
 import { Code2, Building2, Users, Settings, Activity, ShieldAlert, Key } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -21,7 +21,7 @@ const TABS = [
     { id: 'auditoria', label: 'Auditoría', icon: Activity },
 ];
 
-export default function PanelDesarrollador() {
+const PanelDesarrollador = memo(function PanelDesarrollador() {
     const { user } = useAuth();
     const [tab, setTab] = useState('hoteles');
     const [sysConfig] = useState({ mantenimiento: false, debug_mode: false, version: '2.1.0' });
@@ -55,29 +55,29 @@ export default function PanelDesarrollador() {
     };
 
     return (
-        <div className="space-y-6">
-            <div className="flex items-center gap-3 flex-wrap">
-                <div className="w-11 h-11 bg-amber-500 rounded-xl flex items-center justify-center shadow-lg">
-                    <Code2 className="w-5 h-5 text-white" />
+        <div className="space-y-5">
+            <div className="flex items-center gap-3 flex-wrap bg-card/40 backdrop-blur-xl p-5 rounded-xl border border-border/40 shadow-sm">
+                <div className="w-8 h-8 bg-amber-500 rounded-lg flex items-center justify-center shadow-lg flex-shrink-0">
+                    <Code2 className="w-4 h-4 text-white" />
                 </div>
                 <div>
-                    <h1 className="font-display text-2xl font-bold text-foreground">Panel de Desarrollador</h1>
-                    <p className="text-sm text-muted-foreground">Control total del sistema · Multi-Tenant ANGELICA FREY</p>
+                    <h1 className="font-extrabold text-xl text-foreground tracking-tight">Panel de Desarrollador</h1>
+                    <p className="text-[9px] font-black uppercase tracking-widest text-muted-foreground mt-0.5">Control total del sistema · Multi-Tenant ANGELICA FREY</p>
                 </div>
                 <div className="ml-auto flex items-center gap-2">
-                    <span className="bg-amber-100 text-amber-700 text-xs font-bold px-3 py-1.5 rounded-full border border-amber-300">🔧 DEV MODE</span>
-                    <span className="bg-green-100 text-green-700 text-xs font-bold px-3 py-1.5 rounded-full border border-green-300">v{sysConfig.version}</span>
+                    <span className="bg-amber-100 text-amber-700 text-[9px] uppercase tracking-widest font-extrabold px-2 py-1 rounded-sm border border-amber-300">🔧 DEV MODE</span>
+                    <span className="bg-green-100 text-green-700 text-[9px] uppercase tracking-widest font-extrabold px-2 py-1 rounded-sm border border-green-300">v{sysConfig.version}</span>
                 </div>
             </div>
 
             <DevStats stats={statsGlobales} />
 
-            <div className="flex gap-1 border-b border-border overflow-x-auto">
+            <div className="flex gap-1 border-b border-border/40 overflow-x-auto no-scrollbar pb-px">
                 {TABS.map(t => (
                     <button key={t.id} onClick={() => setTab(t.id)}
-                        className={cn("flex items-center gap-2 px-4 py-2.5 text-sm font-medium border-b-2 transition-all -mb-px whitespace-nowrap",
-                            tab === t.id ? "border-amber-500 text-amber-600" : "border-transparent text-muted-foreground hover:text-foreground")}>
-                        <t.icon className="w-4 h-4" />{t.label}
+                        className={cn("flex items-center gap-2 px-3 py-2 text-[10px] font-black uppercase tracking-widest border-b-2 transition-[transform,opacity] -mb-px whitespace-nowrap",
+                            tab === t.id ? "border-amber-500 text-amber-600 dark:text-amber-500" : "border-transparent text-muted-foreground hover:text-foreground hover:bg-foreground/5 rounded-t-md")}>
+                        <t.icon className="w-3.5 h-3.5" />{t.label}
                     </button>
                 ))}
             </div>
@@ -96,7 +96,7 @@ export default function PanelDesarrollador() {
                 )}
                 {tab === 'usuarios' && <StaffManager usuarios={usuarios} hoteles={hoteles} />}
                 {tab === 'codigos' && <GeneradorCodigos />}
-                {tab === 'sistema' && <SystemInfo version={sysConfig.version} hotelesCount={hoteles.length} />}
+                {tab === 'sistema' && <SystemInfo version={sysConfig.version} hoteles={hoteles} hotelesCount={hoteles.length} />}
                 {tab === 'auditoria' && (
                     <AuditCenter 
                         hoteles={hoteles} 
@@ -109,4 +109,6 @@ export default function PanelDesarrollador() {
             </div>
         </div>
     );
-}
+});
+PanelDesarrollador.displayName = 'PanelDesarrollador';
+export default PanelDesarrollador;

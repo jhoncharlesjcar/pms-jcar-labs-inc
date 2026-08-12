@@ -1,20 +1,31 @@
-import { useState } from 'react';
+import { useState, memo } from 'react';
 import { ShoppingCart, Receipt, RotateCcw, Store } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import CatalogoMinimarket from '@/components/pos/CatalogoMinimarket';
 import CarritoMinimarket from '@/components/pos/CarritoMinimarket';
 import PagoModal from '@/components/pos/PagoModal';
-import { motion } from 'framer-motion';
+import { useGsapStaggerList } from '@/hooks/useGsapStaggerList';
 
-export default function PuntoVenta() {
+
+const PuntoVenta = memo(function PuntoVenta() {
     const [items, setItems] = useState([]);
     const [pagoOpen, setPagoOpen] = useState(false);
     const [vistaMovil, setVistaMovil] = useState('catalogo'); // 'catalogo' | 'carrito'
+
+    // ─── Stagger mount para secciones principales ───
+    const pageRef = useGsapStaggerList([], {
+        stagger: 0.08,
+        direction: 'y',
+        distance: 15,
+    });
 
     const agregarItem = (producto) => {
         setItems(prev => {
             const idx = prev.findIndex(i => i.id === producto.id);
             if (idx >= 0) {
+                const itemActual = prev[idx];
+                // No agregar más de lo que hay en stock
+                if (itemActual.cantidad >= (producto.stock || 999)) return prev;
                 const copia = [...prev];
                 copia[idx] = { ...copia[idx], cantidad: copia[idx].cantidad + 1 };
                 return copia;
@@ -47,22 +58,23 @@ export default function PuntoVenta() {
 
     return (
         <div className="flex flex-col lg:flex-row -m-4 lg:-m-8 min-h-screen bg-background">
+            <div ref={pageRef} className="flex flex-1 flex-col lg:flex-row">
 
             {/* ===== PANEL IZQUIERDO: CATÁLOGO ===== */}
             <div className={`flex-1 flex flex-col ${vistaMovil === 'catalogo' ? 'flex' : 'hidden'} lg:flex`}>
                 {/* Header */}
-                <div className="flex items-center justify-between px-5 py-4 bg-card/60 backdrop-blur-xl border-b border-border/50 flex-shrink-0">
+                <div className="flex items-center justify-between px-4 py-3 bg-card/40 backdrop-blur-xl border-b border-border/40 flex-shrink-0 z-10">
                     <div className="flex items-center gap-3">
-                        <div className="w-9 h-9 bg-primary/15 rounded-xl flex items-center justify-center border border-primary/20 shadow-sm">
-                            <Store className="w-4.5 h-4.5 text-primary" />
+                        <div className="p-2 bg-primary/10 rounded-lg flex items-center justify-center shadow-sm">
+                            <Store className="w-4 h-4 text-primary" />
                         </div>
                         <div>
-                            <h1 className="font-bold text-foreground text-base leading-tight">Minimarket</h1>
-                            <p className="text-[10px] text-muted-foreground font-medium">Toca un producto para agregar</p>
+                            <h1 className="font-extrabold text-foreground text-xl sm:text-2xl tracking-tight leading-none">Punto de Venta</h1>
+                            <p className="text-[9px] text-muted-foreground font-semibold uppercase tracking-widest mt-0.5">POS y Minimarket</p>
                         </div>
                     </div>
                     {items.length > 0 && (
-                        <Button variant="ghost" size="sm" onClick={limpiarCarrito} className="text-muted-foreground hover:text-destructive gap-1.5 text-xs rounded-xl">
+                        <Button variant="ghost" size="sm" onClick={limpiarCarrito} className="text-muted-foreground hover:text-destructive hover:bg-destructive/10 gap-1.5 text-[9px] px-2.5 uppercase font-bold tracking-widest rounded-md h-7">
                             <RotateCcw className="w-3 h-3" /> Limpiar
                         </Button>
                     )}
@@ -75,23 +87,22 @@ export default function PuntoVenta() {
             </div>
 
             {/* ===== PANEL DERECHO: CARRITO ===== */}
-            <div className={`w-full lg:w-80 xl:w-96 flex flex-col bg-card/60 backdrop-blur-xl border-l border-border/50 ${vistaMovil === 'carrito' ? 'flex' : 'hidden'} lg:flex`}>
-                <div className="px-5 py-4 border-b border-border/50 bg-card/40 backdrop-blur-xl flex-shrink-0">
+            <div className={`w-full lg:w-72 xl:w-[380px] flex flex-col bg-card/40 backdrop-blur-xl border-l border-border/40 ${vistaMovil === 'carrito' ? 'flex' : 'hidden'} lg:flex`}>
+                <div className="px-4 py-3 border-b border-border/40 bg-card/20 flex-shrink-0 z-10">
                     <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2.5">
-                            <ShoppingCart className="w-4 h-4 text-primary" />
-                            <span className="font-bold text-foreground text-sm">Carrito</span>
+                        <div className="flex items-center gap-2">
+                            <div className="p-1.5 bg-primary/10 rounded-md text-primary">
+                                <ShoppingCart className="w-3.5 h-3.5" />
+                            </div>
+                            <span className="font-extrabold text-foreground text-sm tracking-tight">Carrito</span>
                             {totalItems > 0 && (
-                                <motion.span 
-                                    initial={{ scale: 0 }} animate={{ scale: 1 }}
-                                    className="bg-primary text-primary-foreground text-[10px] font-black w-5 h-5 rounded-full flex items-center justify-center shadow-sm"
-                                >
-                                    {totalItems}
-                                </motion.span>
+                                <span className="bg-primary text-primary-foreground text-[9px] font-bold px-1.5 py-0.5 rounded-sm flex items-center justify-center shadow-xs ml-1">
+                                    {totalItems} ítems
+                                </span>
                             )}
                         </div>
                         {/* botón volver al catálogo en móvil */}
-                        <button onClick={() => setVistaMovil('catalogo')} className="lg:hidden text-xs text-primary font-bold hover:underline">
+                        <button onClick={() => setVistaMovil('catalogo')} className="lg:hidden text-[10px] text-primary font-bold hover:underline">
                             ← Catálogo
                         </button>
                     </div>
@@ -106,41 +117,41 @@ export default function PuntoVenta() {
                 </div>
 
                 {/* Cobrar */}
-                <div className="p-5 border-t border-border/50 bg-card/40 backdrop-blur-xl space-y-3">
+                <div className="p-4 border-t border-border/40 bg-card/40 backdrop-blur-xl space-y-3">
                     {items.length > 0 && (
-                        <div className="flex justify-between items-center font-bold text-foreground px-1">
-                            <span className="text-sm text-muted-foreground uppercase tracking-wider">Total</span>
-                            <span className="text-2xl font-display text-primary">S/ {totalGeneral.toFixed(2)}</span>
+                        <div className="flex justify-between items-end font-bold text-foreground px-1 mb-1">
+                            <span className="text-[9px] text-muted-foreground uppercase tracking-widest font-black">Total a cobrar</span>
+                            <span className="text-2xl font-extrabold text-primary tabular-nums tracking-tighter leading-none">S/ {totalGeneral.toFixed(2)}</span>
                         </div>
                     )}
                     <Button
-                        className="w-full h-14 text-base gap-2.5 font-bold rounded-2xl shadow-xl shadow-primary/20 transition-all"
+                        className="w-full h-9 text-xs gap-1.5 font-bold rounded-md shadow-md transition-all active:scale-95"
                         disabled={items.length === 0}
                         onClick={() => setPagoOpen(true)}
                     >
-                        <Receipt className="w-5 h-5" />
-                        {items.length > 0 ? `Cobrar S/ ${totalGeneral.toFixed(2)}` : 'Carrito vacío'}
+                        <Receipt className="w-3.5 h-3.5" />
+                        {items.length > 0 ? `Procesar Pago` : 'Carrito vacío'}
                     </Button>
                 </div>
             </div>
 
             {/* ===== BARRA INFERIOR MÓVIL ===== */}
-            <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-card/80 backdrop-blur-2xl border-t border-border/50 flex z-20 safe-bottom">
+            <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-card/95 backdrop-blur-2xl border-t border-border/60 flex items-center justify-around z-30 safe-bottom p-1.5 shadow-lg">
                 <button
                     onClick={() => setVistaMovil('catalogo')}
-                    className={`flex-1 flex flex-col items-center py-3 text-xs font-bold transition-colors ${vistaMovil === 'catalogo' ? 'text-primary' : 'text-muted-foreground'}`}
+                    className={`flex-1 min-h-[40px] flex flex-col items-center justify-center text-[10px] font-bold transition-all rounded-lg ${vistaMovil === 'catalogo' ? 'text-primary bg-primary/10' : 'text-muted-foreground'}`}
                 >
-                    <Store className="w-5 h-5 mb-0.5" />
-                    Productos
+                    <Store className="w-3.5 h-3.5 mb-0.5" />
+                    <span>Productos</span>
                 </button>
                 <button
                     onClick={() => setVistaMovil('carrito')}
-                    className={`flex-1 flex flex-col items-center py-3 text-xs font-bold transition-colors relative ${vistaMovil === 'carrito' ? 'text-primary' : 'text-muted-foreground'}`}
+                    className={`flex-1 min-h-[40px] flex flex-col items-center justify-center text-[10px] font-bold transition-all rounded-lg relative ${vistaMovil === 'carrito' ? 'text-primary bg-primary/10' : 'text-muted-foreground'}`}
                 >
-                    <ShoppingCart className="w-5 h-5 mb-0.5" />
-                    Carrito
+                    <ShoppingCart className="w-3.5 h-3.5 mb-0.5" />
+                    <span>Carrito</span>
                     {totalItems > 0 && (
-                        <span className="absolute top-1.5 right-1/4 bg-destructive text-destructive-foreground text-[9px] font-black w-4 h-4 rounded-full flex items-center justify-center shadow-sm">
+                        <span className="absolute top-1 right-1/4 bg-primary text-primary-foreground text-[8px] font-black w-3.5 h-3.5 rounded-full flex items-center justify-center shadow-xs">
                             {totalItems > 9 ? '9+' : totalItems}
                         </span>
                     )}
@@ -148,16 +159,17 @@ export default function PuntoVenta() {
                 {items.length > 0 && (
                     <button
                         onClick={() => setPagoOpen(true)}
-                        className="flex-1 flex flex-col items-center py-3 text-xs font-black text-primary"
+                        className="flex-1 min-h-[40px] flex flex-col items-center justify-center text-[10px] font-black text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg shadow-sm transition-all active:scale-95"
                     >
-                        <Receipt className="w-5 h-5 mb-0.5" />
-                        Cobrar
+                        <Receipt className="w-3.5 h-3.5 mb-0.5" />
+                        <span>S/ {totalGeneral.toFixed(2)}</span>
                     </button>
                 )}
             </div>
 
             {/* Espacio para barra inferior en móvil */}
             <div className="lg:hidden h-16" />
+            </div>
 
             <PagoModal
                 open={pagoOpen}
@@ -168,4 +180,6 @@ export default function PuntoVenta() {
             />
         </div>
     );
-}
+});
+PuntoVenta.displayName = 'PuntoVenta';
+export default PuntoVenta;

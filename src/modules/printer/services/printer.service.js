@@ -1,5 +1,6 @@
 import { printRawBT } from '../utils/rawbt.js';
 import { generateThermalTicket } from '../templates/base.js';
+import logger from '@/lib/logger';
 import { buildCheckInTemplate } from '../templates/checkIn.js';
 import { buildCheckOutTemplate } from '../templates/checkOut.js';
 import { buildReceiptTemplate } from '../templates/receipt.js';
@@ -32,7 +33,7 @@ export const printCheckInTicket = (data) => {
     const html = buildCheckInTemplate(data);
     return printHTML(html);
   } catch (error) {
-    console.error('[Printer Service] Error printing check-in ticket:', error);
+    logger.error('[Printer Service] Error printing check-in ticket:', error);
     return false;
   }
 };
@@ -47,7 +48,7 @@ export const printCheckOutTicket = (data) => {
     const html = buildCheckOutTemplate(data);
     return printHTML(html);
   } catch (error) {
-    console.error('[Printer Service] Error printing check-out ticket:', error);
+    logger.error('[Printer Service] Error printing check-out ticket:', error);
     return false;
   }
 };
@@ -62,7 +63,7 @@ export const printReceipt = (data) => {
     const html = buildReceiptTemplate(data);
     return printHTML(html);
   } catch (error) {
-    console.error('[Printer Service] Error printing receipt ticket:', error);
+    logger.error('[Printer Service] Error printing receipt ticket:', error);
     return false;
   }
 };
@@ -77,7 +78,7 @@ export const printCashClosure = (data) => {
     const html = buildCashClosureTemplate(data);
     return printHTML(html);
   } catch (error) {
-    console.error('[Printer Service] Error printing cash closure:', error);
+    logger.error('[Printer Service] Error printing cash closure:', error);
     return false;
   }
 };

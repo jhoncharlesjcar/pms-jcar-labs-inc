@@ -1,7 +1,8 @@
+import { memo } from 'react';
 import { Link } from 'react-router-dom';
 import { Home } from 'lucide-react';
 
-export default function PageNotFound() {
+const PageNotFound = memo(function PageNotFound() {
     return (
         <div className="flex flex-col items-center justify-center min-h-screen bg-background px-4">
             <div className="text-center space-y-4 max-w-md">
@@ -12,7 +13,7 @@ export default function PageNotFound() {
                 </p>
                 <Link
                     to="/"
-                    className="inline-flex items-center gap-2 px-6 py-3 bg-primary text-primary-foreground rounded-xl font-medium hover:opacity-90 transition-all"
+                    className="inline-flex items-center gap-2 px-6 py-3 bg-primary text-primary-foreground rounded-xl font-medium hover:opacity-90 transition-[transform,opacity]"
                 >
                     <Home className="w-4 h-4" />
                     Volver al inicio
@@ -20,4 +21,6 @@ export default function PageNotFound() {
             </div>
         </div>
     );
-}
+});
+PageNotFound.displayName = 'PageNotFound';
+export default PageNotFound;
