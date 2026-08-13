@@ -6,6 +6,9 @@ import { buildTicketPrueba58mm } from '@/modules/printer/templates/comprobanteTe
 import { toast } from 'sonner';
 import logger from '@/lib/logger';
 
+/**
+ * @type {React.FC<{ version: string, hoteles?: any[], hotelesCount?: number }>}
+ */
 const SystemInfo = memo(function SystemInfo({ version, hoteles = [], hotelesCount }) {
     const [selectedHotelId, setSelectedHotelId] = useState(hoteles[0]?.id || '');
     const [isPrinting, setIsPrinting] = useState(false);

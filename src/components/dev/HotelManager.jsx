@@ -16,6 +16,9 @@ const emptyHotel = {
     email: '', hora_checkin: '14:00', hora_checkout: '12:00', activo: true, notas: ''
 };
 
+/**
+ * @type {React.FC<{ hoteles: any, habitaciones: any, reservas: any, ventas: any, usuarios: any, isLoading?: boolean }>}
+ */
 const HotelManager = memo(function HotelManager({ hoteles, habitaciones, reservas, ventas, usuarios, isLoading }) {
     const qc = useQueryClient();
     const [hotelModal, setHotelModal] = useState(false);
@@ -24,7 +27,7 @@ const HotelManager = memo(function HotelManager({ hoteles, habitaciones, reserva
     const [error, setError] = useState(null);
 
     const saveHotel = useMutation({
-        mutationFn: (data) => editHotel
+        mutationFn: (/** @type {any} */ data) => editHotel
             ? db.entities.Hotel.update(editHotel.id, data)
             : db.entities.Hotel.create(data),
         onSuccess: () => {
@@ -39,12 +42,12 @@ const HotelManager = memo(function HotelManager({ hoteles, habitaciones, reserva
     });
 
     const deleteHotel = useMutation({
-        mutationFn: (id) => db.entities.Hotel.delete(id),
+        mutationFn: (/** @type {any} */ id) => db.entities.Hotel.delete(id),
         onSuccess: () => qc.invalidateQueries({ queryKey: ['hoteles'] }),
     });
 
     const toggleHotel = useMutation({
-        mutationFn: ({ id, activo }) => db.entities.Hotel.update(id, { activo }),
+        mutationFn: (/** @type {any} */ { id, activo }) => db.entities.Hotel.update(id, { activo }),
         onSuccess: () => qc.invalidateQueries({ queryKey: ['hoteles'] }),
     });
 
@@ -123,7 +126,7 @@ const HotelManager = memo(function HotelManager({ hoteles, habitaciones, reserva
                                     <button onClick={() => {
                                         toast(`¿Eliminar "${h.nombre}"?`, {
                                             action: { label: 'Eliminar', onClick: () => deleteHotel.mutate(h.id) },
-                                            cancel: { label: 'Cancelar' }
+                                            cancel: { label: 'Cancelar', onClick: () => {} }
                                         });
                                     }}
                                         className="p-2 rounded-lg hover:bg-red-50 hover:text-red-600 transition-colors">

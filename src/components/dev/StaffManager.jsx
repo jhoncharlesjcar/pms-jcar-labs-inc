@@ -15,6 +15,9 @@ const ROLES = [
     { value: 'recepcionista', label: '🛎️ Recepcionista', desc: 'Recepción, reservas y ventas' },
 ];
 
+/**
+ * @type {React.FC<{ usuarios: any, hoteles: any }>}
+ */
 const StaffManager = memo(function StaffManager({ usuarios, hoteles }) {
     const qc = useQueryClient();
     const [inviteModal, setInviteModal] = useState(false);
@@ -25,7 +28,7 @@ const StaffManager = memo(function StaffManager({ usuarios, hoteles }) {
     const [error, setError] = useState(null);
 
     const updateUser = useMutation({
-        mutationFn: ({ id, data }) => db.entities.User.update(id, data),
+        mutationFn: (/** @type {any} */ { id, data }) => db.entities.User.update(id, data),
         onSuccess: () => {
             qc.invalidateQueries({ queryKey: ['usuarios'] });
             setError(null);

@@ -7,7 +7,7 @@ import { toast } from 'sonner';
 import logger from '@/lib/logger';
 
 /**
- * @param {{open: boolean, onOpenChange: function, onScanSuccess: function}} props
+ * @type {React.FC<{ open?: boolean, onOpenChange?: (open: boolean) => void, onScanSuccess?: (data: any) => void }>}
  */
 const ScannerDNIModal = memo(function ScannerDNIModal({ open, onOpenChange, onScanSuccess }) {
     const videoRef = useRef(null);

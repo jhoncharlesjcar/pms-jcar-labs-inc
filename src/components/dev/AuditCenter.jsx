@@ -2,6 +2,9 @@ import { memo } from 'react';
 import { Building2, Activity } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
+/**
+ * @type {React.FC<{ hoteles: any, habitaciones: any, reservas: any, ventas: any, usuarios: any }>}
+ */
 const AuditCenter = memo(function AuditCenter({ hoteles, habitaciones, reservas, ventas, usuarios }) {
     return (
         <div className="space-y-3">

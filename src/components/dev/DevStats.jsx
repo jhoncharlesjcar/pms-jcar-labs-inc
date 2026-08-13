@@ -2,6 +2,9 @@ import { memo } from 'react';
 import { Building2, Users, BedDouble, TrendingUp } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
+/**
+ * @type {React.FC<{ stats: any }>}
+ */
 const DevStats = memo(function DevStats({ stats }) {
     const cards = [
         { label: 'Hoteles', value: stats.totalHoteles, icon: Building2, color: 'text-amber-600', bg: 'bg-amber-50' },
