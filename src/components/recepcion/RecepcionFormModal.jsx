@@ -487,9 +487,15 @@ const RecepcionFormModal = memo(function RecepcionFormModal({
                 open={scannerOpen} 
                 onOpenChange={setScannerOpen} 
                 onScanSuccess={(data) => {
-                    if (data.dni) {
-                        setValue('huesped_dni', data.dni, { shouldValidate: true });
+                    const dniScanned = data.dni || data.numero;
+                    const nombreScanned = data.nombreCompleto || `${data.nombre || ''} ${data.apellidos || ''}`.trim();
+
+                    if (dniScanned) {
                         setValue('tipo_documento', 'DNI', { shouldValidate: true });
+                        setValue('huesped_dni', dniScanned, { shouldValidate: true });
+                        if (nombreScanned) {
+                            setValue('huesped_nombre', nombreScanned, { shouldValidate: true });
+                        }
                     }
                 }} 
             />

@@ -101,11 +101,18 @@ const ScannerDNIModal = memo(function ScannerDNIModal({ open, onOpenChange, onSc
                 apellidos: '',
             };
 
-            // DNI suele ser 8 dígitos aislados
+            // DNI suele ser 8 dígitos aislados o dentro de código MRZ
+            let dniFound = '';
             const dniMatch = text.match(/\b\d{8}\b/);
             if (dniMatch) {
-                extractedData.dni = dniMatch[0];
+                dniFound = dniMatch[0];
+            } else {
+                const mrzMatch = text.match(/(?:IDPER|IDESP|DNI)?\s*(\d{8})/i);
+                if (mrzMatch && mrzMatch[1]) {
+                    dniFound = mrzMatch[1];
+                }
             }
+            extractedData.dni = dniFound;
 
             // Heurística de extracción de nombres para DNI Peruano (Clásico y Electrónico)
             const lines = text.split('\n')
@@ -124,10 +131,17 @@ const ScannerDNIModal = memo(function ScannerDNIModal({ open, onOpenChange, onSc
             if (idxNombres !== -1 && lines[idxNombres + 1]) extractedData.nombre = lines[idxNombres + 1].replace(/[^A-ZÑ\s]/g, '').trim();
 
             extractedData.apellidos = `${apePat} ${apeMat}`.trim();
-            
+            const nombreCompleto = `${extractedData.nombre} ${extractedData.apellidos}`.trim();
+
             if (extractedData.dni) {
                 toast.success(`DNI ${extractedData.dni} detectado.`);
-                onScanSuccess({ ...extractedData, raw_text: text });
+                const payload = {
+                    ...extractedData,
+                    numero: extractedData.dni,
+                    nombreCompleto: nombreCompleto || extractedData.nombre || extractedData.apellidos || '',
+                    raw_text: text
+                };
+                onScanSuccess(payload);
                 onOpenChange(false);
             } else {
                 toast.warning("No se pudo detectar un DNI claro. Intente de nuevo con mejor iluminación.");

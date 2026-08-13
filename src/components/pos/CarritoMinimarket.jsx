@@ -77,41 +77,50 @@ const CarritoMinimarket = memo(function CarritoMinimarket({ items, onCambiarCant
                     </div>
 
                     {/* Controles cantidad */}
-                    <div className="flex items-center gap-1 flex-shrink-0 bg-background/50 p-0.5 rounded-lg border border-border/60 shadow-xs">
+                    <div className="flex items-center gap-1 flex-shrink-0 bg-background/60 p-1 rounded-lg border border-border/60 shadow-2xs">
                         <button
+                            type="button"
                             onClick={() => onCambiarCantidad(idx, item.cantidad - 1)}
-                            className="w-6 h-6 rounded-md bg-card hover:bg-destructive hover:text-destructive-foreground flex items-center justify-center shadow-xs transition-colors active:scale-90"
+                            className="w-8 h-8 rounded-md bg-card hover:bg-destructive hover:text-destructive-foreground active:scale-95 flex items-center justify-center shadow-2xs transition-all text-foreground"
+                            title="Disminuir cantidad"
                         >
-                            <Minus className="w-3 h-3" />
+                            <Minus className="w-3.5 h-3.5" />
                         </button>
-                        <span className="w-5 text-center text-xs font-extrabold text-foreground tabular-nums">{item.cantidad}</span>
+                        <span className="w-6 text-center text-xs font-extrabold text-foreground tabular-nums">{item.cantidad}</span>
                         <button
+                            type="button"
                             onClick={() => onCambiarCantidad(idx, item.cantidad + 1)}
-                            className="w-6 h-6 rounded-md bg-card hover:bg-primary hover:text-primary-foreground flex items-center justify-center shadow-xs transition-colors active:scale-90"
+                            className="w-8 h-8 rounded-md bg-card hover:bg-primary hover:text-primary-foreground active:scale-95 flex items-center justify-center shadow-2xs transition-all text-foreground"
+                            title="Aumentar cantidad"
                         >
-                            <Plus className="w-3 h-3" />
+                            <Plus className="w-3.5 h-3.5" />
                         </button>
                     </div>
 
                     {/* Subtotal + eliminar */}
-                    <div className="text-right flex-shrink-0 min-w-[60px] flex flex-col items-end">
+                    <div className="text-right flex-shrink-0 min-w-[65px] flex flex-col items-end">
                         <p className="text-xs font-extrabold text-foreground tabular-nums tracking-tighter">S/ {(item.precio * item.cantidad).toFixed(2)}</p>
-                        <button onClick={() => onEliminar(idx)} className="text-muted-foreground hover:text-destructive transition-colors p-1 -mr-1 mt-0.5 opacity-0 group-hover:opacity-100">
-                            <Trash2 className="w-3 h-3" />
+                        <button 
+                            type="button"
+                            onClick={() => onEliminar(idx)} 
+                            className="text-muted-foreground hover:text-destructive transition-colors p-1.5 -mr-1 mt-0.5 opacity-70 hover:opacity-100"
+                            title="Eliminar producto"
+                        >
+                            <Trash2 className="w-3.5 h-3.5" />
                         </button>
                     </div>
                 </div>
             ))}
 
             {/* Resumen */}
-            <div className="px-4 py-3 bg-muted/20 border-t border-border/40">
-                <div className="flex justify-between text-[9px] uppercase font-bold tracking-widest text-muted-foreground mb-1.5">
-                    <span>{items.reduce((s, i) => s + i.cantidad, 0)} ítems físicos</span>
-                    <span>{items.length} tipos de prod.</span>
+            <div className="px-4 py-3.5 bg-muted/20 border-t border-border/40">
+                <div className="flex justify-between text-[10px] uppercase font-extrabold tracking-wider text-muted-foreground mb-1">
+                    <span>{items.reduce((s, i) => s + i.cantidad, 0)} ítem(s)</span>
+                    <span>{items.length} tipo(s)</span>
                 </div>
-                <div className="flex justify-between font-extrabold text-foreground items-end">
-                    <span className="text-xs">Subtotal Estimado</span>
-                    <span className="text-base tabular-nums tracking-tighter">S/ {total.toFixed(2)}</span>
+                <div className="flex justify-between font-extrabold text-foreground items-center">
+                    <span className="text-xs uppercase tracking-wider text-muted-foreground">Subtotal Estimado</span>
+                    <span className="text-lg tabular-nums tracking-tight font-extrabold text-primary">S/ {total.toFixed(2)}</span>
                 </div>
             </div>
         </div>

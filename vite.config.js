@@ -26,9 +26,9 @@ export default defineConfig({
             registerType: 'autoUpdate',
             includeAssets: ['logo.png', 'logo.svg'],
             manifest: {
-                name: 'ANGELICA FREY',
-                short_name: 'ANGELICA FREY',
-                description: 'System Hotel By Jcar Labs',
+                name: 'PMS JCAR LABS',
+                short_name: 'PMS JCAR LABS',
+                description: 'Sistema de Gestión Hotelera - PMS JCAR LABS',
                 theme_color: '#1d4ed8',
                 background_color: '#ffffff',
                 display: 'standalone',

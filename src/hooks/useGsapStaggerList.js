@@ -33,7 +33,7 @@ import { gsap } from 'gsap';
  */
 export function useGsapStaggerList(deps = [], opts = {}) {
   const {
-    stagger = 0.04,
+    stagger = 0.025,
     from = 'start',
     direction = 'y',
     distance = 20,
@@ -98,7 +98,7 @@ export function useGsapStaggerList(deps = [], opts = {}) {
       { ...fromVars },
       {
         ...toVars,
-        duration: 0.4,
+        duration: 0.25,
         ease: 'power3.out',
         stagger: staggerConfig,
       }

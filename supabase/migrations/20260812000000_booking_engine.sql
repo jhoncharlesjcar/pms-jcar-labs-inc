@@ -1,9 +1,9 @@
--- 📂 MIGRACIÓN: Motor de Reservas (Sprint 4)
--- Copia y ejecuta este script en el editor SQL de tu Supabase Dashboard.
+-- 📂 MIGRACIÓN: Motor de Reservas Directo
+-- Path: supabase/migrations/20260812000000_booking_engine.sql
 
 DO $$ 
 BEGIN 
-  -- Añadir columna 'origen' a reservas si no existe (para diferenciar Motor Directo, Recepcion, Booking, etc)
+  -- Añadir columna 'origen' a reservas si no existe (para diferenciar Motor Directo, Recepción, Booking, etc)
   IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='reservas' AND column_name='origen') THEN
     ALTER TABLE reservas ADD COLUMN origen text DEFAULT 'recepcion';
   END IF;

@@ -192,13 +192,13 @@ const Layout = memo(function Layout() {
                 {/* Header Marca & Logo */}
                 <div className={cn("p-4 border-b border-border/50 flex items-center gap-3 transition-all duration-300 min-h-[65px]", isCollapsed ? "justify-center px-2" : "")}>
                     <div className={cn(
-                        "overflow-hidden rounded-xl shadow-xs flex-shrink-0 flex items-center justify-center bg-white border border-border/40 transition-all duration-300",
+                        "overflow-hidden rounded-xl shadow-xs flex-shrink-0 flex items-center justify-center bg-white border border-border/40 transition-all duration-300 p-0.5",
                         isCollapsed ? "w-9 h-9" : "w-10 h-10"
                     )}>
                         <img 
                             src="/logo.png" 
                             alt="PMS JCAR LABS" 
-                            className="w-full h-full object-cover scale-[1.85] origin-center" 
+                            className="w-full h-full object-contain origin-center" 
                         />
                     </div>
                     {!isCollapsed && (
@@ -359,8 +359,8 @@ const Layout = memo(function Layout() {
                 {/* Mobile Header Enterprise */}
                 <header className="lg:hidden flex items-center justify-between px-5 py-3 bg-card border-b border-border sticky top-0 z-40 safe-top shadow-xs">
                     <div className="flex items-center gap-3">
-                        <div className="w-9 h-9 overflow-hidden rounded-xl shadow-xs flex-shrink-0 flex items-center justify-center bg-white border border-border/40">
-                            <img src="/logo.png" alt="PMS JCAR LABS" className="w-full h-full object-cover scale-[1.85] origin-center" />
+                        <div className="w-9 h-9 overflow-hidden rounded-xl shadow-xs flex-shrink-0 flex items-center justify-center bg-white border border-border/40 p-0.5">
+                            <img src="/logo.png" alt="PMS JCAR LABS" className="w-full h-full object-contain origin-center" />
                         </div>
                         <div>
                             <span className="font-display font-extrabold text-base text-foreground tracking-tight block leading-none">PMS JCAR LABS</span>

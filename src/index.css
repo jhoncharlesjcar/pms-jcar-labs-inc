@@ -110,24 +110,24 @@
     --glass-shadow: 0 4px 12px 0 rgba(0, 0, 0, 0.2);
 
     --state-disponible-bg: 160 45% 8%;
-    --state-disponible-fg: 160 45% 55%;
-    --state-disponible-border: 160 35% 18%;
+    --state-disponible-fg: 160 65% 75%;
+    --state-disponible-border: 160 35% 22%;
 
     --state-ocupada-bg: 220 45% 8%;
-    --state-ocupada-fg: 220 60% 70%;
-    --state-ocupada-border: 220 35% 20%;
+    --state-ocupada-fg: 220 75% 82%;
+    --state-ocupada-border: 220 35% 24%;
 
     --state-reservada-bg: 262 40% 8%;
-    --state-reservada-fg: 262 60% 70%;
-    --state-reservada-border: 262 35% 20%;
+    --state-reservada-fg: 262 75% 82%;
+    --state-reservada-border: 262 35% 24%;
 
     --state-mantenimiento-bg: 42 55% 8%;
-    --state-mantenimiento-fg: 42 60% 60%;
-    --state-mantenimiento-border: 42 45% 18%;
+    --state-mantenimiento-fg: 42 85% 75%;
+    --state-mantenimiento-border: 42 45% 22%;
 
     --state-limpieza-bg: 199 60% 8%;
-    --state-limpieza-fg: 199 65% 60%;
-    --state-limpieza-border: 199 50% 18%;
+    --state-limpieza-fg: 199 80% 75%;
+    --state-limpieza-border: 199 50% 22%;
   }
 }
 

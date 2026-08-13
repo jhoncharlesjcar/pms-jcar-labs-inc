@@ -62,7 +62,7 @@ const PanelDesarrollador = memo(function PanelDesarrollador() {
                 </div>
                 <div>
                     <h1 className="font-extrabold text-xl text-foreground tracking-tight">Panel de Desarrollador</h1>
-                    <p className="text-[9px] font-black uppercase tracking-widest text-muted-foreground mt-0.5">Control total del sistema · Multi-Tenant ANGELICA FREY</p>
+                    <p className="text-[9px] font-black uppercase tracking-widest text-muted-foreground mt-0.5">Control total del sistema · Multi-Tenant PMS JCAR LABS</p>
                 </div>
                 <div className="ml-auto flex items-center gap-2">
                     <span className="bg-amber-100 text-amber-700 text-[9px] uppercase tracking-widest font-extrabold px-2 py-1 rounded-sm border border-amber-300">🔧 DEV MODE</span>

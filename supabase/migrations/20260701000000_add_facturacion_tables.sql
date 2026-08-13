@@ -1,5 +1,5 @@
 -- Migration: add facturacion tables
--- Path: database/migrations/20260701_add_facturacion_tables.sql
+-- Path: supabase/migrations/20260701000000_add_facturacion_tables.sql
 
 -- Table: comprobantes
 CREATE TABLE IF NOT EXISTS public.comprobantes (

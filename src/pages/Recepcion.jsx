@@ -270,20 +270,25 @@ export default function Recepcion() {
 
 
     const handleScanSuccess = async (data) => {
+        const dniScanned = data.dni || data.numero || '';
+        const nombreScanned = data.nombreCompleto || `${data.nombre || ''} ${data.apellidos || ''}`.trim();
+
         setForm(prev => ({
             ...prev,
-            huesped_dni: data.numero,
-            huesped_nombre: data.nombreCompleto,
+            tipo_documento: 'DNI',
+            huesped_dni: dniScanned || prev.huesped_dni,
+            huesped_nombre: nombreScanned || prev.huesped_nombre,
             huesped_fecha_nacimiento: data.fechaNacimiento || prev.huesped_fecha_nacimiento,
             huesped_sexo: data.sexo || prev.huesped_sexo,
             huesped_estado_civil: data.estadoCivil || prev.huesped_estado_civil,
             huesped_procedencia: data.procedencia || prev.huesped_procedencia,
         }));
         
-        toast.success('DNI escaneado correctamente');
+        toast.success(`DNI ${dniScanned} escaneado correctamente`);
         
-        // Trigger save/blur logic just in case it's needed (loyalty check, etc.)
-        await handleDniBlur(data.numero);
+        if (dniScanned) {
+            await handleDniBlur(dniScanned);
+        }
     };
 
     const { data: habitaciones = [] } = useQuery({
@@ -598,8 +603,9 @@ export default function Recepcion() {
                                                 {loadingIdentity && <span className="ml-2 animate-pulse text-purple-500 text-[9px]">Buscando...</span>}
                                             </span>
                                             {loyaltyAccount && (loyaltyAccount.points_balance || 0) > 0 && (
-                                                <span className="bg-amber-500/10 text-amber-600 dark:text-amber-400 px-1.5 py-0.5 rounded text-[9px] font-bold border border-amber-500/20 inline-flex items-center gap-1">
-                                                    ⭐ Cliente Frecuente: {loyaltyAccount.points_balance} Pts
+                                                <span className="bg-amber-500/10 text-amber-600 dark:text-amber-400 px-2 py-0.5 rounded-full text-[9px] font-extrabold border border-amber-500/20 inline-flex items-center gap-1">
+                                                    <Sparkles className="w-3 h-3 text-amber-500" />
+                                                    Cliente Frecuente: {loyaltyAccount.points_balance} Pts
                                                 </span>
                                             )}
                                         </Label>

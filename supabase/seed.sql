@@ -1,11 +1,11 @@
 -- ============================================================
--- SCRIPT DE DATOS INICIALES (SEED)
--- Copia y pega esto en el Editor SQL de Supabase
+-- SCRIPT DE DATOS INICIALES (SEED) - PMS JCAR LABS
+-- Path: supabase/seed.sql
 -- ============================================================
 
 -- 1. Insertar Hotel por Defecto (Si no existe)
 INSERT INTO hoteles (nombre, ruc, direccion, ciudad, telefono, activo)
-VALUES ('Hospedaje Angelica Frey', '10000000000', 'Av. Principal 123', 'Ciudad', '987654321', true)
+VALUES ('PMS JCAR LABS', '10000000000', 'Av. Principal 123', 'Cusco', '987654321', true)
 ON CONFLICT DO NOTHING;
 
 -- Obtener el ID del hotel recién creado (o el existente)
@@ -13,14 +13,10 @@ DO $$
 DECLARE
     v_hotel_id UUID;
 BEGIN
-    -- Seleccionamos el primer hotel encontrado
     SELECT id INTO v_hotel_id FROM hoteles LIMIT 1;
 
-    -- 2. Insertar Habitaciones
     IF v_hotel_id IS NOT NULL THEN
-        -- Limpiar si es necesario (opcional)
-        -- DELETE FROM habitaciones WHERE hotel_id = v_hotel_id;
-        
+        -- 2. Insertar Habitaciones
         INSERT INTO habitaciones (hotel_id, numero, tipo, precio_noche, estado, capacidad, piso)
         VALUES 
         (v_hotel_id, '101', 'simple', 40.00, 'disponible', 1, '1'),
@@ -41,7 +37,7 @@ BEGIN
         (v_hotel_id, 'Set de Aseo (Shampoo/Jabón)', 'higiene', 5.00, true, '🧼', 40)
         ON CONFLICT DO NOTHING;
 
-        -- 4. Vincular usuarios existentes al hotel (Para que puedan ver los datos)
+        -- 4. Vincular usuarios existentes al hotel
         UPDATE usuarios SET hotel_id = v_hotel_id WHERE hotel_id IS NULL;
     END IF;
 END $$;

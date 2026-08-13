@@ -11,7 +11,7 @@ const SystemInfo = memo(function SystemInfo({ version, hoteles = [], hotelesCoun
     const [isPrinting, setIsPrinting] = useState(false);
 
     const selectedHotel = hoteles.find(h => h.id === selectedHotelId) || hoteles[0] || {
-        nombre: 'HOSPEDAJE ANGELICA (DEMO)',
+        nombre: 'PMS JCAR LABS (DEMO)',
         ruc: '11111111111',
         direccion: 'Av. Floral 123',
         ciudad: 'Chachapoyas',
@@ -30,7 +30,7 @@ const SystemInfo = memo(function SystemInfo({ version, hoteles = [], hotelesCoun
                 <h3 className="font-extrabold text-sm tracking-tight text-foreground flex items-center gap-2"><Server className="w-3.5 h-3.5 text-amber-500" /> Estado del Sistema</h3>
                 <div className="grid grid-cols-2 gap-2">
                     {[
-                        { label: 'Versión', value: `ANGELICA FREY v${version}`, icon: Zap },
+                        { label: 'Versión', value: `PMS JCAR LABS v${version}`, icon: Zap },
                         { label: 'Base de datos', value: 'Supabase · Conectada', icon: Database },
                         { label: 'Auth', value: 'Activa · Requerida', icon: CheckCircle },
                         { label: 'Multi-tenant', value: `${hotelesCount} hotel(es)`, icon: Building2 },

@@ -1,7 +1,7 @@
 {
-    "name": "ANGELICA FREY",
-    "short_name": "ANGELICA FREY",
-    "description": "System Hotel By Jcar Labs",
+    "name": "PMS JCAR LABS",
+    "short_name": "PMS JCAR LABS",
+    "description": "Sistema de Gestión Hotelera - PMS JCAR LABS",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#ffffff",

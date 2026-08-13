@@ -224,8 +224,8 @@ const CatalogoMinimarket = memo(function CatalogoMinimarket({ onAgregar, itemsEn
                                     onAgregar({ ...prod, precio: prod.precio_venta });
                                 }}
                                 className={cn(
-                                    "relative bg-card/40 hover:bg-card/60 backdrop-blur-xl border border-border/40 dark:border-white/10 rounded-xl p-3 flex flex-col items-center gap-1.5 transition-all duration-300 ease-out select-none",
-                                    !gestionando && !sinStock && "active:scale-95 hover:-translate-y-1 hover:shadow-lg cursor-pointer",
+                                    "relative bg-card/40 hover:bg-card/60 backdrop-blur-xl border border-border/40 dark:border-white/10 rounded-xl p-3 flex flex-col items-center gap-1.5 transition-all duration-200 ease-out select-none min-h-[110px] justify-between",
+                                    !gestionando && !sinStock && "active:scale-[0.98] hover:shadow-md hover:border-primary/40 cursor-pointer",
                                     sinStock && "opacity-50 cursor-not-allowed",
                                     qty > 0 && !sinStock && "border-primary bg-primary/10 shadow-md ring-1 ring-primary/50",
                                     gestionando && "cursor-default"

@@ -160,12 +160,12 @@ const Login = memo(function Login() {
                 <div className="text-center mb-6">
                     <div
                         ref={logoRef}
-                        className="w-32 h-32 mx-auto mb-4 rounded-3xl overflow-hidden shadow-[0_15px_40px_rgba(0,0,0,0.5)] border border-white/20 relative group bg-white flex items-center justify-center"
+                        className="w-32 h-32 mx-auto mb-4 rounded-3xl overflow-hidden shadow-[0_15px_40px_rgba(0,0,0,0.5)] border border-white/20 relative group bg-white flex items-center justify-center p-2"
                     >
                         <img
                             src="/logo.png"
                             alt="PMS JCAR LABS Logo"
-                            className="w-full h-full object-cover scale-[1.5] group-hover:scale-[2.05] transition-transform duration-300 origin-center"
+                            className="w-full h-full object-contain rounded-2xl group-hover:scale-105 transition-transform duration-300 origin-center"
                         />
                     </div>
                     <h1

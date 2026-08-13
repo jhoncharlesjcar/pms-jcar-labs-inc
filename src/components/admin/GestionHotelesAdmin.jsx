@@ -5,7 +5,7 @@ import { db } from '@/api/db';
 import { useAuth } from '@/contexts/AuthContext';
 import {
     Building2, Plus, Pencil, Trash2, ToggleLeft, ToggleRight,
-    UserPlus, Mail, Check, RefreshCw, Lock, Unlock, Key
+    UserPlus, Mail, Check, RefreshCw, Lock, Unlock, Key, Crown, BellRing
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -16,8 +16,8 @@ import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 
 const ROLES_STAFF = [
-    { value: 'admin', label: '👑 Admin' },
-    { value: 'recepcionista', label: '🛎️ Recepcionista' },
+    { value: 'admin', label: 'Admin' },
+    { value: 'recepcionista', label: 'Recepcionista' },
 ];
 
 const emptyHotel = { nombre: '', ruc: '', direccion: '', ciudad: '', telefono: '', email: '', hora_checkin: '14:00', hora_checkout: '12:00', activo: true, notas: '' };
@@ -256,9 +256,10 @@ const GestionHotelesAdmin = memo(function GestionHotelesAdmin({ onClose }) {
                                 <p className="font-medium text-sm text-foreground truncate">{u.full_name || '(Sin nombre)'}</p>
                                 <p className="text-xs text-muted-foreground truncate">{u.email}</p>
                             </div>
-                            <span className={cn("text-[10px] font-bold px-2 py-1 rounded-full border",
-                                u.role === 'admin' ? "bg-primary/10 text-primary border-primary/20" : "bg-green-50 text-green-700 border-green-200")}>
-                                {u.role === 'admin' ? '👑 Admin' : '🛎️ Recepcionista'}
+                            <span className={cn("text-[11px] font-bold px-2.5 py-1 rounded-full border inline-flex items-center gap-1.5",
+                                u.role === 'admin' ? "bg-primary/10 text-primary border-primary/20" : "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20")}>
+                                {u.role === 'admin' ? <Crown className="w-3 h-3 text-primary" /> : <BellRing className="w-3 h-3 text-emerald-600 dark:text-emerald-400" />}
+                                {u.role === 'admin' ? 'Admin' : 'Recepcionista'}
                             </span>
                         </div>
                     ))}

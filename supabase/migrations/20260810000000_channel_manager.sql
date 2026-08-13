@@ -1,5 +1,5 @@
 -- 📂 MIGRACIÓN: Channel Manager (Fase 1) y Yield Management
--- Copia y ejecuta este script en el editor SQL de tu Supabase Dashboard.
+-- Path: supabase/migrations/20260810000000_channel_manager.sql
 
 -- 1. Tabla de Configuración de Canales (OTAs)
 CREATE TABLE IF NOT EXISTS ota_config (
