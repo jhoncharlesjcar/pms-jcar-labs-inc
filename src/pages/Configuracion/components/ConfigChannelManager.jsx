@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Network, Link2, Key, Loader2, Save, Trash2, CheckCircle } from 'lucide-react';
+import { Network, Link2, Key, Loader2, Save } from 'lucide-react';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';

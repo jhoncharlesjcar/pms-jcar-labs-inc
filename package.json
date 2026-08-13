@@ -9,7 +9,10 @@
                 "lint": "eslint . --quiet",
                 "lint:fix": "eslint . --fix",
                 "typecheck": "tsc -p ./jsconfig.json",
-                "preview": "vite preview"
+                "preview": "vite preview",
+                "test:e2e": "playwright test",
+                "test:e2e:ui": "playwright test --ui",
+                "test:e2e:report": "playwright show-report"
         },
         "dependencies": {
                 "@hookform/resolvers": "^4.1.2",

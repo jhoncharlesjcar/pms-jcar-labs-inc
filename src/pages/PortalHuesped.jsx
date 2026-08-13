@@ -2,9 +2,9 @@ import { useState, memo } from 'react';
 import { useParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabaseClient';
-import { 
-    Wifi, Coffee, MessageCircle, MapPin, 
-    Clock, Utensils, Star, Info, Phone, AlertCircle 
+import {
+    Wifi, Coffee, MessageCircle, 
+    Clock, Utensils, Info 
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';

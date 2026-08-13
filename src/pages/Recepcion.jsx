@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Plus, Search, CalendarDays, User, CheckCircle2, Wrench, Sparkles, XCircle, LogIn, MapPin, Users as UsersIcon, Info, FileText, MessageSquare, Clock, ShieldCheck, Camera } from 'lucide-react';
+import { Plus, Search, CalendarDays, User, CheckCircle2, Wrench, Sparkles, XCircle, LogIn, MapPin, Users as UsersIcon, Info, FileText, MessageSquare, Camera } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -16,7 +16,6 @@ import { useGsapStaggerList } from '@/hooks/useGsapStaggerList';
 import { generarFichaMincetur } from '@/lib/exportMincetur';
 import { WhatsAppService } from '@/services/whatsapp.service';
 import { useAuthStore } from '@/store/auth.store';
-import { supabase } from '@/lib/supabaseClient';
 import { toast } from 'sonner';
 import { useIdentity } from '@/hooks/useIdentity';
 import { useLoyaltyAccount } from '@/hooks/useLoyalty';

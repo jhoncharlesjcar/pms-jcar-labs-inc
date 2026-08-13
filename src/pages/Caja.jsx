@@ -9,7 +9,6 @@ import { useAuth } from '@/contexts/AuthContext';
 // Hooks
 import { useCajaData } from './Caja/hooks/useCajaData';
 import { useCajaExport } from './Caja/hooks/useCajaExport';
-import { useGsapStaggerList } from '@/hooks/useGsapStaggerList';
 
 // Componentes
 import { CajaOverview } from './Caja/components/CajaOverview';

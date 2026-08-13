@@ -1,16 +1,15 @@
-import { useState, useMemo, memo } from 'react';
+import { useMemo, memo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { 
-    AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, 
-    BarChart, Bar, Legend
+    AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer
 } from 'recharts';
 import { 
     TrendingUp, ArrowUpRight, ArrowDownRight, 
-    Activity, Download, Lightbulb, CheckCircle2, AlertTriangle
+    Activity, Download, CheckCircle2, AlertTriangle
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useHotelData } from '@/hooks/use-hotel-data';
-import { format, addDays, subDays, isWithinInterval, startOfMonth, endOfMonth, differenceInDays } from 'date-fns';
+import { format, addDays, isWithinInterval, startOfMonth, endOfMonth, differenceInDays } from 'date-fns';
 import { es } from 'date-fns/locale';
 
 export const Revenue = memo(function Revenue() {

@@ -27,9 +27,10 @@ debug-*.png
 skills-lock.json
 *_files_list.txt
 
-# Environment variables
+# Environment variables (PROHIBIDO SUBIR .env)
 .env
 .env.*
+!.env.example
 .env*.local
 
 # Generated reports

@@ -3,7 +3,7 @@ import { useState, useEffect, useRef, memo } from 'react';
 import {
     BedDouble, CalendarDays, Settings,
     Menu, X, Hotel, LogOut, ShoppingCart, Code2, Building2,
-    LayoutGrid, Users, CreditCard, FileText, Wallet, Sun, Moon, Package, TrendingUp, Zap
+    LayoutGrid, Users, CreditCard, FileText, Wallet, Sun, Moon, Package, TrendingUp
 } from 'lucide-react';
 
 import { db } from '@/api/db';
