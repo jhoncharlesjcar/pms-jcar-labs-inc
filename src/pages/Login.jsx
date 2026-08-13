@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, memo } from 'react';
 import { supabase } from '@/lib/supabaseClient';
-import { Hotel, Mail, Lock, Eye, EyeOff, ShieldCheck, Sparkles } from 'lucide-react';
+import { Mail, Lock, Eye, EyeOff, ShieldCheck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { gsap } from 'gsap';
 import { useGsapStaggerList } from '@/hooks/useGsapStaggerList';
@@ -11,8 +11,8 @@ const Login = memo(function Login() {
     const [showPassword, setShowPassword] = useState(false);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
-    const [fieldErrors, setFieldErrors] = useState({});
-    const [touched, setTouched] = useState({});
+    const [fieldErrors, setFieldErrors] = useState({ email: '', password: '' });
+    const [touched, setTouched] = useState({ email: false, password: false });
 
     const logoRef = useRef(null);
     const titleRef = useRef(null);
@@ -149,7 +149,7 @@ const Login = memo(function Login() {
                 {/* Dark OLED Overlay */}
                 <div className="absolute inset-0 bg-black/70 backdrop-blur-[6px]" />
                 <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-black/80" />
-                
+
                 {/* Animated gradient orbs */}
                 <div className="absolute top-1/4 -left-32 w-96 h-96 bg-primary/5 rounded-full blur-[120px] animate-pulse" style={{ animationDuration: '8s' }} />
                 <div className="absolute bottom-1/4 -right-32 w-96 h-96 bg-secondary/5 rounded-full blur-[120px] animate-pulse" style={{ animationDuration: '10s', animationDelay: '2s' }} />
@@ -157,42 +157,42 @@ const Login = memo(function Login() {
 
             <div className="relative z-10 w-full max-w-md">
                 {/* Logo Section */}
-                <div className="text-center mb-10">
+                <div className="text-center mb-6">
                     <div
                         ref={logoRef}
-                        className="inline-flex items-center justify-center w-20 h-20 bg-primary/20 backdrop-blur-md rounded-[2rem] border border-primary/30 shadow-[0_0_30px_rgba(var(--primary),0.2)] mb-6 group"
+                        className="w-32 h-32 mx-auto mb-4 rounded-3xl overflow-hidden shadow-[0_15px_40px_rgba(0,0,0,0.5)] border border-white/20 relative group bg-white flex items-center justify-center"
                     >
-                        <Hotel className="w-10 h-10 text-primary group-hover:scale-110 transition-transform duration-300" />
+                        <img
+                            src="/logo.png"
+                            alt="PMS JCAR LABS Logo"
+                            className="w-full h-full object-cover scale-[1.5] group-hover:scale-[2.05] transition-transform duration-300 origin-center"
+                        />
                     </div>
                     <h1
                         ref={titleRef}
-                        className="text-3xl font-bold text-white uppercase tracking-wider"
+                        className="text-2xl font-black text-white uppercase tracking-wider"
                     >
                         PMS JCAR LABS
                     </h1>
                     <p
                         ref={subtitleRef}
-                        className="text-slate-400 mt-1 uppercase text-xs tracking-widest font-bold"
+                        className="text-slate-400 mt-1 text-xs tracking-wide font-medium"
                     >
-                        <Sparkles className="w-3 h-3 inline-block mr-1 -mt-0.5" />
-                        SISTEMA DE GESTION HOTELERA BY JCAR LABS
+                        Sistema de Gestión Hotelera
                     </p>
                 </div>
 
                 {/* Login Card */}
                 <div
                     ref={cardRef}
-                    className="bg-white/[0.03] backdrop-blur-3xl border border-white/10 rounded-[2.5rem] p-10 shadow-[0_20px_50px_rgba(0,0,0,0.5)]"
+                    className="bg-white/[0.03] backdrop-blur-3xl border border-white/10 rounded-[2.5rem] p-8 sm:p-10 shadow-[0_20px_50px_rgba(0,0,0,0.5)]"
                 >
-                    <div className="flex items-center gap-3 mb-8">
-                        <div className="w-2 h-8 bg-primary rounded-full" />
-                        <h2 className="text-2xl font-bold text-white">Iniciar Sesión</h2>
-                    </div>
+                    <h2 className="text-xl font-bold text-white mb-6 text-center">Iniciar Sesión</h2>
 
-                    <form onSubmit={handleEmailLogin} className="space-y-6" ref={formRef} noValidate>
-                        <div className="space-y-2">
-                            <label htmlFor="login_email" className="text-[10px] font-black text-muted-foreground uppercase tracking-widest ml-1">
-                                Email de Acceso
+                    <form onSubmit={handleEmailLogin} className="space-y-5" ref={formRef} noValidate>
+                        <div className="space-y-1.5">
+                            <label htmlFor="login_email" className="text-xs font-semibold text-slate-300 ml-1">
+                                Email
                             </label>
                             <div className="relative group">
                                 <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground group-focus-within:text-primary transition-colors duration-300" />
@@ -207,22 +207,21 @@ const Login = memo(function Login() {
                                     required
                                     aria-invalid={touched.email && fieldErrors.email ? 'true' : 'false'}
                                     aria-describedby={fieldErrors.email ? 'email-error' : undefined}
-                                    className={`w-full pl-12 pr-4 py-4 bg-white/[0.05] border rounded-2xl text-white placeholder-muted-foreground/50 focus:outline-none focus:ring-4 transition-all duration-300 font-medium ${
-                                        touched.email && fieldErrors.email
-                                            ? 'border-red-500/50 focus:border-red-500/70 focus:ring-red-500/10'
-                                            : 'border-white/10 focus:border-primary/50 focus:ring-primary/10'
-                                    }`}
+                                    className={`w-full pl-12 pr-4 py-3.5 bg-white/[0.05] border rounded-2xl text-white placeholder-muted-foreground/50 focus:outline-none focus:ring-4 transition-all duration-300 font-medium ${touched.email && fieldErrors.email
+                                        ? 'border-red-500/50 focus:border-red-500/70 focus:ring-red-500/10'
+                                        : 'border-white/10 focus:border-primary/50 focus:ring-primary/10'
+                                        }`}
                                 />
                             </div>
                             {touched.email && fieldErrors.email && (
-                                <p id="email-error" role="alert" className="text-[11px] font-semibold text-red-400 ml-3 mt-1.5">
+                                <p id="email-error" role="alert" className="text-[11px] font-semibold text-red-400 ml-3 mt-1">
                                     {fieldErrors.email}
                                 </p>
                             )}
                         </div>
 
-                        <div className="space-y-2">
-                            <label htmlFor="login_password" className="text-[10px] font-black text-muted-foreground uppercase tracking-widest ml-1">
+                        <div className="space-y-1.5">
+                            <label htmlFor="login_password" className="text-xs font-semibold text-slate-300 ml-1">
                                 Contraseña
                             </label>
                             <div className="relative group">
@@ -239,11 +238,10 @@ const Login = memo(function Login() {
                                     minLength={6}
                                     aria-invalid={touched.password && fieldErrors.password ? 'true' : 'false'}
                                     aria-describedby={fieldErrors.password ? 'password-error' : undefined}
-                                    className={`w-full pl-12 pr-14 py-4 bg-white/[0.05] border rounded-2xl text-white placeholder-muted-foreground/50 focus:outline-none focus:ring-4 transition-all duration-300 font-medium ${
-                                        touched.password && fieldErrors.password
-                                            ? 'border-red-500/50 focus:border-red-500/70 focus:ring-red-500/10'
-                                            : 'border-white/10 focus:border-primary/50 focus:ring-primary/10'
-                                    }`}
+                                    className={`w-full pl-12 pr-14 py-3.5 bg-white/[0.05] border rounded-2xl text-white placeholder-muted-foreground/50 focus:outline-none focus:ring-4 transition-all duration-300 font-medium ${touched.password && fieldErrors.password
+                                        ? 'border-red-500/50 focus:border-red-500/70 focus:ring-red-500/10'
+                                        : 'border-white/10 focus:border-primary/50 focus:ring-primary/10'
+                                        }`}
                                 />
                                 <button
                                     type="button"
@@ -255,7 +253,7 @@ const Login = memo(function Login() {
                                 </button>
                             </div>
                             {touched.password && fieldErrors.password && (
-                                <p id="password-error" role="alert" className="text-[11px] font-semibold text-red-400 ml-3 mt-1.5">
+                                <p id="password-error" role="alert" className="text-[11px] font-semibold text-red-400 ml-3 mt-1">
                                     {fieldErrors.password}
                                 </p>
                             )}
@@ -271,17 +269,17 @@ const Login = memo(function Login() {
                         <Button
                             type="submit"
                             disabled={loading || !email || !password || Object.values(fieldErrors).some(e => e)}
-                            className="w-full h-14 bg-primary hover:bg-primary/90 text-white font-bold rounded-2xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed shadow-xl shadow-primary/20 text-base relative overflow-hidden group"
+                            className="w-full h-13 bg-primary hover:bg-primary/90 text-white font-bold rounded-2xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed shadow-xl shadow-primary/20 text-base relative overflow-hidden group"
                         >
                             {loading ? (
-                                <div className="flex items-center gap-2">
+                                <div className="flex items-center justify-center gap-2">
                                     <div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin" />
                                     <span>Autenticando...</span>
                                 </div>
                             ) : (
-                                <div className="flex items-center gap-2">
+                                <div className="flex items-center justify-center gap-2">
                                     <ShieldCheck className="w-5 h-5 group-hover:scale-110 transition-transform duration-200" />
-                                    <span>Entrar al Sistema</span>
+                                    <span>Ingresar</span>
                                 </div>
                             )}
                         </Button>
@@ -289,15 +287,10 @@ const Login = memo(function Login() {
                 </div>
 
                 {/* Footer Section */}
-                <div ref={footerRef} className="mt-12 text-center space-y-4">
-                    <p className="text-[10px] font-bold text-muted-foreground/40 uppercase tracking-[0.4em]">
-                        Propiedad de Hospedaje Angelica Frey
+                <div ref={footerRef} className="mt-8 text-center">
+                    <p className="text-xs text-slate-500 font-medium">
+                        © PMS JCAR LABS. Todos los derechos reservados.
                     </p>
-                    <div className="flex items-center justify-center gap-6">
-                        <span className="text-[9px] font-black text-primary/40 uppercase tracking-widest">v4.0 Premium</span>
-                        <div className="w-1 h-1 bg-white/10 rounded-full" />
-                        <span className="text-[9px] font-black text-primary/40 uppercase tracking-widest">OLED Optimized</span>
-                    </div>
                 </div>
             </div>
         </div>

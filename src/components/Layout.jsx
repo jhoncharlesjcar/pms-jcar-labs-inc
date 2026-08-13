@@ -2,7 +2,7 @@ import { Outlet, Link, useLocation } from 'react-router-dom';
 import { useState, useEffect, useRef, memo } from 'react';
 import {
     BedDouble, CalendarDays, Settings,
-    Menu, X, Hotel, LogOut, ShoppingCart, Code2, Building2,
+    Menu, X, LogOut, ShoppingCart, Code2, Building2,
     LayoutGrid, Users, CreditCard, FileText, Wallet, Sun, Moon, Package, TrendingUp
 } from 'lucide-react';
 
@@ -190,13 +190,21 @@ const Layout = memo(function Layout() {
                 isCollapsed ? "w-64 lg:w-[72px]" : "w-64"
             )}>
                 {/* Header Marca & Logo */}
-                <div className={cn("p-5 border-b border-border/50 flex items-center gap-3 transition-all duration-300", isCollapsed ? "justify-center px-2" : "")}>
-                    <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center shadow-xs flex-shrink-0" title="PMS JCAR LABS">
-                        <Hotel className="w-4.5 h-4.5 text-primary-foreground" />
+                <div className={cn("p-4 border-b border-border/50 flex items-center gap-3 transition-all duration-300 min-h-[65px]", isCollapsed ? "justify-center px-2" : "")}>
+                    <div className={cn(
+                        "overflow-hidden rounded-xl shadow-xs flex-shrink-0 flex items-center justify-center bg-white border border-border/40 transition-all duration-300",
+                        isCollapsed ? "w-9 h-9" : "w-10 h-10"
+                    )}>
+                        <img 
+                            src="/logo.png" 
+                            alt="PMS JCAR LABS" 
+                            className="w-full h-full object-cover scale-[1.85] origin-center" 
+                        />
                     </div>
                     {!isCollapsed && (
-                        <div className="min-w-0 flex-1 opacity-100 transition-opacity duration-300 delay-100">
-                            <p className="font-display font-bold text-[15px] text-foreground leading-none tracking-tight truncate">PMS JCAR LABS</p>
+                        <div className="min-w-0 flex-1 opacity-100 transition-opacity duration-300">
+                            <p className="font-display font-extrabold text-[15px] text-foreground leading-tight tracking-tight truncate">PMS JCAR LABS</p>
+                            <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider truncate">Hospedaje System</p>
                         </div>
                     )}
                 </div>
@@ -351,10 +359,12 @@ const Layout = memo(function Layout() {
                 {/* Mobile Header Enterprise */}
                 <header className="lg:hidden flex items-center justify-between px-5 py-3 bg-card border-b border-border sticky top-0 z-40 safe-top shadow-xs">
                     <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center shadow-xs">
-                            <Hotel className="w-4 h-4 text-primary-foreground" />
+                        <div className="w-9 h-9 overflow-hidden rounded-xl shadow-xs flex-shrink-0 flex items-center justify-center bg-white border border-border/40">
+                            <img src="/logo.png" alt="PMS JCAR LABS" className="w-full h-full object-cover scale-[1.85] origin-center" />
                         </div>
-                        <span className="font-display font-bold text-lg text-foreground tracking-tight">PMS JCAR</span>
+                        <div>
+                            <span className="font-display font-extrabold text-base text-foreground tracking-tight block leading-none">PMS JCAR LABS</span>
+                        </div>
                     </div>
                     <button 
                         aria-label="Abrir menú de navegación"

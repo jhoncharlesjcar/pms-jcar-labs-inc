@@ -22,9 +22,17 @@ const ROLES_STAFF = [
 
 const emptyHotel = { nombre: '', ruc: '', direccion: '', ciudad: '', telefono: '', email: '', hora_checkin: '14:00', hora_checkout: '12:00', activo: true, notas: '' };
 
-const GestionHotelesAdmin = memo(function GestionHotelesAdmin() {
+/**
+ * @type {React.FC<{ onClose?: () => void }>}
+ */
+const GestionHotelesAdmin = memo(function GestionHotelesAdmin({ onClose }) {
     const { user } = useAuth();
     const qc = useQueryClient();
+
+    // Método para cerrar modal si se provee la prop
+    const handleClose = () => {
+        if (onClose) onClose();
+    };
 
     // Estado del código de desbloqueo
     const [codigoInput, setCodigoInput] = useState('');
@@ -254,6 +262,14 @@ const GestionHotelesAdmin = memo(function GestionHotelesAdmin() {
                             </span>
                         </div>
                     ))}
+                </div>
+            )}
+
+            {onClose && (
+                <div className="flex justify-end pt-3 border-t border-border/40">
+                    <Button variant="outline" size="sm" onClick={handleClose}>
+                        Cerrar
+                    </Button>
                 </div>
             )}
 
