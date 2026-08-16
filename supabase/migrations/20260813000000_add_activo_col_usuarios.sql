@@ -1,58 +1,74 @@
--- ==============================================================================
--- PMS JCAR LABS — Soft-Delete para Usuarios
--- Path: supabase/migrations/20260813000000_add_activo_col_usuarios.sql
--- ==============================================================================
+-- User status and non-recursive authorization helpers.
+-- These helpers must exist before the 20260814 RLS migrations.
 
--- 1. Agregar columna activo con default TRUE
-ALTER TABLE public.usuarios 
-ADD COLUMN IF NOT EXISTS activo boolean NOT NULL DEFAULT true;
+ALTER TABLE public.usuarios
+  ADD COLUMN IF NOT EXISTS activo boolean NOT NULL DEFAULT true;
 
--- 2. Índice parcial para filtrar solo usuarios activos rápidamente
-CREATE INDEX IF NOT EXISTS idx_usuarios_activo 
-ON public.usuarios (activo) 
-WHERE activo = true;
+CREATE INDEX IF NOT EXISTS idx_usuarios_activo
+  ON public.usuarios (activo) WHERE activo = true;
 
--- 3. Actualizar políticas RLS de usuarios
-DROP POLICY IF EXISTS "Usuarios ven su propio perfil" ON usuarios;
-CREATE POLICY "Usuarios ven su propio perfil" ON usuarios 
-FOR SELECT USING (
-    id = auth.uid()
-);
+CREATE OR REPLACE FUNCTION public.get_user_hotel_id(p_user_id uuid DEFAULT auth.uid())
+RETURNS uuid
+LANGUAGE sql
+STABLE
+SECURITY DEFINER
+SET search_path = pg_catalog, public
+AS $$
+  SELECT u.hotel_id FROM public.usuarios AS u WHERE u.id = p_user_id;
+$$;
 
--- 4. Política para que admin/developer puedan ver TODOS los usuarios
-DROP POLICY IF EXISTS "admin_ver_usuarios_hotel" ON usuarios;
-CREATE POLICY "admin_ver_usuarios_hotel" ON usuarios 
-FOR SELECT TO authenticated 
-USING (
-    hotel_id = get_user_hotel_id()
-    AND EXISTS (
-        SELECT 1 FROM usuarios WHERE id = auth.uid() AND role IN ('admin', 'developer')
-    )
-);
+CREATE OR REPLACE FUNCTION public.get_user_role(p_user_id uuid DEFAULT auth.uid())
+RETURNS text
+LANGUAGE sql
+STABLE
+SECURITY DEFINER
+SET search_path = pg_catalog, public
+AS $$
+  SELECT u.role FROM public.usuarios AS u WHERE u.id = p_user_id AND u.activo IS TRUE;
+$$;
 
--- 5. Política para que admin pueda actualizar el estado activo/inactivo
-DROP POLICY IF EXISTS "admin_actualizar_usuarios" ON usuarios;
-CREATE POLICY "admin_actualizar_usuarios" ON usuarios 
-FOR UPDATE TO authenticated 
-USING (
-    hotel_id = get_user_hotel_id()
-    AND EXISTS (
-        SELECT 1 FROM usuarios WHERE id = auth.uid() AND role IN ('admin', 'developer')
-    )
-)
-WITH CHECK (
-    hotel_id = get_user_hotel_id()
-    AND EXISTS (
-        SELECT 1 FROM usuarios WHERE id = auth.uid() AND role IN ('admin', 'developer')
-    )
-);
-
--- 6. Verificación de usuario activo
-CREATE OR REPLACE FUNCTION is_user_active(user_id uuid)
+CREATE OR REPLACE FUNCTION public.is_user_active(p_user_id uuid DEFAULT auth.uid())
 RETURNS boolean
 LANGUAGE sql
 STABLE
 SECURITY DEFINER
+SET search_path = pg_catalog, public
 AS $$
-  SELECT COALESCE(activo, true) FROM usuarios WHERE id = user_id;
+  SELECT COALESCE((SELECT u.activo FROM public.usuarios AS u WHERE u.id = p_user_id), false);
 $$;
+
+REVOKE ALL ON FUNCTION public.get_user_hotel_id(uuid) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.get_user_role(uuid) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.is_user_active(uuid) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION public.get_user_hotel_id(uuid) TO authenticated, service_role;
+GRANT EXECUTE ON FUNCTION public.get_user_role(uuid) TO authenticated, service_role;
+GRANT EXECUTE ON FUNCTION public.is_user_active(uuid) TO authenticated, service_role;
+
+DROP POLICY IF EXISTS "Usuarios ven su propio perfil" ON public.usuarios;
+DROP POLICY IF EXISTS "admin_ver_usuarios_hotel" ON public.usuarios;
+DROP POLICY IF EXISTS "admin_actualizar_usuarios" ON public.usuarios;
+
+CREATE POLICY "Usuarios ven su propio perfil" ON public.usuarios
+  FOR SELECT TO authenticated
+  USING (id = auth.uid());
+
+CREATE POLICY "admin_ver_usuarios_hotel" ON public.usuarios
+  FOR SELECT TO authenticated
+  USING (
+    public.is_user_active()
+    AND public.get_user_role() IN ('admin', 'developer')
+    AND (public.get_user_role() = 'developer' OR hotel_id = public.get_user_hotel_id())
+  );
+
+CREATE POLICY "admin_actualizar_usuarios" ON public.usuarios
+  FOR UPDATE TO authenticated
+  USING (
+    public.is_user_active()
+    AND public.get_user_role() IN ('admin', 'developer')
+    AND (public.get_user_role() = 'developer' OR hotel_id = public.get_user_hotel_id())
+  )
+  WITH CHECK (
+    public.is_user_active()
+    AND public.get_user_role() IN ('admin', 'developer')
+    AND (public.get_user_role() = 'developer' OR hotel_id = public.get_user_hotel_id())
+  );

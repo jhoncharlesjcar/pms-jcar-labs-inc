@@ -187,6 +187,19 @@ Contenido del reporte:
   - Estados SUNAT (declaradas, pendientes, rechazadas)
 ```
 
+### RN-CAJA-011: Arqueo Físico del Turno
+
+```
+efectivoEsperado = pagos_efectivo - egresos
+diferencia = efectivoContado - efectivoEsperado
+
+SI |diferencia| <= 0.01 → caja cuadrada
+SI diferencia < -0.01 → faltante, requiere nota
+SI diferencia > 0.01 → sobrante, requiere nota
+```
+
+El arqueo es una evidencia operativa y no sustituye el `saldo_final`, que conserva la fórmula contable `ingresos - egresos`. La evidencia se incorpora en `notas` para mantener compatibilidad con la tabla actual.
+
 ---
 
 ## 4. Schemas de Datos
@@ -302,6 +315,9 @@ El Dashboard muestra:
 - [ ] `CAJ-008`: Rechazar egreso con concepto inválido (< 3 chars)
 - [ ] `CAJ-009`: Validar egreso de insumos (insumo_id + cantidad obligatorios)
 - [ ] `CAJ-010`: Preparar y validar cierre de caja
+- [x] `CAJ-013`: Diferenciar saldo neto y efectivo esperado en la interfaz
+- [x] `CAJ-014`: Desglosar los cinco medios de pago en Dashboard y Caja
+- [x] `CAJ-015`: Comparar efectivo esperado y contado, documentando diferencias
 
 ---
 

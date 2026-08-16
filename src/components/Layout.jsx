@@ -1,12 +1,11 @@
 import { Outlet, Link, useLocation } from 'react-router-dom';
-import { useState, useEffect, useRef, memo } from 'react';
+import { useState, useEffect, useRef, useMemo, memo } from 'react';
 import {
     BedDouble, CalendarDays, Settings,
     Menu, X, LogOut, ShoppingCart, Code2, Building2,
     LayoutGrid, Users, CreditCard, FileText, Wallet, Sun, Moon, Package, TrendingUp
 } from 'lucide-react';
 
-import { db } from '@/api/db';
 import { useAuth } from '@/contexts/AuthContext';
 import { cn } from '@/lib/utils';
 import SelectorHotel from '@/components/SelectorHotel';
@@ -20,6 +19,9 @@ import PageTransition from '@/components/PageTransition';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/config/supabase';
 import { useHotelData } from '@/hooks/use-hotel-data';
+import { useRealtimeSync } from '@/hooks/useRealtimeSync';
+import OfflineSyncManager from '@/components/OfflineSyncManager';
+import { canAccessPath } from '@/constants/permissions';
 
 // ScrollTrigger debe usar #main-content como contenedor de scroll
 import BroomIcon from '@/components/ui/icons/BroomIcon';
@@ -67,11 +69,19 @@ const Layout = memo(function Layout() {
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [isCollapsed, setIsCollapsed] = useState(() => localStorage.getItem('sidebar_collapsed') === 'true');
     const location = useLocation();
-    const { user } = useAuth();
+    const { user, auth } = useAuth();
     const { hotelId } = useHotelData();
+    useRealtimeSync();
 
     const isDeveloper = user?.role === 'developer';
     const isAdmin = user?.role === 'admin';
+    const sidebarCollapsed = isCollapsed && !sidebarOpen;
+    const visibleNavGroups = useMemo(() => navGroups
+        .map(group => ({
+            ...group,
+            items: group.items.filter(item => canAccessPath(user?.role, item.path)),
+        }))
+        .filter(group => group.items.length > 0), [user?.role]);
     const navRef = useRef(null);
     const sidebarTweenRef = useRef(null);
 
@@ -139,6 +149,40 @@ const Layout = memo(function Layout() {
         return () => { if (sidebarTweenRef.current) { sidebarTweenRef.current.kill(); sidebarTweenRef.current = null; } };
     }, [isCollapsed]);
 
+    // Mantiene la ruta activa completamente visible y evita accesos cortados
+    // en el borde superior del área desplazable del menú.
+    useEffect(() => {
+        const frame = window.requestAnimationFrame(() => {
+            const nav = navRef.current;
+            const activeItem = nav?.querySelector('[aria-current="page"]');
+            if (!nav || !activeItem) return;
+
+            const navRect = nav.getBoundingClientRect();
+            const activeRect = activeItem.getBoundingClientRect();
+            const activeIsVisible = activeRect.top >= navRect.top + 4
+                && activeRect.bottom <= navRect.bottom - 4;
+
+            if (!activeIsVisible) {
+                activeItem.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+            }
+
+            window.requestAnimationFrame(() => {
+                const refreshedNavRect = nav.getBoundingClientRect();
+                const firstPartialItem = Array.from(nav.querySelectorAll('a, button')).find((item) => {
+                    const itemRect = item.getBoundingClientRect();
+                    return itemRect.top < refreshedNavRect.top && itemRect.bottom > refreshedNavRect.top;
+                });
+
+                if (firstPartialItem) {
+                    const itemRect = firstPartialItem.getBoundingClientRect();
+                    nav.scrollTop -= refreshedNavRect.top - itemRect.top + 4;
+                }
+            });
+        });
+
+        return () => window.cancelAnimationFrame(frame);
+    }, [location.pathname, sidebarCollapsed]);
+
     const roleInfo = ROLE_LABELS[user?.role] || ROLE_LABELS['user'];
     const [gestionModal, setGestionModal] = useState(false);
     const [isDark, setIsDark] = useState(() => document.documentElement.classList.contains('dark'));
@@ -178,57 +222,58 @@ const Layout = memo(function Layout() {
     };
 
     return (
-        <div className="min-h-screen bg-background flex font-inter">
+        <div className="app-shell flex min-h-screen font-inter">
+            <OfflineSyncManager />
             {sidebarOpen && (
                 <div className="fixed inset-0 bg-black/40 z-20 lg:hidden backdrop-blur-sm" onClick={() => setSidebarOpen(false)} />
             )}
 
             {/* Sidebar (Enterprise SaaS) */}
             <aside className={cn(
-                "fixed top-0 left-0 h-screen bg-card border-r border-border z-50 flex flex-col transition-all duration-300 ease-in-out shadow-sm",
+                "app-sidebar fixed left-0 top-0 z-50 flex h-screen flex-col border-r border-border/70 transition-all duration-300 ease-in-out",
                 sidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0",
-                isCollapsed ? "w-64 lg:w-[72px]" : "w-64"
+                sidebarCollapsed ? "w-[17rem] lg:w-[76px]" : "w-[17rem]"
             )}>
                 {/* Header Marca & Logo */}
-                <div className={cn("p-4 border-b border-border/50 flex items-center gap-3 transition-all duration-300 min-h-[65px]", isCollapsed ? "justify-center px-2" : "")}>
+                <div className={cn("flex min-h-[76px] items-center gap-3 border-b border-border/50 p-4 transition-all duration-300", sidebarCollapsed ? "justify-center px-2" : "")}>
                     <div className={cn(
                         "overflow-hidden rounded-xl shadow-xs flex-shrink-0 flex items-center justify-center bg-white border border-border/40 transition-all duration-300 p-0.5",
-                        isCollapsed ? "w-9 h-9" : "w-10 h-10"
+                        sidebarCollapsed ? "h-10 w-10" : "h-11 w-11"
                     )}>
                         <img 
-                            src="/logo.png" 
+                            src="/logo.jpg"
                             alt="PMS JCAR LABS" 
                             className="w-full h-full object-contain origin-center" 
                         />
                     </div>
-                    {!isCollapsed && (
+                    {!sidebarCollapsed && (
                         <div className="min-w-0 flex-1 opacity-100 transition-opacity duration-300">
-                            <p className="font-display font-extrabold text-[15px] text-foreground leading-tight tracking-tight truncate">PMS JCAR LABS</p>
-                            <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider truncate">Hospedaje System</p>
+                            <p className="truncate text-[14px] font-extrabold leading-tight tracking-[-0.02em] text-foreground">PMS JCAR LABS</p>
+                            <p className="mt-0.5 truncate text-[9px] font-bold uppercase tracking-[0.16em] text-muted-foreground">Hospitality OS</p>
                         </div>
                     )}
                 </div>
 
                 {/* Selector de Hotel */}
-                {!isDeveloper && !isCollapsed && (
+                {!sidebarCollapsed && (
                     <div className="px-3 pt-3 animate-in fade-in zoom-in duration-300">
                         <SelectorHotel />
                     </div>
                 )}
 
                 {/* Búsqueda Global */}
-                {!isCollapsed && (
+                {!sidebarCollapsed && (
                     <div className="px-3 pt-2 animate-in fade-in duration-300">
                         <GlobalCommand />
                     </div>
                 )}
 
                 {/* Navegación Principal Estructurada */}
-                <nav ref={navRef} className={cn("flex-1 pt-3 space-y-4 overflow-y-auto custom-scrollbar", isCollapsed ? "px-2" : "px-3")}>
-                    {navGroups.map((group) => (
+                <nav ref={navRef} className={cn("custom-scrollbar flex-1 space-y-5 overflow-y-auto pt-4", sidebarCollapsed ? "px-2" : "px-3")}>
+                    {visibleNavGroups.map((group) => (
                         <div key={group.title} className="space-y-1">
-                            {!isCollapsed ? (
-                                <p className="text-[10px] font-bold text-muted-foreground/70 uppercase tracking-widest px-3 mb-1.5 select-none animate-in fade-in">
+                            {!sidebarCollapsed ? (
+                                <p className="animate-in fade-in mb-2 px-3 text-[9px] font-extrabold uppercase tracking-[0.15em] text-muted-foreground/65 select-none">
                                     {group.title}
                                 </p>
                             ) : (
@@ -242,28 +287,23 @@ const Layout = memo(function Layout() {
                                         key={path}
                                         to={path}
                                         onClick={() => setSidebarOpen(false)}
-                                        title={isCollapsed ? label : undefined}
+                                        aria-current={active ? 'page' : undefined}
+                                        title={sidebarCollapsed ? label : undefined}
                                         className={cn(
-                                            "flex items-center rounded-lg text-sm font-medium transition-colors group relative",
-                                            isCollapsed ? "justify-center p-3" : "gap-3 px-3 py-2.5",
+                                            "group relative flex items-center rounded-xl text-[13px] font-semibold transition-[color,background-color,box-shadow,transform]",
+                                            sidebarCollapsed ? "justify-center p-3" : "gap-3 px-3 py-2.5",
                                             active
-                                                ? "bg-primary/10 text-primary font-semibold"
-                                                : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                                                ? "bg-primary text-primary-foreground shadow-[0_8px_20px_-12px_hsl(var(--primary)/0.8)]"
+                                                : "text-muted-foreground hover:bg-muted/80 hover:text-foreground"
                                         )}
                                     >
-                                        {active && !isCollapsed && (
-                                            <span className="w-1 h-5 rounded-full bg-primary absolute left-0 shadow-sm" />
-                                        )}
-                                        {active && isCollapsed && (
-                                            <span className="w-1 h-5 rounded-full bg-primary absolute left-0 shadow-sm rounded-l-none" />
-                                        )}
                                         <div className="relative flex-shrink-0">
-                                            <Icon className={cn("w-4.5 h-4.5 transition-transform group-hover:scale-110", active ? "text-primary" : "text-muted-foreground group-hover:text-foreground")} />
-                                            {badge > 0 && isCollapsed && (
+                                            <Icon className={cn("h-[18px] w-[18px] transition-transform group-hover:scale-105", active ? "text-primary-foreground" : "text-muted-foreground group-hover:text-foreground")} />
+                                            {badge > 0 && sidebarCollapsed && (
                                                 <span className="absolute -top-1.5 -right-1.5 w-3.5 h-3.5 bg-destructive text-destructive-foreground text-[8px] font-bold rounded-full flex items-center justify-center border-2 border-card" />
                                             )}
                                         </div>
-                                        {!isCollapsed && (
+                                        {!sidebarCollapsed && (
                                             <>
                                                 <span className="flex-1 truncate animate-in fade-in duration-300">{label}</span>
                                                 {badge > 0 && (
@@ -312,14 +352,14 @@ const Layout = memo(function Layout() {
                 </nav>
 
                 {/* Footer Usuario & Acciones Rápidas */}
-                <div className={cn("p-4 border-t border-border/50 bg-muted/20 transition-all duration-300", isCollapsed ? "px-2" : "")}>
-                    <div className={cn("flex items-center gap-2", isCollapsed ? "flex-col" : "justify-between")}>
+                <div className={cn("border-t border-border/50 bg-card/45 p-3 transition-all duration-300", sidebarCollapsed ? "px-2" : "")}>
+                    <div className={cn("flex items-center gap-2", sidebarCollapsed ? "flex-col" : "justify-between")}>
                         {user && (
-                            <div className={cn("flex items-center min-w-0 flex-1", isCollapsed ? "justify-center w-full" : "gap-2.5")}>
-                                <div className="w-8 h-8 rounded-full bg-primary/10 text-primary font-bold text-xs flex items-center justify-center flex-shrink-0 border border-primary/20" title={user.full_name || user.email}>
+                            <div className={cn("flex items-center min-w-0 flex-1", sidebarCollapsed ? "justify-center w-full" : "gap-2.5")}>
+                                <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full border border-primary/20 bg-primary/10 text-xs font-bold text-primary" title={user.full_name || user.email}>
                                     {(user.full_name || user.email || '?')[0].toUpperCase()}
                                 </div>
-                                {!isCollapsed && (
+                                {!sidebarCollapsed && (
                                     <div className="min-w-0 flex-1 opacity-100 transition-opacity animate-in fade-in duration-300">
                                         <p className="text-sm font-semibold text-foreground truncate leading-none">{user.full_name || user.email}</p>
                                         <p className={cn("text-xs font-medium mt-1", roleInfo.color)}>
@@ -329,20 +369,20 @@ const Layout = memo(function Layout() {
                                 )}
                             </div>
                         )}
-                        <div className={cn("flex items-center flex-shrink-0", isCollapsed ? "flex-col gap-2 mt-3" : "gap-1")}>
+                        <div className={cn("flex items-center flex-shrink-0", sidebarCollapsed ? "flex-col gap-2 mt-3" : "gap-1")}>
                             <button
                                 aria-label="Cambiar tema"
                                 onClick={toggleTheme}
                                 title={isDark ? "Modo Claro" : "Modo Oscuro"}
-                                className="w-8 h-8 rounded-lg bg-secondary/50 hover:bg-secondary flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors"
+                                className="flex h-10 w-10 items-center justify-center rounded-lg bg-secondary/50 text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
                             >
                                 {isDark ? <Moon className="w-3.5 h-3.5 text-amber-400" /> : <Sun className="w-3.5 h-3.5 text-amber-500" />}
                             </button>
                             <button
                                 aria-label="Cerrar sesión"
-                                onClick={async () => { await db.auth.logout(); }}
+                                onClick={async () => { await auth.logout(); }}
                                 title="Cerrar sesión"
-                                className="w-8 h-8 rounded-lg bg-secondary/50 hover:bg-destructive/15 text-muted-foreground hover:text-destructive flex items-center justify-center transition-colors"
+                                className="flex h-10 w-10 items-center justify-center rounded-lg bg-secondary/50 text-muted-foreground transition-colors hover:bg-destructive/15 hover:text-destructive"
                             >
                                 <LogOut className="w-3.5 h-3.5" />
                             </button>
@@ -354,13 +394,13 @@ const Layout = memo(function Layout() {
             {/* Main Content Area */}
             <div className={cn(
                 "flex-1 flex flex-col h-screen transition-all duration-300 overflow-x-hidden",
-                isCollapsed ? "lg:ml-[72px]" : "lg:ml-64"
+                isCollapsed ? "lg:ml-[76px]" : "lg:ml-[17rem]"
             )}>
                 {/* Mobile Header Enterprise */}
-                <header className="lg:hidden flex items-center justify-between px-5 py-3 bg-card border-b border-border sticky top-0 z-40 safe-top shadow-xs">
+                <header className="safe-top sticky top-0 z-40 flex items-center justify-between border-b border-border/60 bg-card/85 px-4 py-3 shadow-xs backdrop-blur-xl lg:hidden">
                     <div className="flex items-center gap-3">
                         <div className="w-9 h-9 overflow-hidden rounded-xl shadow-xs flex-shrink-0 flex items-center justify-center bg-white border border-border/40 p-0.5">
-                            <img src="/logo.png" alt="PMS JCAR LABS" className="w-full h-full object-contain origin-center" />
+                            <img src="/logo.jpg" alt="PMS JCAR LABS" className="w-full h-full object-contain origin-center" />
                         </div>
                         <div>
                             <span className="font-display font-extrabold text-base text-foreground tracking-tight block leading-none">PMS JCAR LABS</span>
@@ -368,6 +408,7 @@ const Layout = memo(function Layout() {
                     </div>
                     <button 
                         aria-label="Abrir menú de navegación"
+                        aria-expanded={sidebarOpen}
                         onClick={() => setSidebarOpen(!sidebarOpen)} 
                         className="w-10 h-10 rounded-lg text-muted-foreground hover:bg-muted flex items-center justify-center active:scale-95 transition-all select-none cursor-pointer"
                         style={{ WebkitTapHighlightColor: 'transparent' }}
@@ -376,26 +417,31 @@ const Layout = memo(function Layout() {
                     </button>
                 </header>
 
-                <main id="main-content" className="flex-1 p-4 sm:p-6 lg:p-8 max-w-[1800px] w-full mx-auto overflow-x-hidden overflow-y-auto pb-24 lg:pb-10 custom-scrollbar relative">
+                <main id="main-content" className={cn(
+                    "app-main custom-scrollbar relative mx-auto w-full max-w-[1740px] flex-1 overflow-x-hidden overflow-y-auto p-4 sm:p-6 lg:p-8 lg:pb-10 xl:p-10",
+                    location.pathname === '/pos' ? "pb-0" : "pb-24"
+                )}>
                     <PageTransition key={location.pathname}>
                         <Outlet />
                     </PageTransition>
                 </main>
 
                 {/* Mobile Bottom Navigation (Solo visible < 1024px) */}
-                <nav className="lg:hidden fixed bottom-0 left-0 right-0 h-16 bg-card/90 backdrop-blur-xl border-t border-border/50 flex items-center justify-around px-2 z-40 safe-bottom">
+                {location.pathname !== '/pos' && <nav aria-label="Navegación principal móvil" className="safe-bottom fixed bottom-0 left-0 right-0 z-40 flex h-[4.5rem] items-center justify-around border-t border-border/60 bg-card/92 px-2 shadow-[0_-12px_30px_-24px_hsl(var(--foreground)/0.45)] backdrop-blur-xl lg:hidden">
                     {[
                         { path: '/', label: 'Inicio', icon: LayoutGrid },
                         { path: '/recepcion', label: 'Recepción', icon: CalendarDays },
-                        { path: '/habitaciones', label: 'Rooms', icon: BedDouble },
-                        { path: '/pos', label: 'POS', icon: ShoppingCart }
-                    ].map(({ path, label, icon: Icon }) => {
+                        { path: '/habitaciones', label: 'Habitaciones', icon: BedDouble },
+                        { path: '/pos', label: 'POS', icon: ShoppingCart },
+                        { path: '/limpieza', label: 'Limpieza', icon: BroomIcon }
+                    ].filter(item => canAccessPath(user?.role, item.path)).slice(0, 4).map(({ path, label, icon: Icon }) => {
                         const active = location.pathname === path;
                         const badge = getBadge(path);
                         return (
                             <Link
                                 key={path}
                                 to={path}
+                                aria-current={active ? 'page' : undefined}
                                 className={cn(
                                     "flex flex-col items-center justify-center w-full h-full gap-1 transition-colors relative",
                                     active ? "text-primary" : "text-muted-foreground hover:text-foreground"
@@ -418,7 +464,7 @@ const Layout = memo(function Layout() {
                         <Menu className="w-5 h-5" />
                         <span className="text-[9px] font-semibold tracking-wide">Más</span>
                     </button>
-                </nav>
+                </nav>}
             </div>
 
             {/* Modal Gestión Hoteles & Staff */}

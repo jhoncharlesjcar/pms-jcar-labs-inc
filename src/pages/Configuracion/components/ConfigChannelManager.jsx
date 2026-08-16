@@ -6,12 +6,10 @@ import { Switch } from '@/components/ui/switch';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { supabase } from '@/lib/supabaseClient';
-import { useQueryClient } from '@tanstack/react-query';
 import { useHotelData } from '@/hooks/use-hotel-data';
 
 export function ConfigChannelManager() {
     const { hotelId } = useHotelData();
-    const queryClient = useQueryClient();
     const [loading, setLoading] = useState(false);
     const [channels, setChannels] = useState({
         booking: { is_active: false, api_key: '', hotel_code_ota: '' },

@@ -23,7 +23,7 @@ export function useLoyaltyAccount(hotelId?: string, documentNumber?: string) {
   });
 }
 
-export function useLoyaltyMutations(hotelId?: string) {
+export function useLoyaltyMutations() {
   const qc = useQueryClient();
 
   const accumulate = useMutation({

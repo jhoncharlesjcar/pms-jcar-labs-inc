@@ -60,7 +60,7 @@ const BookingPublico = React.lazy(() => import('@/pages/BookingPublico'));
 const CheckinPublico = React.lazy(() => import('@/pages/CheckinPublico'));
 
 const AuthenticatedApp = () => {
-    const { user, isLoadingAuth, isLoadingPublicSettings, authError } = useAuth();
+    const { isLoadingAuth, isLoadingPublicSettings, authError } = useAuth();
     const { loading: isLoadingHotel } = useHotel();
 
 
@@ -99,12 +99,6 @@ const AuthenticatedApp = () => {
                 </div>
             }>
                 <Routes>
-                    {/* Rutas públicas */}
-                    <Route path="/login" element={user ? <Navigate to="/" replace /> : <Login />} />
-                    <Route path="/booking/:hotelId?" element={<BookingPublico />} />
-                    <Route path="/public-checkin/:hotelId?" element={<CheckinPublico />} />
-                    <Route path="/portal/:reservaId" element={<PortalHuesped />} />
-
                     {/* Rutas protegidas */}
                     <Route element={<ProtectedRoute><Layout /></ProtectedRoute>}>
                         <Route path="/" element={<Dashboard />} />
@@ -128,18 +122,36 @@ const AuthenticatedApp = () => {
     );
 };
 
+function PrivateApplication() {
+    return (
+        <HotelProvider>
+            <GSAPProvider>
+                <AuthenticatedApp />
+            </GSAPProvider>
+        </HotelProvider>
+    );
+}
 
+function ApplicationRoutes() {
+    const { user } = useAuth();
+    return (
+        <Routes>
+            <Route path="/login" element={user ? <Navigate to="/" replace /> : <Login />} />
+            <Route path="/booking/:hotelId" element={<BookingPublico />} />
+            <Route path="/public-checkin/:token" element={<CheckinPublico />} />
+            <Route path="/portal/:token" element={<PortalHuesped />} />
+            <Route path="/*" element={<PrivateApplication />} />
+        </Routes>
+    );
+}
 
 function App() {
     return (
         <PersistQueryClientProvider client={queryClientInstance} persistOptions={{ persister: idbPersister }}>
             <AuthProvider>
-                <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
-                    <SkipNavLink />                        <HotelProvider>
-                            <GSAPProvider>
-                                <AuthenticatedApp />
-                            </GSAPProvider>
-                        </HotelProvider>
+                <Router>
+                    <SkipNavLink />
+                    <ApplicationRoutes />
                     <Toaster />
                     <ConnectionBanner />
                 </Router>

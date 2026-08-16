@@ -36,12 +36,9 @@ Durante el tiempo que el huésped está alojado, el sistema permite la gestión 
 Es el proceso financiero más crítico donde se consolida la deuda y se libera el inventario.
 
 1. **Liquidación de Cuenta:** El recepcionista ubica la habitación roja (Ocupada) y selecciona "Terminar/Checkout".
-2. **Cálculo de Deuda:** El sistema suma el `Precio por Noche × Cantidad de Noches`.
-3. **Selección de Pago:** El huésped decide cómo pagar. El sistema ofrece un abanico omnicanal:
-   * **Efectivo** (Suma a la caja física).
-   * **Billeteras Digitales:** Yape, Plin (Suma a cuenta bancaria móvil).
-   * **Tarjetas o Transferencias**.
-4. **Liberación:** Al procesar el pago, el sistema obedece la regla de inventario: cambia el cuarto a **Disponible** o a **Mantenimiento** (si requiere limpieza profunda antes del próximo cliente).
+2. **Revisión guiada:** El panel de cobro presenta en una sola vista la estadía, consumos adicionales, descuentos e impuestos. El total y la acción principal permanecen visibles durante todo el proceso.
+3. **Cobro:** El recepcionista elige directamente Efectivo, Yape, Plin, Transferencia o Tarjeta. Los pagos digitales solicitan su referencia antes de habilitar la confirmación.
+4. **Comprobante y cierre:** Se emite ticket interno, boleta o factura según corresponda. Al confirmar el pago, la reserva finaliza y la habitación pasa a **Limpieza**.
 
 ---
 
@@ -52,6 +49,9 @@ Una vez el pago es ingresado al sistema, la transacción debe ser respaldada fí
 1. **Generación de Ticket:** El sistema compila silenciosamente los datos del hotel (RUC, Dirección), los datos del cliente, la habitación y los montos pagados.
 2. **Impresión Térmica:** Sin abrir ventanas adicionales que estorben, el sistema manda la orden (vía RawBT Bluetooth) a la mini-impresora térmica del mostrador, cortando el ticket físico (formato ESC/POS) para el cliente en segundos.
 3. **Control Tributario (Facturación Electrónica Automática)**: Si el módulo de SUNAT en Configuración se encuentra en **modo automático**, al procesar la venta en Recepción o en el Minimarket (POS), el sistema llama de forma transparente al API REST del PMS (`/functions/facturacion`), el cual construye el XML UBL 2.1, lo firma digitalmente con XAdES-BES, lo empaqueta en ZIP y lo envía en tiempo real a la SUNAT. El sistema recibe la Constancia de Recepción (CDR) aceptada, actualizando la base de datos de manera inmediata y emitiendo el comprobante oficial. Si está en **modo manual**, el comprobante se mantiene en estado "pendiente" para ser emitido a voluntad o desde el portal web de SUNAT.
+4. **Centro de Entrega:** Después del cobro, el personal dispone de un único panel responsivo con los datos del cliente, una vista previa y acciones persistentes para **imprimir**, **compartir** o **descargar PDF**, sin tener que reiniciar el flujo entre canales.
+5. **Estado Fiscal Explícito:** La interfaz diferencia `Ticket interno`, `Pendiente`, `Aceptado` y `Rechazado`. Solo un comprobante aceptado muestra QR y leyenda de representación electrónica; las constancias internas y pendientes indican expresamente que no son comprobantes tributarios.
+6. **Integridad del Documento:** Cuando SUNAT ya aceptó el comprobante, el tipo y los datos del cliente quedan bloqueados en la entrega para evitar que una copia visual contradiga el documento fiscal emitido.
 
 ---
 
@@ -67,6 +67,10 @@ Proceso reservado para administradores y dueños del negocio al finalizar el tur
    * "Tienes S/ 300 en la app de Yape".
    * "Tienes S/ 150 en POS de Tarjeta".
    Esto permite cuadrar la caja del recepcionista en 2 minutos sin matemáticas manuales.
+3. **Lectura Gerencial:** El Dashboard presenta el total del día desglosado por Efectivo, Yape, Plin, Transferencia y Tarjeta, junto con alertas de comprobantes pendientes o rechazados.
+4. **Arqueo Físico:** Caja distingue el **saldo neto** de todos los medios y el **efectivo esperado** en el cajón. Antes de cerrar, el responsable ingresa el efectivo contado y el sistema calcula automáticamente faltante, sobrante o caja cuadrada.
+5. **Trazabilidad de Diferencias:** Si existe una diferencia, el cierre exige una explicación. El esperado, contado, diferencia y observación se guardan dentro de las notas del cierre existente, sin alterar el modelo contable ni sus fórmulas.
+6. **Respaldo del Turno:** Antes de confirmar se pueden imprimir los movimientos o exportar PDF/CSV con ventas, egresos, medios de pago y control SUNAT. Las acciones permanecen accesibles en móvil y escritorio.
 
 ---
 

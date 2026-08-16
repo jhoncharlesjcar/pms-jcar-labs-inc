@@ -104,7 +104,7 @@ const Ventas = memo(function Ventas() {
     });
 
     return (
-        <div className="pt-2 pb-12 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto space-y-6 page-enter">
+        <div className="page-shell page-enter mx-auto max-w-7xl pt-1">
 
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
                 <div>
@@ -121,7 +121,7 @@ const Ventas = memo(function Ventas() {
                     </div>
                 </div>
                 <div className="flex items-center justify-center sm:justify-end gap-3 w-full sm:w-auto">
-                    <div className="enterprise-card px-5 py-3 rounded-2xl text-right flex flex-col justify-center w-full sm:w-auto">
+                    <div className="enterprise-card section-card flex w-full flex-col justify-center px-4 py-3 text-right sm:w-auto">
                         <div className="flex items-center justify-end gap-2 mb-1">
                             <TrendingUp className="w-3.5 h-3.5 text-primary" />
                             <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Caja Hoy</p>
@@ -132,7 +132,7 @@ const Ventas = memo(function Ventas() {
             </div>
 
             {/* Resumen Cards */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div className="ui-card-grid grid grid-cols-1 sm:grid-cols-3">
                 {[
                     { label: 'Minimarket Hoy', val: totalesHoy.pos, icon: ShoppingCart, color: 'text-amber-600 dark:text-amber-400', border: 'border-amber-500/20', bg: 'bg-amber-500/10', hover: 'hover:border-amber-500/40 hover:-translate-y-1' },
                     { label: 'Hotel Hoy', val: totalesHoy.hotel, icon: Hotel, color: 'text-blue-600 dark:text-blue-400', border: 'border-blue-500/20', bg: 'bg-blue-500/10', hover: 'hover:border-blue-500/40 hover:-translate-y-1' },
@@ -140,7 +140,7 @@ const Ventas = memo(function Ventas() {
                 ].map((stat) => (
                     <div 
                         key={stat.label}
-                        className={cn("enterprise-card p-5 relative overflow-hidden group transition-all duration-300 hover:shadow-md", stat.hover)}
+                        className={cn("enterprise-card metric-card ui-card-pad relative overflow-hidden group transition-all duration-300 hover:shadow-md", stat.hover)}
                     >
                         <div className="flex items-center gap-2 mb-2">
                             <div className={cn("w-6 h-6 rounded-md flex items-center justify-center font-bold flex-shrink-0 border shadow-sm", stat.bg, stat.border)}>
@@ -305,7 +305,7 @@ const Ventas = memo(function Ventas() {
                         return (
                             <div
                                 key={`mob-${v._tipo}-${v.id}`}
-                                className="enterprise-card p-5 rounded-2xl flex flex-col gap-4 shadow-sm hover:shadow-md transition-shadow"
+                                className="enterprise-card section-card ui-card-pad flex flex-col gap-4 shadow-sm transition-shadow hover:shadow-md"
                             >
                                 <div className="flex items-center justify-between">
                                     <div className={cn("text-[9px] font-black uppercase tracking-widest px-2.5 py-1 rounded-md border shadow-xs", v._tipo === 'hotel' ? "text-blue-600 dark:text-blue-400 border-blue-500/20 bg-blue-500/10" : "text-amber-600 dark:text-amber-400 border-amber-500/20 bg-amber-500/10")}>
@@ -339,11 +339,11 @@ const Ventas = memo(function Ventas() {
                                             variant="icon"
                                             onEmitido={() => qc.invalidateQueries({ queryKey: ['ventaspos'] })}
                                         />
-                                        <button onClick={() => setVentaDetalle(v)} className="w-9 h-9 rounded-lg bg-primary/10 text-primary flex items-center justify-center shadow-xs active:scale-95 transition-all">
+                                        <button aria-label="Imprimir ticket" onClick={() => setVentaDetalle(v)} className="flex h-11 w-11 items-center justify-center rounded-lg bg-primary/10 text-primary shadow-xs transition-all active:scale-95">
                                             <Printer className="w-4 h-4" />
                                         </button>
                                         {v.estado_comprobante === 'sunat_pendiente' && (
-                                            <button onClick={() => window.open('https://e-menu.sunat.gob.pe/cl-ti-itmenu/MenuInternet.htm', '_blank')} className="w-9 h-9 rounded-lg bg-blue-500/10 text-blue-600 dark:text-blue-400 flex items-center justify-center shadow-xs active:scale-95 transition-all">
+                                            <button aria-label="Abrir portal SUNAT" onClick={() => window.open('https://e-menu.sunat.gob.pe/cl-ti-itmenu/MenuInternet.htm', '_blank')} className="flex h-11 w-11 items-center justify-center rounded-lg bg-blue-500/10 text-blue-600 shadow-xs transition-all active:scale-95 dark:text-blue-400">
                                                 <ExternalLink className="w-4 h-4" />
                                             </button>
                                         )}

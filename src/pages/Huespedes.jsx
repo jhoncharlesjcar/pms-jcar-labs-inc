@@ -11,6 +11,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { useHotelData } from '@/hooks/use-hotel-data';
+import { downloadCsv } from '@/lib/csv';
 import { useGsapStaggerList } from '@/hooks/useGsapStaggerList';
 import { cn } from '@/lib/utils';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from '@/components/ui/dialog';
@@ -64,7 +65,6 @@ const Huespedes = memo(function Huespedes() {
         }
 
         if (formato === 'excel') {
-            const XLSX = await import('xlsx');
             const data = filtradas.map(r => ({
                 'Nombres y Apellidos': r.huesped_nombre || '',
                 'Tipo Documento': r.tipo_documento || 'DNI',
@@ -81,15 +81,8 @@ const Huespedes = memo(function Huespedes() {
                 'Habitación': r.habitacion_numero || ''
             }));
 
-            const ws = XLSX.utils.json_to_sheet(data);
-            ws['!cols'] = [
-                { wch: 30 }, { wch: 15 }, { wch: 15 }, { wch: 15 }, 
-                { wch: 15 }, { wch: 20 }, { wch: 15 }, { wch: 20 }, 
-                { wch: 20 }, { wch: 20 }, { wch: 15 }, { wch: 15 }, { wch: 10 }
-            ];
-            const wb = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(wb, ws, "DIRCETUR");
-            XLSX.writeFile(wb, `Reporte_DIRCETUR_${periodoExport}_${fechaExport}.xlsx`);
+            const headers = Object.keys(data[0]);
+            downloadCsv(`Reporte_DIRCETUR_${periodoExport}_${fechaExport}.csv`, headers, data.map(row => headers.map(header => row[header])));
         } else if (formato === 'pdf') {
             const [{ default: jsPDF }, { default: autoTable }] = await Promise.all([
                 import('jspdf'),
@@ -189,7 +182,7 @@ const Huespedes = memo(function Huespedes() {
         const initials = h.nombre.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
         
         return (
-            <div className="space-y-6 pb-12">
+            <div className="page-shell">
 
                 {/* Profile Header */}
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -214,7 +207,7 @@ const Huespedes = memo(function Huespedes() {
 
                 <div className="grid grid-cols-1 gap-6">
                     {/* Información de Contacto */}
-                    <div className="enterprise-card p-5 shadow-sm">
+                    <div className="enterprise-card section-card ui-card-pad shadow-sm">
                         <div className="flex items-center gap-2 mb-4">
                             <div className="p-1.5 bg-primary/10 rounded-md">
                                 <UserIcon className="w-3.5 h-3.5 text-primary" />
@@ -250,7 +243,7 @@ const Huespedes = memo(function Huespedes() {
                     </div>
 
                     {/* Estadísticas del Huésped */}
-                    <div className="enterprise-card p-5 shadow-sm">
+                    <div className="enterprise-card section-card ui-card-pad shadow-sm">
                         <div className="flex items-center gap-2 mb-4">
                             <div className="p-1.5 bg-primary/10 rounded-md">
                                 <TrendingUp className="w-3.5 h-3.5 text-primary" />
@@ -298,7 +291,7 @@ const Huespedes = memo(function Huespedes() {
                     </div>
 
                     {/* Historial de Estancias */}
-                    <div className="enterprise-card p-5 shadow-sm">
+                    <div className="enterprise-card section-card ui-card-pad shadow-sm">
                         <div className="flex items-center gap-2 mb-4">
                             <div className="p-1.5 bg-primary/10 rounded-md">
                                 <History className="w-3.5 h-3.5 text-primary" />
@@ -333,7 +326,7 @@ const Huespedes = memo(function Huespedes() {
     }
 
     return (
-        <div className="space-y-6 pb-12">
+        <div className="page-shell">
             {/* Header Section */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
@@ -454,7 +447,7 @@ const Huespedes = memo(function Huespedes() {
                             <DialogFooter>
                                 <Button variant="outline" onClick={() => setExportDialogOpen(false)} className="">Cancelar</Button>
                                 <Button onClick={() => exportarDircetur('pdf')} variant="secondary" className="gap-2"><FileText className="w-4 h-4" /> PDF</Button>
-                                <Button onClick={() => exportarDircetur('excel')} className="gap-2"><Download className="w-4 h-4" /> Excel</Button>
+                                <Button onClick={() => exportarDircetur('excel')} className="gap-2"><Download className="w-4 h-4" /> CSV</Button>
                             </DialogFooter>
                         </DialogContent>
                     </Dialog>
@@ -465,12 +458,12 @@ const Huespedes = memo(function Huespedes() {
             {isLoading ? (
                 <PageSkeleton variant="huespedes" />
             ) : (
-                <div ref={gridRef} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div ref={gridRef} className="ui-card-grid grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
                         {listaHuespedes.map((h) => (
                             <div
                                 key={h.dni || h.nombre}
                                 onClick={() => setSelectedHuesped(h)}
-                                className="enterprise-card p-5 group hover:shadow-md hover:-translate-y-1 transition-all duration-300 overflow-hidden relative cursor-pointer shadow-sm flex flex-col"
+                                className="enterprise-card operational-card ui-card-pad group relative flex cursor-pointer flex-col overflow-hidden shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-md"
                             >
                                 {/* Background Accent */}
                                 <div className="absolute top-0 right-0 w-24 h-24 bg-primary/5 rounded-full -mr-12 -mt-12 blur-2xl group-hover:bg-primary/10 transition-colors" />
@@ -554,7 +547,7 @@ const Huespedes = memo(function Huespedes() {
             )}
 
             {activeTab === 'segmentos' && (
-                <div className="enterprise-card p-10 text-center space-y-4 shadow-sm border-dashed">
+                <div className="enterprise-card section-card ui-card-pad space-y-4 border-dashed text-center shadow-sm">
                     <div className="w-16 h-16 bg-primary/10 rounded-2xl mx-auto flex items-center justify-center border border-primary/20">
                         <Users className="w-8 h-8 text-primary" />
                     </div>
@@ -569,7 +562,7 @@ const Huespedes = memo(function Huespedes() {
             )}
 
             {activeTab === 'campanas' && (
-                <div className="enterprise-card p-10 text-center space-y-4 shadow-sm border-dashed">
+                <div className="enterprise-card section-card ui-card-pad space-y-4 border-dashed text-center shadow-sm">
                     <div className="w-16 h-16 bg-primary/10 rounded-2xl mx-auto flex items-center justify-center border border-primary/20">
                         <Mail className="w-8 h-8 text-primary" />
                     </div>
@@ -584,7 +577,7 @@ const Huespedes = memo(function Huespedes() {
             )}
 
             {activeTab === 'plantillas' && (
-                <div className="enterprise-card p-10 text-center space-y-4 shadow-sm border-dashed">
+                <div className="enterprise-card section-card ui-card-pad space-y-4 border-dashed text-center shadow-sm">
                     <div className="w-16 h-16 bg-primary/10 rounded-2xl mx-auto flex items-center justify-center border border-primary/20">
                         <FileText className="w-8 h-8 text-primary" />
                     </div>

@@ -16,6 +16,21 @@ import { generateUUID } from '@/lib/utils';
  * - db.users.inviteUser(email, role)
  */
 
+/** Helper: obtener userId de la sesión actual para particionar cola offline */
+async function getCurrentUserId() {
+    try {
+        const { data: { session } } = await supabase.auth.getSession();
+        return session?.user?.id || null;
+    } catch {
+        return null;
+    }
+}
+
+/** Helper: obtener hotelId del localStorage (sincronizado por auth.store) */
+function getCurrentHotelId() {
+    return localStorage.getItem('hotel_activo_id') || null;
+}
+
 // Mapeo de nombres de entidades → tablas Supabase
 const TABLE_MAP = {
     Habitacion: 'habitaciones',
@@ -34,6 +49,11 @@ const TABLE_MAP = {
     TarifaDinamica: 'tarifas_dinamicas',
     LoyaltyAccount: 'loyalty_accounts',
     LoyaltyTransaction: 'loyalty_transactions',
+    CheckinPublico: 'checkins_publicos',
+    Insumo: 'insumos',
+    CategoriaInsumo: 'categorias_insumos',
+    MovimientoInsumo: 'movimientos_insumos',
+    AuditLog: 'audit_logs',
 };
 
 /**
@@ -41,6 +61,15 @@ const TABLE_MAP = {
  */
 function createEntityProxy(tableName) {
     return {
+        async get(id, columns = '*') {
+            const { data, error } = await supabase
+                .from(tableName)
+                .select(columns)
+                .eq('id', id)
+                .single();
+            if (error) throw error;
+            return data;
+        },
         /**
          * Lista registros con ordenamiento, límite y columnas opcionales
          * @param {string} orderBy - Campo de ordenamiento. Prefijo '-' para DESC (ej: '-created_date')
@@ -86,8 +115,10 @@ function createEntityProxy(tableName) {
             }
 
             if (!navigator.onLine) {
+                const userId = await getCurrentUserId();
+                const hotelId = getCurrentHotelId();
                 logger.warn(`Modo offline: Encolando creación en ${tableName}`, cleanData);
-                await enqueueMutation('create', tableName, cleanData, cleanData.id);
+                await enqueueMutation('create', tableName, cleanData, cleanData.id, userId, hotelId);
                 // Retorno optimista
                 return { ...cleanData, created_date: new Date().toISOString() };
             }
@@ -104,8 +135,10 @@ function createEntityProxy(tableName) {
             } catch (error) {
                 // FetchError o error de red de Supabase
                 if (error.message?.includes('FetchError') || error.message?.includes('Failed to fetch')) {
+                    const userId = await getCurrentUserId();
+                    const hotelId = getCurrentHotelId();
                     logger.warn(`Error de red: Encolando creación en ${tableName}`, cleanData);
-                    await enqueueMutation('create', tableName, cleanData, cleanData.id);
+                    await enqueueMutation('create', tableName, cleanData, cleanData.id, userId, hotelId);
                     return { ...cleanData, created_date: new Date().toISOString() };
                 }
                 logger.error(`Error creating in ${tableName}:`, error);
@@ -126,8 +159,10 @@ function createEntityProxy(tableName) {
             delete cleanUpdates.created_at;
 
             if (!navigator.onLine) {
+                const userId = await getCurrentUserId();
+                const hotelId = getCurrentHotelId();
                 logger.warn(`Modo offline: Encolando actualización en ${tableName} [${id}]`, cleanUpdates);
-                await enqueueMutation('update', tableName, cleanUpdates, id);
+                await enqueueMutation('update', tableName, cleanUpdates, id, userId, hotelId);
                 return { id, ...cleanUpdates }; // Mock
             }
 
@@ -143,8 +178,10 @@ function createEntityProxy(tableName) {
                 return data;
             } catch (error) {
                 if (error.message?.includes('FetchError') || error.message?.includes('Failed to fetch')) {
+                    const userId = await getCurrentUserId();
+                    const hotelId = getCurrentHotelId();
                     logger.warn(`Error de red: Encolando actualización en ${tableName} [${id}]`, cleanUpdates);
-                    await enqueueMutation('update', tableName, cleanUpdates, id);
+                    await enqueueMutation('update', tableName, cleanUpdates, id, userId, hotelId);
                     return { id, ...cleanUpdates };
                 }
                 logger.error(`Error updating in ${tableName}:`, error);
@@ -159,8 +196,10 @@ function createEntityProxy(tableName) {
          */
         async delete(id) {
             if (!navigator.onLine) {
+                const userId = await getCurrentUserId();
+                const hotelId = getCurrentHotelId();
                 logger.warn(`Modo offline: Encolando eliminación en ${tableName} [${id}]`);
-                await enqueueMutation('delete', tableName, null, id);
+                await enqueueMutation('delete', tableName, null, id, userId, hotelId);
                 return;
             }
 
@@ -173,8 +212,10 @@ function createEntityProxy(tableName) {
                 if (error) throw error;
             } catch (error) {
                 if (error.message?.includes('FetchError') || error.message?.includes('Failed to fetch')) {
+                    const userId = await getCurrentUserId();
+                    const hotelId = getCurrentHotelId();
                     logger.warn(`Error de red: Encolando eliminación en ${tableName} [${id}]`);
-                    await enqueueMutation('delete', tableName, null, id);
+                    await enqueueMutation('delete', tableName, null, id, userId, hotelId);
                     return;
                 }
                 logger.error(`Error deleting from ${tableName}:`, error);
@@ -254,25 +295,12 @@ const users = {
      * En producción, esto debería ir por una Edge Function con service_role
      */
     async inviteUser(email, appRole, hotelId) {
-        try {
-            const { data, error } = await supabase.auth.signUp({
-                email,
-                password: crypto.randomUUID(),
-                options: {
-                    data: { 
-                        role: appRole,
-                        hotel_id: hotelId
-                    },
-                    emailRedirectTo: window.location.origin,
-                },
-            });
-
-            if (error) throw error;
-            return data;
-        } catch (err) {
-            logger.error('Error inviting user:', err);
-            throw err;
-        }
+        const { data, error } = await supabase.functions.invoke('invite-user', {
+            body: { email, role: appRole, hotel_id: hotelId },
+        });
+        if (error) throw error;
+        if (!data?.success) throw new Error(data?.error || 'No se pudo invitar al usuario de forma segura');
+        return data;
     },
 };
 

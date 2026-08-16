@@ -326,7 +326,7 @@ const GestionHotelesAdmin = memo(function GestionHotelesAdmin({ onClose }) {
                                         <SelectTrigger className="mt-1"><SelectValue placeholder="Sin asignar" /></SelectTrigger>
                                         <SelectContent>
                                             <SelectItem value={null}>Sin asignar</SelectItem>
-                                            {hoteles.filter(h => h.activo).map(h => <SelectItem key={h.id} value={h.id}>{h.nombre}</SelectItem>)}
+                                            {hoteles.filter(h => h.activo !== false).map(h => <SelectItem key={h.id} value={h.id}>{h.nombre}</SelectItem>)}
                                         </SelectContent>
                                     </Select>
                                 </div>

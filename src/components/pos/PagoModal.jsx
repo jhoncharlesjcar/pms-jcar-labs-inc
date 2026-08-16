@@ -117,24 +117,13 @@ const PagoModal = memo(function PagoModal(/** @type {any} */ { open, onClose, re
             // 3. Si hay reserva vinculada, marcarla como finalizada
             if (reservaSeleccionada) {
                 await hotelDb.Reserva.update(reservaSeleccionada.id, { estado: 'finalizada' });
-                await hotelDb.Habitacion.update(reservaSeleccionada.habitacion_id, { estado: 'disponible' });
+                await hotelDb.Habitacion.update(reservaSeleccionada.habitacion_id, { estado: 'limpieza' });
             }
 
             // 4. Si SUNAT es automático y se requiere comprobante, facturar vía API
             if (config.modo_sunat === 'automatico' && tipoComprobante !== 'ninguno') {
                 try {
-                    const compRes = await crearComprobante({
-                        hotel_id: hotelId,
-                        tipo: tipoComprobante === 'factura' ? 'Factura' : 'Boleta',
-                        serie: tipoComprobante === 'factura' ? 'F001' : 'B001',
-                        numero: `${tipoComprobante === 'factura' ? 'F001' : 'B001'}-${Date.now()}`,
-                        cliente_tipo: tipoComprobante === 'factura' ? '6' : (dniCliente ? '1' : '0'), // 6 = RUC, 1 = DNI, 0 = Doc. sin documento (Varios)
-                        cliente_documento: tipoComprobante === 'factura' ? rucCliente : (dniCliente || '00000000'),
-                        cliente_nombre: tipoComprobante === 'factura' ? razonSocial : (nombreCliente || 'Cliente Varios'),
-                        subtotal: totalFinal / 1.18,
-                        igv: (totalFinal / 1.18) * 0.18,
-                        total: totalFinal,
-                    });
+                    const compRes = await crearComprobante(venta.id, 'ventas_pos');
 
                     // Actualizar el estado a sunat_emitido
                     const updatedVenta = await hotelDb.VentaPOS.update(venta.id, {
@@ -191,7 +180,7 @@ const PagoModal = memo(function PagoModal(/** @type {any} */ { open, onClose, re
 
     return (
         <Dialog open={open} onOpenChange={handleClose}>
-            <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto rounded-xl glass-panel border-border/80 shadow-xl">
+            <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto rounded-xl glass-panel border-border/80 shadow-xl max-sm:left-0 max-sm:top-0 max-sm:h-[100dvh] max-sm:max-h-none max-sm:w-full max-sm:max-w-none max-sm:translate-x-0 max-sm:translate-y-0 max-sm:rounded-none">
                 <DialogHeader>
                     <DialogTitle className="font-display">
                         {ventaCreada ? '✅ Venta Registrada' : 'Confirmar Cobro'}

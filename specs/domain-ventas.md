@@ -267,6 +267,9 @@ Todas las ventas alimentan las estadísticas del módulo de Caja:
 - Edge Function: /functions/v1/facturacion (Deno)
 - Protocolo: SOAP XML con UBL 2.1 + Firma XAdES-BES
 - Comunicación asíncrona: no bloquea la venta
+- La entrega permite impresión, compartir y descarga PDF desde un mismo panel responsivo
+- El QR y la leyenda de comprobante electrónico solo se muestran con `estado_comprobante = 'sunat_emitido'`
+- Un comprobante aceptado conserva bloqueados el tipo y los datos fiscales durante la entrega
 ```
 
 ### 6.4 Realtime
@@ -289,6 +292,9 @@ Todas las ventas alimentan las estadísticas del módulo de Caja:
 - [ ] `VEN-008`: El stock se descuenta al crear venta POS
 - [ ] `VEN-009`: El comprobante SUNAT muestra estado correcto
 - [ ] `VEN-010`: La impresión de ticket hotel funciona con datos mock
+- [x] `VEN-015`: La entrega distingue ticket interno, pendiente, aceptado y rechazado
+- [x] `VEN-016`: El QR SUNAT solo aparece en comprobantes aceptados
+- [x] `VEN-017`: Imprimir, compartir y descargar permanecen accesibles en móvil y escritorio
 
 ---
 

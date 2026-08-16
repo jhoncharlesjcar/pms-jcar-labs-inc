@@ -2,7 +2,6 @@ import { useEffect } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 import { useQueryClient } from '@tanstack/react-query';
 import { useHotel } from '@/contexts/HotelContext';
-import { toast } from 'sonner';
 import logger from '@/lib/logger';
 
 export function useRealtimeSync() {
@@ -47,6 +46,12 @@ export function useRealtimeSync() {
             .subscribe((status, err) => {
                 if (status === 'SUBSCRIBED') {
                     logger.debug('✅ Realtime Activo');
+                }
+                if (['CHANNEL_ERROR', 'TIMED_OUT', 'CLOSED'].includes(status)) {
+                    logger.error(`Realtime no disponible (${status}); refrescando datos como respaldo`);
+                    queryClient.invalidateQueries({ queryKey: ['reservas', hotelId] });
+                    queryClient.invalidateQueries({ queryKey: ['habitaciones', hotelId] });
+                    queryClient.invalidateQueries({ queryKey: ['ventas', hotelId] });
                 }
                 if (err) {
                     logger.error('❌ Error Realtime:', err);

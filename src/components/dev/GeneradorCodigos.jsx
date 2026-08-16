@@ -10,7 +10,9 @@ import { toast } from 'sonner';
 // Generador de código aleatorio
 const generarCodigo = () => {
     const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-    const segment = (n) => Array.from({ length: n }, () => chars[Math.floor(Math.random() * chars.length)]).join('');
+    const bytes = crypto.getRandomValues(new Uint8Array(12));
+    let offset = 0;
+    const segment = (n) => Array.from({ length: n }, () => chars[bytes[offset++] & 31]).join('');
     return `${segment(4)}-${segment(4)}-${segment(4)}`;
 };
 

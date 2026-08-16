@@ -15,13 +15,15 @@ import { formatErrorMessage } from '@/utils/errorMapping';
 import BroomIcon from '@/components/ui/icons/BroomIcon';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { getStatusColors } from '@/constants/statusColors';
+import { canTransitionRoomStatus, ROOM_STATUS_CONFIG } from '@/constants/roomStatus';
+import ConfirmDialog, { useConfirmDialog } from '@/components/common/ConfirmDialog';
 import { differenceInMinutes } from 'date-fns';
 const roomStatusConfig = {
-    disponible:    { label: 'Limpia',            icon: CheckCircle2 },
-    ocupada:       { label: 'Ocupada',           icon: User },
-    reservada:     { label: 'Reservada',         icon: CalendarDays },
-    mantenimiento: { label: 'Mantenimiento',     icon: Wrench },
-    limpieza:      { label: 'Sucia / Limpieza',  icon: BroomIcon },
+    disponible:    { label: ROOM_STATUS_CONFIG.disponible.shortLabel,    icon: CheckCircle2 },
+    ocupada:       { label: ROOM_STATUS_CONFIG.ocupada.shortLabel,       icon: User },
+    reservada:     { label: ROOM_STATUS_CONFIG.reservada.shortLabel,     icon: CalendarDays },
+    mantenimiento: { label: ROOM_STATUS_CONFIG.mantenimiento.shortLabel, icon: Wrench },
+    limpieza:      { label: ROOM_STATUS_CONFIG.limpieza.shortLabel,      icon: BroomIcon },
 };
 
 const Limpieza = memo(function Limpieza() {
@@ -31,6 +33,7 @@ const Limpieza = memo(function Limpieza() {
     const [busqueda, setBusqueda] = useState('');
     const [currentTime, setCurrentTime] = useState(new Date());
     const [mantenimientoModal, setMantenimientoModal] = useState({ open: false, hab: null, motivo: '' });
+    const { confirmProps, requestConfirm } = useConfirmDialog();
 
     useEffect(() => {
         const timer = setInterval(() => setCurrentTime(new Date()), 60000);
@@ -46,6 +49,9 @@ const Limpieza = memo(function Limpieza() {
     const actualizarEstado = useMutation({
         mutationFn: (/** @type {{id: string, estado: string, motivo?: string}} */ { id, estado, motivo }) => {
             const currentRoom = habitaciones.find(h => h.id === id);
+            if (!currentRoom || !canTransitionRoomStatus(currentRoom.estado, estado)) {
+                throw new Error(`No se puede cambiar una habitación de ${currentRoom?.estado || 'estado desconocido'} a ${estado}`);
+            }
             let descripcionObj = {};
             try {
                 if (currentRoom?.descripcion) {
@@ -151,10 +157,10 @@ const Limpieza = memo(function Limpieza() {
     });
 
     return (
-        <div className="w-full space-y-6 pb-20 sm:pb-10">
+        <div className="page-shell w-full pb-20 sm:pb-10">
 
             {/* Header del Módulo */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="page-header sm:items-center">
                 <div>
                     <div className="flex items-center gap-3">
                         <div className="w-8 h-8 rounded-lg bg-purple-500/15 text-purple-600 dark:text-purple-400 flex items-center justify-center border border-purple-500/20 shadow-xs">
@@ -167,8 +173,8 @@ const Limpieza = memo(function Limpieza() {
             </div>
 
             {/* Barra de KPIs de Housekeeping */}
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                <div className="p-3.5 bg-card/40 hover:bg-card/60 transition-all duration-300 backdrop-blur-xl border border-border/40 dark:border-white/10 rounded-xl flex items-center gap-3 shadow-sm hover:shadow-lg hover:-translate-y-1">
+            <div className="ui-card-grid grid grid-cols-2 lg:grid-cols-4">
+                <div className="enterprise-card metric-card ui-card-pad flex items-center gap-3 transition-all duration-300 hover:-translate-y-1 hover:shadow-lg">
                     <div className="p-2 rounded-lg bg-purple-500/10 text-purple-600 dark:text-purple-400 flex items-center justify-center shadow-sm flex-shrink-0">
                         <BroomIcon className="w-4 h-4" />
                     </div>
@@ -178,7 +184,7 @@ const Limpieza = memo(function Limpieza() {
                     </div>
                 </div>
 
-                <div className="p-3.5 bg-card/40 hover:bg-card/60 transition-all duration-300 backdrop-blur-xl border border-border/40 dark:border-white/10 rounded-xl flex items-center gap-3 shadow-sm hover:shadow-lg hover:-translate-y-1">
+                <div className="enterprise-card metric-card ui-card-pad flex items-center gap-3 transition-all duration-300 hover:-translate-y-1 hover:shadow-lg">
                     <div className="p-2 rounded-lg bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center shadow-sm flex-shrink-0">
                         <Wrench className="w-4 h-4" />
                     </div>
@@ -188,7 +194,7 @@ const Limpieza = memo(function Limpieza() {
                     </div>
                 </div>
 
-                <div className="p-3.5 bg-card/40 hover:bg-card/60 transition-all duration-300 backdrop-blur-xl border border-border/40 dark:border-white/10 rounded-xl flex items-center gap-3 shadow-sm hover:shadow-lg hover:-translate-y-1">
+                <div className="enterprise-card metric-card ui-card-pad flex items-center gap-3 transition-all duration-300 hover:-translate-y-1 hover:shadow-lg">
                     <div className="p-2 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shadow-sm flex-shrink-0">
                         <CheckCircle2 className="w-4 h-4" />
                     </div>
@@ -198,13 +204,13 @@ const Limpieza = memo(function Limpieza() {
                     </div>
                 </div>
 
-                <div className="p-3.5 bg-card/40 hover:bg-card/60 transition-all duration-300 backdrop-blur-xl border border-border/40 dark:border-white/10 rounded-xl flex items-center gap-3 shadow-sm hover:shadow-lg hover:-translate-y-1">
-                    <div className="p-2 rounded-lg bg-blue-500/10 text-blue-600 dark:text-blue-400 flex items-center justify-center shadow-sm flex-shrink-0">
+                <div className="enterprise-card metric-card ui-card-pad flex items-center gap-3 transition-all duration-300 hover:-translate-y-1 hover:shadow-lg">
+                    <div className="p-2 rounded-lg bg-rose-500/10 text-rose-600 dark:text-rose-400 flex items-center justify-center shadow-sm flex-shrink-0">
                         <User className="w-4 h-4" />
                     </div>
                     <div>
                         <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">Ocupadas</p>
-                        <p className="text-2xl font-extrabold text-blue-600 dark:text-blue-400 tabular-nums tracking-tighter leading-none mt-1">{metrics.ocupadas}</p>
+                        <p className="text-2xl font-extrabold text-rose-600 dark:text-rose-400 tabular-nums tracking-tighter leading-none mt-1">{metrics.ocupadas}</p>
                     </div>
                 </div>
             </div>
@@ -218,13 +224,13 @@ const Limpieza = memo(function Limpieza() {
                                 placeholder="Buscar por número o tipo..."
                                 value={busqueda}
                                 onChange={e => setBusqueda(e.target.value)}
-                                className="pl-9 h-9 rounded-md bg-background/50 border-border/50 text-xs"
+                                className="pl-9 bg-background/50 text-xs"
                             />
                         </div>
 
                         <Button 
                             variant={verTodas ? "default" : "outline"} 
-                            className="w-full sm:w-auto gap-2 rounded-md h-9 shadow-sm font-bold text-[10px] uppercase tracking-wider"
+                            className="w-full gap-2 text-[10px] font-bold uppercase tracking-wider sm:w-auto"
                             onClick={() => setVerTodas(!verTodas)}
                         >
                             <Filter className="w-3.5 h-3.5 text-primary" /> {verTodas ? 'Mostrando Todas las Habitaciones' : 'Solo Pendientes (Sucia / Falla)'}
@@ -236,7 +242,7 @@ const Limpieza = memo(function Limpieza() {
                     ) : (
                         <div 
                             ref={gridRef}
-                            className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4"
+                            className="operational-card-grid"
                         >
                             {filtradas.map(hab => {
                                 const conf = roomStatusConfig[hab.estado] || roomStatusConfig.disponible;
@@ -246,7 +252,7 @@ const Limpieza = memo(function Limpieza() {
                                     <div
                                         key={hab.id}
                                         className={cn(
-                                            "p-4 rounded-xl border border-border/40 dark:border-white/10 shadow-sm flex flex-col justify-between transition-all duration-300 bg-card/40 hover:bg-card/60 hover:-translate-y-1 hover:shadow-lg backdrop-blur-xl space-y-3",
+                                            "enterprise-card operational-card ui-card-pad flex flex-col justify-between space-y-3 transition-all duration-300 hover:-translate-y-1 hover:shadow-lg",
                                             colors.card
                                         )}
                                     >
@@ -298,18 +304,17 @@ const Limpieza = memo(function Limpieza() {
 
                                         {/* Botones de Acción Táctil Estandarizados */}
                                         <div className="space-y-2 pt-3 border-t border-border/40">
-                                            {hab.estado !== 'disponible' && (
+                                            {canTransitionRoomStatus(hab.estado, 'disponible') && (
                                                 <Button 
                                                     aria-label={`Marcar habitación ${hab.numero} como lista`}
                                                     variant="emerald" 
-                                                    className="w-full h-9 rounded-md gap-1.5 text-xs font-bold shadow-xs transition-all active:scale-95"
+                                                    className="w-full gap-1.5 text-xs shadow-xs"
                                                     onClick={() => {
-                                                        toast(`¿Marcar habitación #${hab.numero} como LIMPIA y DISPONIBLE?`, {
-                                                            action: {
-                                                                label: 'Confirmar',
-                                                                onClick: () => actualizarEstado.mutate({ id: hab.id, estado: 'disponible' })
-                                                            },
-                                                            cancel: { label: 'Cancelar' }
+                                                        requestConfirm({
+                                                            title: `¿Habitación #${hab.numero} lista para vender?`,
+                                                            description: 'Confirma que el aseo y la inspección terminaron. La habitación pasará a Disponible.',
+                                                            confirmText: 'Marcar disponible',
+                                                            onConfirm: () => actualizarEstado.mutate({ id: hab.id, estado: 'disponible' }),
                                                         });
                                                     }}
                                                 >
@@ -317,18 +322,17 @@ const Limpieza = memo(function Limpieza() {
                                                 </Button>
                                             )}
                                             
-                                            {hab.estado !== 'limpieza' && (
+                                            {canTransitionRoomStatus(hab.estado, 'limpieza') && (
                                                 <Button 
                                                     aria-label={`Marcar habitación ${hab.numero} como sucia`}
                                                     variant="outline" 
-                                                    className="w-full h-9 rounded-md gap-1.5 text-xs font-bold text-purple-600 dark:text-purple-400 border-purple-500/30 bg-purple-500/10 hover:bg-purple-500/20 shadow-xs transition-all active:scale-95"
+                                                    className="w-full gap-1.5 border-purple-500/30 bg-purple-500/10 text-xs text-purple-600 shadow-xs hover:bg-purple-500/20 dark:text-purple-400"
                                                     onClick={() => {
-                                                        toast(`¿Marcar habitación #${hab.numero} como SUCIA?`, {
-                                                            action: {
-                                                                label: 'Confirmar',
-                                                                onClick: () => actualizarEstado.mutate({ id: hab.id, estado: 'limpieza' })
-                                                            },
-                                                            cancel: { label: 'Cancelar' }
+                                                        requestConfirm({
+                                                            title: `Enviar habitación #${hab.numero} a limpieza`,
+                                                            description: 'La habitación quedará fuera de venta hasta que Housekeeping confirme que está lista.',
+                                                            confirmText: 'Enviar a limpieza',
+                                                            onConfirm: () => actualizarEstado.mutate({ id: hab.id, estado: 'limpieza' }),
                                                         });
                                                     }}
                                                 >
@@ -336,11 +340,11 @@ const Limpieza = memo(function Limpieza() {
                                                 </Button>
                                             )}
 
-                                            {hab.estado !== 'mantenimiento' && (
+                                            {canTransitionRoomStatus(hab.estado, 'mantenimiento') && (
                                                 <Button 
                                                     aria-label={`Reportar avería en habitación ${hab.numero}`}
                                                     variant="ghost" 
-                                                    className="w-full h-8 rounded-md gap-1.5 text-[10px] uppercase tracking-widest font-bold text-amber-600 dark:text-amber-400 hover:bg-amber-500/10"
+                                                    className="w-full gap-1.5 text-[10px] font-bold uppercase tracking-widest text-amber-600 hover:bg-amber-500/10 dark:text-amber-400"
                                                     onClick={() => {
                                                         setMantenimientoModal({ open: true, hab: hab, motivo: '' });
                                                     }}
@@ -366,6 +370,8 @@ const Limpieza = memo(function Limpieza() {
                     )}
 
             {/* Modal de Mantenimiento */}
+            <ConfirmDialog {...confirmProps} isPending={actualizarEstado.isPending} />
+
             <Dialog open={mantenimientoModal.open} onOpenChange={(val) => setMantenimientoModal(prev => ({ ...prev, open: val }))}>
                 <DialogContent className="sm:max-w-md bg-card border-border/40 rounded-xl p-6 shadow-2xl">
                     <DialogHeader className="mb-2">

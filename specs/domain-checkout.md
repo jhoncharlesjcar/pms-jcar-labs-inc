@@ -22,9 +22,9 @@ graph TD
     B -->|Sí| C[Mostrar toast de alerta]
     B -->|No| D[Abrir RegistrarVentaModal]
     
-    D --> E[Ver resumen: noches × precio_noche]
+    D --> E[Revisar resumen: estadía + consumos + impuestos]
     E --> F[Ingresar descuento opcional]
-    F --> G[Seleccionar método de pago]
+    F --> G[Elegir método de pago visible]
     G --> H{¿Método digital?}
     H -->|Yape/Plin| I[Solicitar código de operación/referencia]
     H -->|Efectivo/Tarjeta/Transferencia| J[Continuar]
@@ -48,7 +48,7 @@ graph TD
     S --> T[Guardar CDR y actualizar estado]
     R -->|No| U[Estado: 'sunat_pendiente']
     
-    T --> V[Liberar habitación → 'disponible']
+    T --> V[Enviar habitación → 'limpieza']
     U --> V
     
     V --> W[Imprimir ticket térmico]
@@ -92,14 +92,14 @@ SINO →
 ```
 SI pago registrado exitosamente →
     reserva.estado       = 'finalizada'
-    habitacion.estado    = 'disponible'
+    habitacion.estado    = 'limpieza'
     SI modo_sunat = 'automatico' Y requiere_comprobante →
         estado_comprobante = 'sunat_emitido'
     SINO →
         estado_comprobante = 'ticket_interno' | 'sunat_pendiente'
 ```
 
-- La habitación se libera a `'disponible'` para que el personal de limpieza la gestione.
+- La habitación pasa a `'limpieza'`; solo Housekeeping puede devolverla a `'disponible'` tras el aseo e inspección.
 - El cambio de estado es atómico: si falla la actualización de la habitación, la venta no se confirma.
 
 ### RN-CHECKOUT-004: Método de Pago Obligatorio
@@ -140,7 +140,7 @@ SI requiere_comprobante = false →
      a. Llamar a Edge Function `/functions/v1/facturacion`
      b. Si falla → venta queda como 'sunat_pendiente', no se bloquea
 3. Actualizar reserva → estado = 'finalizada'
-4. Actualizar habitación → estado = 'disponible'
+4. Actualizar habitación → estado = 'limpieza'
 5. Registrar en audit_logs con acción = 'CHECK-OUT'
 ```
 
@@ -294,7 +294,7 @@ descripcion: `Check-out: Hab. {numero} - {nombre} - S/ {total}`
 - [ ] `CHECKOUT-001`: Calcular total correctamente con precio_noche × noches + consumos - descuento
 - [ ] `CHECKOUT-002`: Calcular IGV (18%) correctamente cuando hotel.aplica_igv = true
 - [ ] `CHECKOUT-003`: No aplicar IGV cuando hotel.aplica_igv = false
-- [ ] `CHECKOUT-004`: Liberar habitación (estado → 'disponible') solo si pago exitoso
+- [x] `CHECKOUT-004`: Enviar habitación a limpieza solo si el pago fue exitoso
 - [ ] `CHECKOUT-005`: Rechazar checkout si no hay método de pago
 - [ ] `CHECKOUT-006`: Validar RUC 11 dígitos si tipo_comprobante = 'factura'
 - [ ] `CHECKOUT-007`: Validar DNI 8 dígitos si tipo_comprobante = 'boleta'
@@ -312,12 +312,16 @@ descripcion: `Check-out: Hab. {numero} - {nombre} - S/ {total}`
 2. ✅ El total refleja noches, consumos extras y descuento
 3. ✅ Si el hotel aplica IGV, el impuesto aparece desglosado en el ticket
 4. ✅ Si no aplica IGV, no aparece ningún cargo tributario
-5. ✅ La habitación se libera inmediatamente después del pago exitoso
+5. ✅ La habitación pasa inmediatamente a limpieza después del pago exitoso
 6. ✅ Yape/Plin requieren código de operación obligatorio
 7. ✅ Factura requiere RUC 11 dígitos y razón social
 8. ✅ Boleta requiere DNI 8 dígitos y nombre
 9. ✅ Si modo SUNAT es automático, el comprobante se envía sin intervención manual
 10. ✅ Si modo SUNAT es manual, el comprobante queda pendiente para emisión posterior
+11. ✅ El checkout conserva visibles el total, el método seleccionado y la acción de confirmación durante el desplazamiento
+12. ✅ Los métodos de pago se presentan como opciones directas, con un área táctil mínima de 44 px
+13. ✅ La interfaz explica por qué no se puede confirmar un cobro antes de enviar la operación
+14. ✅ La confirmación final comunica ticket, monto y envío de la habitación a limpieza
 
 ---
 

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Wallet, Plus, ArrowRightLeft } from 'lucide-react';
+import { Wallet, Plus, ArrowRightLeft, Calendar } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 // Context
@@ -28,7 +28,7 @@ export default function Caja() {
     const [closureModal, setClosureModal] = useState(false);
 
     // Lógica pesada aislada en hooks
-    const { egresos, cierres, stats, addEgreso, addCierre } = useCajaData(hotelActual?.id, user);
+    const { egresos, cierres, stats, addEgreso, addCierre } = useCajaData(hotelActual?.id);
     
     const { 
         handlePrintTicket, handlePrintHotel, handlePrintPOS, 
@@ -36,10 +36,10 @@ export default function Caja() {
     } = useCajaExport(hotelActual, user, stats);
 
     return (
-        <div className="pt-2 pb-12 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto space-y-4 page-enter">
+        <div className="mx-auto max-w-7xl space-y-5 px-4 pb-12 pt-2 page-enter sm:px-6 lg:px-8">
 
             {/* Header Section */}
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
                 <div className="flex-1">
                     <div className="flex items-center gap-3">
                         <div className="p-2 bg-primary/10 rounded-xl flex items-center justify-center border border-primary/20 shadow-sm">
@@ -47,28 +47,32 @@ export default function Caja() {
                         </div>
                         <div>
                             <h1 className="text-2xl sm:text-3xl font-extrabold text-foreground tracking-tighter leading-none">Caja</h1>
-                            <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mt-1.5">
-                                Gestión diaria y flujos de efectivo
+                            <p className="mt-1.5 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                                Gestión diaria y flujos de efectivo · Auditoría y arqueo
                             </p>
                         </div>
                     </div>
                 </div>
 
-                <div className="flex items-center gap-2 w-full sm:w-auto">
+                <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto">
+                    <div className="hidden h-11 items-center gap-2 rounded-lg border border-border/50 bg-card px-3 text-xs text-muted-foreground lg:flex">
+                        <Calendar className="h-4 w-4" />
+                        {new Date().toLocaleDateString('es-PE', { day: '2-digit', month: 'short', year: 'numeric' })}
+                    </div>
                     <Button 
                         variant="outline" 
-                        className="flex-1 sm:flex-none h-9 px-4 rounded-md border-border/50 hover:bg-muted/50 text-[10px] font-bold uppercase tracking-widest transition-all active:scale-95 shadow-sm"
+                        className="h-11 flex-1 gap-2 rounded-lg px-4 text-xs font-semibold sm:flex-none"
                         onClick={() => setClosureModal(true)}
                     >
-                        <ArrowRightLeft className="w-3.5 h-3.5 mr-1.5" />
-                        Cierre
+                        <ArrowRightLeft className="h-4 w-4" />
+                        Cerrar turno
                     </Button>
                     <Button 
-                        className="flex-1 sm:flex-none h-9 px-4 rounded-md bg-primary hover:bg-primary/90 shadow-md text-[10px] font-bold uppercase tracking-widest transition-all active:scale-95"
+                        className="h-11 flex-1 gap-2 rounded-lg px-4 text-xs font-semibold shadow-md sm:flex-none"
                         onClick={() => setExpenseModal(true)}
                     >
-                        <Plus className="w-3.5 h-3.5 mr-1.5" />
-                        Egreso
+                        <Plus className="h-4 w-4" />
+                        Registrar egreso
                     </Button>
                 </div>
             </div>
@@ -77,7 +81,7 @@ export default function Caja() {
                 <CajaOverview stats={stats} />
 
             {/* Main Content Tabs (Listas) */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
                 <CajaListEgresos egresos={egresos} />
                 <CajaListCierres cierres={cierres} />
             </div>

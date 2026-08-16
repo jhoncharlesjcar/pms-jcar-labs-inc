@@ -4,8 +4,33 @@ import { Button } from '@/components/ui/button';
 import { useHotelData } from '@/hooks/use-hotel-data';
 import { useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import * as XLSX from 'xlsx';
 import { formatearHabitacionParaBD } from '@/services/habitaciones.service';
+
+const MAX_FILE_BYTES = 1024 * 1024;
+const MAX_ROWS = 1000;
+
+function parseCsv(text) {
+    const rows = [];
+    let row = [], value = '', quoted = false;
+    for (let i = 0; i < text.length; i++) {
+        const char = text[i];
+        if (quoted && char === '"' && text[i + 1] === '"') { value += '"'; i++; }
+        else if (char === '"') quoted = !quoted;
+        else if (char === ',' && !quoted) { row.push(value.trim()); value = ''; }
+        else if ((char === '\n' || char === '\r') && !quoted) {
+            if (char === '\r' && text[i + 1] === '\n') i++;
+            row.push(value.trim());
+            if (row.some(Boolean)) rows.push(row);
+            row = []; value = '';
+        } else value += char;
+    }
+    row.push(value.trim());
+    if (row.some(Boolean)) rows.push(row);
+    if (quoted) throw new Error('CSV con comillas sin cerrar');
+    const headers = rows.shift()?.map(h => h.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')) || [];
+    if (rows.length > MAX_ROWS) throw new Error(`El CSV supera el máximo de ${MAX_ROWS} filas`);
+    return rows.map(values => Object.fromEntries(headers.map((header, index) => [header, values[index] ?? ''])));
+}
 
 export const ConfigImportadorExcel = memo(function ConfigImportadorExcel({ hotelId }) {
     const qc = useQueryClient();
@@ -18,6 +43,16 @@ export const ConfigImportadorExcel = memo(function ConfigImportadorExcel({ hotel
     const handleFileUpload = (e) => {
         const file = e.target.files?.[0];
         if (!file) return;
+        if (!file.name.toLowerCase().endsWith('.csv')) {
+            toast.error('Por seguridad, solo se admiten archivos CSV.');
+            e.target.value = '';
+            return;
+        }
+        if (file.size > MAX_FILE_BYTES) {
+            toast.error('El CSV no puede superar 1 MB.');
+            e.target.value = '';
+            return;
+        }
 
         setFileName(file.name);
         setLoading(true);
@@ -25,14 +60,10 @@ export const ConfigImportadorExcel = memo(function ConfigImportadorExcel({ hotel
         const reader = new FileReader();
         reader.onload = (evt) => {
             try {
-                const bstr = evt.target?.result;
-                const wb = XLSX.read(bstr, { type: 'binary' });
-                const wsname = wb.SheetNames[0];
-                const ws = wb.Sheets[wsname];
-                const data = XLSX.utils.sheet_to_json(ws);
+                const data = parseCsv(String(evt.target?.result || ''));
 
                 if (!data || data.length === 0) {
-                    toast.error('El archivo Excel está vacío o no tiene formato válido.');
+                    toast.error('El archivo CSV está vacío o no tiene formato válido.');
                     setFileData([]);
                     setLoading(false);
                     return;
@@ -40,11 +71,14 @@ export const ConfigImportadorExcel = memo(function ConfigImportadorExcel({ hotel
 
                 // Normalizar columnas
                 const parseados = data.map((row, index) => {
-                    const numero = String(row['Numero'] || row['Número'] || row['numero'] || row['habitacion'] || index + 101).trim();
-                    const tipo = String(row['Tipo'] || row['tipo'] || 'simple').toLowerCase().trim();
-                    const piso = String(row['Piso'] || row['piso'] || '1').trim();
-                    const precio = Number(row['Precio'] || row['precio'] || row['precio_noche'] || 80);
-                    const capacidad = Number(row['Capacidad'] || row['capacidad'] || 2);
+                    const numero = String(row.numero || row.habitacion || index + 101).trim();
+                    const tipo = String(row.tipo || 'simple').toLowerCase().trim();
+                    const piso = String(row.piso || '1').trim();
+                    const precio = Number(row.precio || row.precio_noche || 80);
+                    const capacidad = Number(row.capacidad || 2);
+                    if (!numero || !Number.isFinite(precio) || precio < 0 || !Number.isFinite(capacidad) || capacidad < 1) {
+                        throw new Error(`Fila ${index + 2} inválida`);
+                    }
 
                     return {
                         numero,
@@ -61,26 +95,23 @@ export const ConfigImportadorExcel = memo(function ConfigImportadorExcel({ hotel
                 toast.success(`${parseados.length} habitaciones leídas del archivo.`);
             } catch (err) {
                 console.error(err);
-                toast.error('Error al procesar el archivo Excel.');
+                toast.error(err instanceof Error ? err.message : 'Error al procesar el CSV.');
                 setFileData([]);
             } finally {
                 setLoading(false);
             }
         };
-        reader.readAsBinaryString(file);
+        reader.readAsText(file, 'UTF-8');
     };
 
     const descargarPlantilla = () => {
-        const templateData = [
-            { Número: '101', Piso: '1', Tipo: 'simple', Precio: 80, Capacidad: 1 },
-            { Número: '102', Piso: '1', Tipo: 'doble', Precio: 120, Capacidad: 2 },
-            { Número: '201', Piso: '2', Tipo: 'matrimonial', Precio: 150, Capacidad: 2 },
-            { Número: '202', Piso: '2', Tipo: 'suite', Precio: 250, Capacidad: 4 },
-        ];
-        const ws = XLSX.utils.json_to_sheet(templateData);
-        const wb = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(wb, ws, 'Habitaciones');
-        XLSX.writeFile(wb, 'plantilla_habitaciones_pms.xlsx');
+        const csv = 'numero,piso,tipo,precio,capacidad\r\n101,1,simple,80,1\r\n102,1,doble,120,2\r\n201,2,matrimonial,150,2\r\n';
+        const url = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }));
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = 'plantilla_habitaciones_pms.csv';
+        link.click();
+        URL.revokeObjectURL(url);
         toast.success('Plantilla descargada.');
     };
 
@@ -127,8 +158,8 @@ export const ConfigImportadorExcel = memo(function ConfigImportadorExcel({ hotel
                         <FileSpreadsheet className="w-4 h-4 text-emerald-500" />
                     </div>
                     <div>
-                        <h2 className="font-extrabold text-foreground text-lg tracking-tight">Importación Masiva (Excel)</h2>
-                        <p className="text-[9px] font-black uppercase tracking-widest text-muted-foreground mt-0.5">Carga tus habitaciones masivamente desde una hoja de cálculo</p>
+                        <h2 className="font-extrabold text-foreground text-lg tracking-tight">Importación Masiva (CSV)</h2>
+                        <p className="text-[9px] font-black uppercase tracking-widest text-muted-foreground mt-0.5">Carga habitaciones desde un CSV validado</p>
                     </div>
                 </div>
 
@@ -145,7 +176,7 @@ export const ConfigImportadorExcel = memo(function ConfigImportadorExcel({ hotel
                 <input
                     ref={fileInputRef}
                     type="file"
-                    accept=".xlsx, .xls, .csv"
+                    accept=".csv,text/csv"
                     onChange={handleFileUpload}
                     className="hidden"
                 />
@@ -159,10 +190,10 @@ export const ConfigImportadorExcel = memo(function ConfigImportadorExcel({ hotel
                 </div>
                 
                 <p className="text-sm font-extrabold text-foreground tracking-tight">
-                    {fileName ? fileName : 'Seleccionar Archivo Excel'}
+                    {fileName ? fileName : 'Seleccionar archivo CSV'}
                 </p>
                 <p className="text-[9px] font-black uppercase tracking-widest text-muted-foreground mt-1">
-                    Formatos soportados: .xlsx, .xls, .csv
+                    Formato soportado: .csv (máximo 1 MB / 1000 filas)
                 </p>
             </div>
 

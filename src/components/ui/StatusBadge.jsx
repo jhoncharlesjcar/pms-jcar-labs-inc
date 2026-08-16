@@ -1,34 +1,23 @@
 import React from 'react';
 import { cn } from '@/lib/utils';
 import { CheckCircle2, User, CalendarDays, Wrench, Sparkles, AlertCircle, Clock, ShieldCheck, Award } from 'lucide-react';
+import { ROOM_STATUS_CONFIG } from '@/constants/roomStatus';
+
+const ROOM_STATUS_ICONS = {
+    disponible: CheckCircle2,
+    ocupada: User,
+    reservada: CalendarDays,
+    mantenimiento: Wrench,
+    limpieza: Sparkles,
+};
 
 export const STATUS_CONFIG = {
     // Estados de Habitación
-    disponible: {
-        label: 'Disponible',
-        icon: CheckCircle2,
-        className: 'bg-emerald-500/15 text-emerald-800 dark:text-emerald-300 border-emerald-500/30 font-extrabold',
-    },
-    ocupada: {
-        label: 'Ocupada',
-        icon: User,
-        className: 'bg-rose-500/15 text-rose-800 dark:text-rose-300 border-rose-500/30 font-extrabold',
-    },
-    reservada: {
-        label: 'Reservada',
-        icon: CalendarDays,
-        className: 'bg-blue-500/15 text-blue-800 dark:text-blue-300 border-blue-500/30 font-extrabold',
-    },
-    mantenimiento: {
-        label: 'Mantenimiento',
-        icon: Wrench,
-        className: 'bg-orange-500/15 text-orange-800 dark:text-orange-300 border-orange-500/30 font-extrabold',
-    },
-    limpieza: {
-        label: 'Limpieza',
-        icon: Sparkles,
-        className: 'bg-sky-500/15 text-sky-800 dark:text-sky-300 border-sky-500/30 font-extrabold',
-    },
+    ...Object.fromEntries(Object.entries(ROOM_STATUS_CONFIG).map(([key, config]) => [key, {
+        label: config.label,
+        icon: ROOM_STATUS_ICONS[key],
+        className: cn(config.badgeClass, 'font-extrabold'),
+    }])),
     // Estados de Transacción / Venta
     pendiente: {
         label: 'Pendiente',

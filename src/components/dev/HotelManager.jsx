@@ -10,10 +10,33 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
+import ConfirmDialog from '@/components/common/ConfirmDialog';
 
 const emptyHotel = {
     nombre: '', ruc: '', direccion: '', ciudad: '', telefono: '',
     email: '', hora_checkin: '14:00', hora_checkout: '12:00', activo: true, notas: ''
+};
+
+const toHotelForm = (hotel = {}) => ({
+    ...emptyHotel,
+    nombre: hotel.nombre || '',
+    ruc: hotel.ruc || '',
+    direccion: hotel.direccion || '',
+    ciudad: hotel.ciudad || '',
+    telefono: hotel.telefono || '',
+    email: hotel.email || '',
+    hora_checkin: hotel.hora_checkin || '14:00',
+    hora_checkout: hotel.hora_checkout || '12:00',
+    activo: hotel.activo !== false,
+    notas: hotel.notas || '',
+});
+
+const hotelActionError = (err, fallback) => {
+    const message = err?.message || '';
+    if (message.includes("'activo' column") || (err?.code === 'PGRST204' && message.includes('activo'))) {
+        return 'La base de datos necesita la migración que agrega el estado activo de los hoteles.';
+    }
+    return message || fallback;
 };
 
 /**
@@ -25,6 +48,7 @@ const HotelManager = memo(function HotelManager({ hoteles, habitaciones, reserva
     const [editHotel, setEditHotel] = useState(null);
     const [hotelForm, setHotelForm] = useState(emptyHotel);
     const [error, setError] = useState(null);
+    const [deleteCandidate, setDeleteCandidate] = useState(null);
 
     const saveHotel = useMutation({
         mutationFn: (/** @type {any} */ data) => editHotel
@@ -34,25 +58,43 @@ const HotelManager = memo(function HotelManager({ hoteles, habitaciones, reserva
             qc.invalidateQueries({ queryKey: ['hoteles'] });
             setHotelModal(false); setEditHotel(null); setHotelForm(emptyHotel);
             setError(null);
+            toast.success(editHotel ? 'Hotel actualizado correctamente.' : 'Hotel creado correctamente.');
         },
         onError: (err) => {
             logger.error("Save hotel error:", err);
-            setError(err.message || "Error al guardar el hotel. Verifica tus permisos.");
+            const message = hotelActionError(err, 'Error al guardar el hotel. Verifica tus permisos.');
+            setError(message);
+            toast.error(message);
         }
     });
 
     const deleteHotel = useMutation({
         mutationFn: (/** @type {any} */ id) => db.entities.Hotel.delete(id),
-        onSuccess: () => qc.invalidateQueries({ queryKey: ['hoteles'] }),
+        onSuccess: () => {
+            qc.invalidateQueries({ queryKey: ['hoteles'] });
+            setDeleteCandidate(null);
+            toast.success('Hotel eliminado correctamente.');
+        },
+        onError: (err) => {
+            logger.error('Delete hotel error:', err);
+            toast.error(err.message || 'No se pudo eliminar el hotel. Revisa si tiene datos relacionados.');
+        },
     });
 
     const toggleHotel = useMutation({
         mutationFn: (/** @type {any} */ { id, activo }) => db.entities.Hotel.update(id, { activo }),
-        onSuccess: () => qc.invalidateQueries({ queryKey: ['hoteles'] }),
+        onSuccess: (_, variables) => {
+            qc.invalidateQueries({ queryKey: ['hoteles'] });
+            toast.success(variables.activo ? 'Hotel activado.' : 'Hotel desactivado.');
+        },
+        onError: (err) => {
+            logger.error('Toggle hotel error:', err);
+            toast.error(hotelActionError(err, 'No se pudo cambiar el estado del hotel.'));
+        },
     });
 
     const openCreate = () => { setEditHotel(null); setHotelForm(emptyHotel); setError(null); setHotelModal(true); };
-    const openEdit = (h) => { setEditHotel(h); setHotelForm({ ...h }); setError(null); setHotelModal(true); };
+    const openEdit = (h) => { setEditHotel(h); setHotelForm(toHotelForm(h)); setError(null); setHotelModal(true); };
 
     return (
         <div className="space-y-4">
@@ -68,6 +110,7 @@ const HotelManager = memo(function HotelManager({ hoteles, habitaciones, reserva
 
             <div className="grid gap-4">
                 {hoteles.map(h => {
+                    const isActive = h.activo !== false;
                     const habsHotel = habitaciones.filter(hab => hab.hotel_id === h.id);
                     const reservasHotel = reservas.filter(r => r.hotel_id === h.id);
                     const ventasHotel = ventas.filter(v => v.hotel_id === h.id);
@@ -76,20 +119,20 @@ const HotelManager = memo(function HotelManager({ hoteles, habitaciones, reserva
                     return (
                         <div key={h.id} className={cn(
                             "bg-card/60 backdrop-blur-sm border border-border/40 rounded-xl p-4 shadow-sm transition-[transform,opacity]",
-                            h.activo ? "hover:border-amber-500/30" : "border-dashed opacity-60"
+                            isActive ? "hover:border-amber-500/30" : "border-dashed opacity-60"
                         )}>
                             <div className="flex items-start gap-4">
                                 <div className={cn("w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 shadow-xs border border-border/20",
-                                    h.activo ? "bg-amber-500/10" : "bg-secondary")}>
-                                    <Building2 className={cn("w-5 h-5", h.activo ? "text-amber-500" : "text-secondary-foreground")} />
+                                    isActive ? "bg-amber-500/10" : "bg-secondary")}>
+                                    <Building2 className={cn("w-5 h-5", isActive ? "text-amber-500" : "text-secondary-foreground")} />
                                 </div>
 
                                 <div className="flex-1 min-w-0">
                                     <div className="flex items-center gap-2 flex-wrap">
                                         <p className="font-extrabold tracking-tight text-sm text-foreground">{h.nombre}</p>
                                         <span className={cn("text-[9px] px-2 py-0.5 rounded-sm uppercase tracking-widest font-black border",
-                                            h.activo ? "bg-green-500/10 text-green-600 border-green-500/20 dark:text-green-400" : "bg-secondary text-secondary-foreground border-border")}>
-                                            {h.activo ? '● Activo' : '○ Inactivo'}
+                                            isActive ? "bg-green-500/10 text-green-600 border-green-500/20 dark:text-green-400" : "bg-secondary text-secondary-foreground border-border")}>
+                                            {isActive ? '● Activo' : '○ Inactivo'}
                                         </span>
                                     </div>
                                     <p className="text-[10px] font-bold text-muted-foreground mt-1">
@@ -115,21 +158,18 @@ const HotelManager = memo(function HotelManager({ hoteles, habitaciones, reserva
                                     </div>
                                 </div>
 
-                                <div className="flex flex-col gap-1 flex-shrink-0">
-                                    <button onClick={() => toggleHotel.mutate({ id: h.id, activo: !h.activo })}
-                                        className="p-2 rounded-lg hover:bg-secondary transition-colors" title={h.activo ? 'Desactivar' : 'Activar'}>
-                                        {h.activo ? <ToggleRight className="w-5 h-5 text-green-500" /> : <ToggleLeft className="w-5 h-5 text-muted-foreground" />}
+                                <div className="flex flex-col gap-1 flex-shrink-0" aria-label={`Acciones de ${h.nombre}`}>
+                                    <button type="button" onClick={() => toggleHotel.mutate({ id: h.id, activo: !isActive })}
+                                        disabled={toggleHotel.isPending && toggleHotel.variables?.id === h.id}
+                                        aria-label={isActive ? `Desactivar ${h.nombre}` : `Activar ${h.nombre}`}
+                                        className="flex h-11 w-11 items-center justify-center rounded-lg hover:bg-secondary transition-colors disabled:cursor-wait disabled:opacity-50" title={isActive ? 'Desactivar hotel' : 'Activar hotel'}>
+                                        {isActive ? <ToggleRight className="w-5 h-5 text-green-500" /> : <ToggleLeft className="w-5 h-5 text-muted-foreground" />}
                                     </button>
-                                    <button onClick={() => openEdit(h)} className="p-2 rounded-lg hover:bg-secondary transition-colors">
+                                    <button type="button" onClick={() => openEdit(h)} aria-label={`Editar ${h.nombre}`} title="Editar hotel" className="flex h-11 w-11 items-center justify-center rounded-lg hover:bg-secondary transition-colors">
                                         <Pencil className="w-4 h-4 text-muted-foreground" />
                                     </button>
-                                    <button onClick={() => {
-                                        toast(`¿Eliminar "${h.nombre}"?`, {
-                                            action: { label: 'Eliminar', onClick: () => deleteHotel.mutate(h.id) },
-                                            cancel: { label: 'Cancelar', onClick: () => {} }
-                                        });
-                                    }}
-                                        className="p-2 rounded-lg hover:bg-red-50 hover:text-red-600 transition-colors">
+                                    <button type="button" onClick={() => setDeleteCandidate(h)} aria-label={`Eliminar ${h.nombre}`} title="Eliminar hotel"
+                                        className="flex h-11 w-11 items-center justify-center rounded-lg hover:bg-red-50 hover:text-red-600 transition-colors">
                                         <Trash2 className="w-4 h-4 text-muted-foreground" />
                                     </button>
                                 </div>
@@ -179,6 +219,17 @@ const HotelManager = memo(function HotelManager({ hoteles, habitaciones, reserva
                     </div>
                 </DialogContent>
             </Dialog>
+
+            <ConfirmDialog
+                open={!!deleteCandidate}
+                onOpenChange={(open) => { if (!open) setDeleteCandidate(null); }}
+                title="Eliminar hotel permanentemente"
+                description={deleteCandidate ? `Se eliminará “${deleteCandidate.nombre}” y los datos asociados que tengan eliminación en cascada. Esta acción no se puede deshacer.` : ''}
+                confirmText="Eliminar hotel"
+                variant="destructive"
+                isPending={deleteHotel.isPending}
+                onConfirm={() => deleteCandidate && deleteHotel.mutate(deleteCandidate.id)}
+            />
         </div>
     );
 });

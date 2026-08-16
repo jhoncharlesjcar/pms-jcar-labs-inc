@@ -9,6 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
+import ConfirmDialog, { useConfirmDialog } from '@/components/common/ConfirmDialog';
 
 /**
  * @param {Object} props
@@ -21,13 +22,16 @@ export const ConfigZonaPeligrosa = memo(function ConfigZonaPeligrosa(/** @type {
     const [deleteDate, setDeleteDate] = useState(format(new Date(), 'yyyy-MM-dd'));
     const [deleteDateEnd, setDeleteDateEnd] = useState(format(new Date(), 'yyyy-MM-dd'));
     const [isDeleting, setIsDeleting] = useState(false);
+    const { confirmProps, requestConfirm } = useConfirmDialog();
 
     const handleDeleteData = async () => {
         if (!deleteDate || (deletePeriod === 'rango' && !deleteDateEnd)) return;
-        toast('¿Estás seguro de que quieres eliminar TODAS las ventas y reservas del periodo seleccionado? Esta acción es irreversible.', {
-            action: {
-                label: 'Eliminar',
-                onClick: async () => {
+        requestConfirm({
+            title: '¿Eliminar datos permanentemente?',
+            description: 'Se eliminarán las ventas y reservas del periodo seleccionado. Esta acción es irreversible.',
+            variant: 'destructive',
+            confirmText: 'Eliminar permanentemente',
+            onConfirm: async () => {
                     setIsDeleting(true);
                     try {
                         const date = new Date(deleteDate + 'T00:00:00'); // Evitar problemas de timezone
@@ -93,9 +97,7 @@ export const ConfigZonaPeligrosa = memo(function ConfigZonaPeligrosa(/** @type {
                     } finally {
                         setIsDeleting(false);
                     }
-                }
-            },
-            cancel: { label: 'Cancelar', onClick: () => {} }
+            }
         });
     };
 
@@ -184,6 +186,7 @@ export const ConfigZonaPeligrosa = memo(function ConfigZonaPeligrosa(/** @type {
                 )}
                 {isDeleting ? 'Borrando...' : 'Borrar Datos Permanentemente'}
             </Button>
+            <ConfirmDialog {...confirmProps} isPending={isDeleting} />
         </div>
     );
 });

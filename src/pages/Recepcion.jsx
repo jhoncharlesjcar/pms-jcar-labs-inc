@@ -1,16 +1,17 @@
 import React, { useState, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Plus, Search, CalendarDays, User, CheckCircle2, Wrench, Sparkles, XCircle, LogIn, MapPin, Users as UsersIcon, Info, FileText, MessageSquare, Camera } from 'lucide-react';
+import { Plus, Search, CalendarDays, User, CheckCircle2, Sparkles, XCircle, LogIn, MapPin, Users as UsersIcon, Info, FileText, MessageSquare, Camera } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { cn } from '@/lib/utils';
-import { differenceInDays, format, addDays } from 'date-fns';
+import { differenceInDays, format, addDays, parseISO } from 'date-fns';
 import RegistrarVentaModal from '@/components/RegistrarVentaModal';
 import { useHotelData } from '@/hooks/use-hotel-data';
 import RecepcionTimeline from '@/components/recepcion/RecepcionTimeline';
+import RecepcionCockpit from '@/components/recepcion/RecepcionCockpit';
 
 import { useGsapStaggerList } from '@/hooks/useGsapStaggerList';
 import { generarFichaMincetur } from '@/lib/exportMincetur';
@@ -22,46 +23,15 @@ import { useLoyaltyAccount } from '@/hooks/useLoyalty';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import EmptyState from '@/components/common/EmptyState';
 import ScannerDNIModal from '@/components/recepcion/ScannerDNIModal';
-const estadoBadge = {
-    pendiente: 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400',
-    activa: 'bg-primary/10 text-primary',
-    finalizada: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400',
-    cancelada: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400',
-};
-
-const roomStatusConfig = {
-    disponible: {
-        label: 'Disponible',
-        icon: CheckCircle2,
-        color: 'text-state-disponible-fg',
-        bg: 'bg-state-disponible-bg border-state-disponible-border'
-    },
-    ocupada: {
-        label: 'Ocupada',
-        icon: User,
-        color: 'text-state-ocupada-fg',
-        bg: 'bg-state-ocupada-bg border-state-ocupada-border'
-    },
-    reservada: {
-        label: 'Reservada',
-        icon: CalendarDays,
-        color: 'text-state-reservada-fg',
-        bg: 'bg-state-reservada-bg border-state-reservada-border'
-    },
-    mantenimiento: {
-        label: 'Mantenimiento',
-        icon: Wrench,
-        color: 'text-state-mantenimiento-fg',
-        bg: 'bg-state-mantenimiento-bg border-state-mantenimiento-border'
-    },
-    limpieza: {
-        label: 'Limpieza',
-        icon: Sparkles,
-        color: 'text-state-limpieza-fg',
-        bg: 'bg-state-limpieza-bg border-state-limpieza-border'
-    },
-};
-
+import { roomStatusForReservationTransition } from '@/constants/roomStatus';
+import ConfirmDialog, { useConfirmDialog } from '@/components/common/ConfirmDialog';
+import {
+    buildReceptionSummary,
+    getReservationOperationalState,
+    matchesReceptionFilter,
+    OPERATIONAL_STATE_CONFIG,
+    sortReservationsByOperationalPriority,
+} from '@/lib/recepcionCockpit';
 const avatarColors = {
     activa: 'from-primary to-primary/70',
     pendiente: 'from-orange-500 to-amber-500',
@@ -69,27 +39,50 @@ const avatarColors = {
     cancelada: 'from-red-500 to-rose-500',
 };
 
+const operationalStateClasses = {
+    destructive: 'border-rose-500/20 bg-rose-500/10 text-rose-600 dark:text-rose-400',
+    warning: 'border-amber-500/20 bg-amber-500/10 text-amber-700 dark:text-amber-400',
+    info: 'border-blue-500/20 bg-blue-500/10 text-blue-600 dark:text-blue-400',
+    success: 'border-emerald-500/20 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400',
+    neutral: 'border-border bg-muted/50 text-muted-foreground',
+};
+
+const formatReservationDate = value => value
+    ? format(typeof value === 'string' ? parseISO(value) : new Date(value), 'dd/MM')
+    : '--';
+
 const ReservaCard = React.memo(({ r, hotelActual, hotelId, user, actualizarEstado, setVentaModal, hotelDb }) => {
     const initials = (r.huesped_nombre || '?').split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
+    const { confirmProps, requestConfirm } = useConfirmDialog();
+    const operationalState = getReservationOperationalState(r);
+    const operationalConfig = OPERATIONAL_STATE_CONFIG[operationalState];
     
     return (
-        <div className="enterprise-card p-5 hover:shadow-md transition-all duration-300 ease-out group">
+        <article className="enterprise-card operational-card ui-card-pad group transition-all duration-300 ease-out hover:shadow-md">
             <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
                 <div className="flex items-center gap-3">
                     <div className={cn("w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 shadow-sm bg-gradient-to-br text-white font-bold text-sm", avatarColors[r.estado] || 'from-gray-500 to-gray-600')}>
                         {initials}
                     </div>
-                    <div className="flex flex-col gap-0.5">
+                    <div className="min-w-0 flex flex-col gap-0.5">
                         <div className="flex items-center gap-2 flex-wrap mb-0.5">
                             <p className="font-bold text-sm text-foreground tracking-tight leading-none">{r.huesped_nombre}</p>
                             <StatusBadge status={r.estado} className="text-[10px] px-1.5 py-0.5 rounded-sm" />
+                            {operationalState !== 'history' && (
+                                <span className={cn(
+                                    'rounded-sm border px-1.5 py-0.5 text-[10px] font-semibold',
+                                    operationalStateClasses[operationalConfig.tone]
+                                )}>
+                                    {operationalConfig.label}
+                                </span>
+                            )}
                         </div>
                         <p className="text-xs text-muted-foreground font-medium">
                             Habitación <span className="text-foreground font-semibold">#{r.habitacion_numero}</span> <span className="opacity-50 mx-1">•</span> {r.noches} {r.noches === 1 ? 'noche' : 'noches'}
                         </p>
-                        <p className="text-[11px] font-medium text-muted-foreground flex items-center gap-1.5 mt-1">
+                        <p className="text-[11px] font-medium text-muted-foreground flex flex-wrap items-center gap-x-1.5 gap-y-0.5 mt-1">
                             <CalendarDays className="w-3.5 h-3.5 text-muted-foreground/80" />
-                            {r.fecha_entrada ? format(new Date(r.fecha_entrada), "dd/MM") : '--'} → {r.fecha_salida ? format(new Date(r.fecha_salida), "dd/MM") : '--'} <span className="opacity-50 mx-1">•</span> DNI: <span className="text-foreground">{r.huesped_dni || 'N/A'}</span>
+                            {formatReservationDate(r.fecha_entrada)} → {formatReservationDate(r.fecha_salida)} <span className="opacity-50 mx-1">•</span> DNI: <span className="text-foreground">{r.huesped_dni || 'N/A'}</span>
                         </p>
                     </div>
                 </div>
@@ -99,9 +92,9 @@ const ReservaCard = React.memo(({ r, hotelActual, hotelId, user, actualizarEstad
                         <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider mt-1">Ref: #{r.numero_reserva}</p>
                     </div>
                     <div className="w-px h-8 bg-border/40 hidden sm:block mx-1" />
-                    <div className="flex gap-1.5 flex-wrap sm:flex-nowrap items-center">
+                    <div className="grid w-full grid-cols-2 gap-2 sm:flex sm:w-auto sm:flex-nowrap sm:items-center">
                         {(r.estado === 'pendiente' || r.estado === 'activa') && (
-                            <Button size="sm" variant="outline" className="gap-1.5 shadow-xs text-emerald-600 border-emerald-500/30 bg-emerald-500/10 hover:bg-emerald-500/20 dark:text-emerald-400 h-8 px-2.5 text-xs rounded-md"
+                            <Button size="sm" variant="outline" className="order-2 gap-1.5 border-emerald-500/30 bg-emerald-500/10 px-2.5 text-emerald-600 shadow-xs hover:bg-emerald-500/20 dark:text-emerald-400 sm:order-none"
                                 onClick={(e) => {
                                     e.stopPropagation();
                                     WhatsAppService.enviarMensajeReserva(r, hotelActual, { hotelId, user });
@@ -110,7 +103,7 @@ const ReservaCard = React.memo(({ r, hotelActual, hotelId, user, actualizarEstad
                             </Button>
                         )}
                         {r.estado === 'activa' && (
-                            <Button size="sm" variant="outline" className="gap-1.5 shadow-xs text-blue-600 border-blue-500/30 bg-blue-500/10 hover:bg-blue-500/20 dark:text-blue-400 h-8 px-2.5 text-xs rounded-md"
+                            <Button size="sm" variant="outline" className="order-2 gap-1.5 border-blue-500/30 bg-blue-500/10 px-2.5 text-blue-600 shadow-xs hover:bg-blue-500/20 dark:text-blue-400 sm:order-none"
                                 onClick={(e) => {
                                     e.stopPropagation();
                                     generarFichaMincetur(r, {
@@ -122,60 +115,63 @@ const ReservaCard = React.memo(({ r, hotelActual, hotelId, user, actualizarEstad
                             </Button>
                         )}
                         {r.estado === 'pendiente' && (
-                            <Button size="sm" variant="emerald" className="gap-1.5 shadow-sm px-3 h-8 text-xs font-semibold rounded-md"
+                            <Button size="sm" variant="emerald" className="order-first col-span-2 gap-1.5 px-3 shadow-sm sm:order-none sm:col-span-1"
                                 onClick={() => {
-                                    actualizarEstado.mutate({ id: r.id, estado: 'activa', hab_id: r.habitacion_id });
+                                    actualizarEstado.mutate({ id: r.id, estado: 'activa', hab_id: r.habitacion_id, estadoAnterior: r.estado });
                                     setVentaModal(r);
                                 }}>
                                 <LogIn className="w-3.5 h-3.5" /> Check-in
                             </Button>
                         )}
                         {r.estado === 'activa' && (
-                            <Button size="sm" variant="emerald" className="gap-1.5 shadow-xs rounded-md h-8 text-xs font-semibold px-3 active:scale-95 transition-all"
+                            <Button size="sm" variant="emerald" className="order-first col-span-2 gap-1.5 px-3 shadow-xs sm:order-none sm:col-span-1"
                                 onClick={async () => {
                                     const ventasRes = await hotelDb.Venta.filter({ reserva_id: r.id });
                                     const pagado = ventasRes.length > 0;
                                     
                                     if (!pagado) {
-                                        toast('⚠️ ALERTA: No se detecta un pago registrado para la estadía. ¿Registrar pago ahora?', {
-                                            action: { label: 'Registrar Pago', onClick: () => setVentaModal(r) },
-                                            cancel: { label: 'Cancelar' }
+                                        requestConfirm({
+                                            title: 'La estancia todavía no tiene un pago registrado',
+                                            description: 'Antes de finalizar el check-out debes registrar el cobro de la estadía.',
+                                            confirmText: 'Registrar pago',
+                                            onConfirm: () => setVentaModal(r),
                                         });
                                         return;
                                     }
- 
-                                    toast('¿Finalizar estadía?', {
-                                        action: { 
-                                            label: 'Confirmar', 
-                                            onClick: () => actualizarEstado.mutate({ id: r.id, estado: 'finalizada', hab_id: r.habitacion_id }) 
-                                        },
-                                        cancel: { label: 'Cancelar' }
+
+                                    requestConfirm({
+                                        title: '¿Finalizar la estancia?',
+                                        description: `La habitación #${r.habitacion_numero} pasará a pendiente de limpieza.`,
+                                        confirmText: 'Finalizar y enviar a limpieza',
+                                        onConfirm: () => actualizarEstado.mutate({ id: r.id, estado: 'finalizada', hab_id: r.habitacion_id, estadoAnterior: r.estado }),
                                     });
                                 }}>
                                 <CheckCircle2 className="w-3.5 h-3.5" /> Check-out
                             </Button>
                         )}
                         {(r.estado === 'pendiente' || r.estado === 'activa') && (
-                            <Button size="sm" variant="ghost" className="text-red-500/60 hover:text-red-500 hover:bg-red-500/10 rounded-md w-8 h-8 p-0 active:scale-95 transition-all"
+                            <Button size="iconSm" variant="ghost" aria-label={r.estado === 'activa' ? 'Anular estancia' : 'Cancelar reserva'} title={r.estado === 'activa' ? 'Anular estancia' : 'Cancelar reserva'} className="order-3 col-span-2 w-full px-2 text-red-500/70 hover:bg-red-500/10 hover:text-red-500 sm:order-none sm:col-span-1 sm:w-9 sm:p-0"
                                 onClick={() => {
                                     const msg = r.estado === 'activa'
-                                        ? '¿Anular esta estadía activa? Se liberará la habitación y no se emitirá ningún comprobante.'
+                                        ? '¿Anular esta estadía activa? La habitación pasará a limpieza y no se emitirá ningún comprobante.'
                                         : '¿Cancelar esta reserva pendiente?';
-                                    toast(msg, {
-                                        action: {
-                                            label: 'Confirmar',
-                                            onClick: () => actualizarEstado.mutate({ id: r.id, estado: 'cancelada', hab_id: r.habitacion_id })
-                                        },
-                                        cancel: { label: 'Cancelar' }
+                                    requestConfirm({
+                                        title: r.estado === 'activa' ? '¿Anular la estancia activa?' : '¿Cancelar la reserva?',
+                                        description: msg,
+                                        variant: 'destructive',
+                                        confirmText: r.estado === 'activa' ? 'Anular estancia' : 'Cancelar reserva',
+                                        onConfirm: () => actualizarEstado.mutate({ id: r.id, estado: 'cancelada', hab_id: r.habitacion_id, estadoAnterior: r.estado }),
                                     });
                                 }}>
                                 <XCircle className="w-4 h-4" />
+                                <span className="sm:sr-only">{r.estado === 'activa' ? 'Anular estancia' : 'Cancelar reserva'}</span>
                             </Button>
                         )}
                     </div>
                 </div>
             </div>
-        </div>
+            <ConfirmDialog {...confirmProps} isPending={actualizarEstado.isPending} />
+        </article>
     );
 });
 ReservaCard.displayName = 'ReservaCard';
@@ -205,8 +201,7 @@ export default function Recepcion() {
     const [ventaModal, setVentaModal] = useState(null);
     const [form, setForm] = useState(createEmptyForm);
     const [busqueda, setBusqueda] = useState('');
-    const [generando, setGenerando] = useState(false);
-    const [filtro, setFiltro] = useState('activa');
+    const [filtro, setFiltro] = useState('atencion');
     const [vista, setVista] = useState('lista'); // 'lista' | 'timeline'
     const [scannerOpen, setScannerOpen] = useState(false);
 
@@ -297,14 +292,6 @@ export default function Recepcion() {
         enabled: !!hotelId,
     });
 
-    const statsRes = useMemo(() => {
-        const pendientes = reservas.filter(r => r.estado === 'pendiente').length;
-        const activas = reservas.filter(r => r.estado === 'activa').length;
-        const finalizadas = reservas.filter(r => r.estado === 'finalizada').length;
-        const totalMonto = reservas.reduce((acc, r) => acc + (Number(r.total) || 0), 0);
-        return { pendientes, activas, finalizadas, totalMonto };
-    }, [reservas]);
-
     // Las ventas se cargan on-demand al hacer check-out para mejorar rendimiento
 
     const saveReserva = useMutation({
@@ -335,14 +322,15 @@ export default function Recepcion() {
 
     const actualizarEstado = useMutation({
         /** @param {any} params */
-        mutationFn: ({ id, estado, hab_id }) => {
+        mutationFn: ({ id, estado, hab_id, estadoAnterior }) => {
             const updates = [hotelDb.Reserva.update(id, { estado })];
-            if (hab_id && (estado === 'finalizada' || estado === 'cancelada')) {
-                updates.push(hotelDb.Habitacion.update(hab_id, { estado: 'disponible' }));
+            const nextRoomStatus = roomStatusForReservationTransition(estadoAnterior, estado);
+            if (hab_id && nextRoomStatus) {
+                updates.push(hotelDb.Habitacion.update(hab_id, { estado: nextRoomStatus }));
             }
             return Promise.all(updates);
         },
-        onMutate: async ({ id, estado, hab_id }) => {
+        onMutate: async ({ id, estado, hab_id, estadoAnterior }) => {
             // Cancel outgoing refetches so they don't overwrite our optimistic update
             await qc.cancelQueries({ queryKey: ['reservas', hotelId] });
             await qc.cancelQueries({ queryKey: ['habitaciones', hotelId] });
@@ -359,14 +347,12 @@ export default function Recepcion() {
 
             // Optimistically update habitaciones list if check-out (finalizada/cancelada) or check-in (activa)
             if (hab_id) {
+                const nextRoomStatus = roomStatusForReservationTransition(estadoAnterior, estado);
                 qc.setQueryData(['habitaciones', hotelId], (old) => {
                     if (!old) return [];
                     return old.map(h => {
-                        if (h.id === hab_id) {
-                            let nuevoEstado = h.estado;
-                            if (estado === 'finalizada' || estado === 'cancelada') nuevoEstado = 'disponible';
-                            else if (estado === 'activa') nuevoEstado = 'ocupada';
-                            return { ...h, estado: nuevoEstado };
+                        if (h.id === hab_id && nextRoomStatus) {
+                            return { ...h, estado: nextRoomStatus };
                         }
                         return h;
                     });
@@ -411,17 +397,23 @@ export default function Recepcion() {
         });
     };
 
+    const receptionSummary = useMemo(
+        () => buildReceptionSummary(reservas, habitaciones),
+        [reservas, habitaciones]
+    );
+
     const filtradas = useMemo(() => {
-        return reservas.filter(r => {
-            if (filtro !== 'todas' && r.estado !== filtro) return false;
+        const matchingReservations = reservas.filter(r => {
+            if (!matchesReceptionFilter(r, filtro)) return false;
             if (!busqueda) return true;
             const b = busqueda.toLowerCase();
             return (
                 r.huesped_nombre?.toLowerCase().includes(b) ||
-                r.habitacion_numero?.toLowerCase().includes(b) ||
-                r.huesped_dni?.toLowerCase().includes(b)
+                String(r.habitacion_numero || '').toLowerCase().includes(b) ||
+                String(r.huesped_dni || '').toLowerCase().includes(b)
             );
-        }).sort((a, b) => new Date(b.fecha_entrada).getTime() - new Date(a.fecha_entrada).getTime());
+        });
+        return sortReservationsByOperationalPriority(matchingReservations);
     }, [reservas, filtro, busqueda]);
 
     const habitacionesDisp = useMemo(() => {
@@ -459,23 +451,23 @@ export default function Recepcion() {
     });
 
     return (
-        <div className="space-y-6">
+        <div className="page-shell">
             <div ref={pageRef} className="space-y-4">
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div className="page-header md:items-center">
                 <div>
                     <h1 className="text-2xl sm:text-3xl font-bold text-foreground tracking-tight">Recepción</h1>
-                    <p className="text-sm text-muted-foreground mt-1">Entradas, salidas y reservas</p>
+                    <p className="text-sm text-muted-foreground mt-1">Prioriza llegadas, estancias y salidas del día</p>
                 </div>
                 <div className="flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto">
-                    <div className="flex bg-muted/40 p-1 rounded-lg w-full sm:w-auto">
-                        <button onClick={() => setVista('lista')} className={cn("flex-1 sm:flex-none px-4 py-1.5 text-xs font-semibold rounded-md transition-all", vista === 'lista' ? "bg-background text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground")}>
+                    <div className="segmented-control w-full sm:w-auto">
+                        <button type="button" aria-pressed={vista === 'lista'} onClick={() => setVista('lista')} className={cn("flex-1 sm:flex-none px-4 py-1.5 text-xs font-semibold rounded-md transition-all", vista === 'lista' ? "bg-background text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground")}>
                             Lista
                         </button>
-                        <button onClick={() => setVista('timeline')} className={cn("flex-1 sm:flex-none px-4 py-1.5 text-xs font-semibold rounded-md transition-all", vista === 'timeline' ? "bg-background text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground")}>
+                        <button type="button" aria-pressed={vista === 'timeline'} onClick={() => setVista('timeline')} className={cn("flex-1 sm:flex-none px-4 py-1.5 text-xs font-semibold rounded-md transition-all", vista === 'timeline' ? "bg-background text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground")}>
                             Timeline
                         </button>
                     </div>
-                    <Button onClick={() => setOpen(true)} className="w-full sm:w-auto gap-2 shadow-sm h-9 rounded-md text-sm font-medium px-4">
+                    <Button onClick={() => setOpen(true)} className="w-full gap-2 sm:w-auto">
                         <Plus className="w-4 h-4" /> Nueva Reserva
                     </Button>
                 </div>
@@ -483,36 +475,32 @@ export default function Recepcion() {
             {/* Lista de Reservas o Timeline */}
             {vista === 'lista' ? (
                 <>
-                    <div className="flex flex-col md:flex-row gap-3">
+                    <RecepcionCockpit summary={receptionSummary} filter={filtro} onFilterChange={setFiltro} />
+
+                    <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
                         <div className="relative flex-1">
                             <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground/60" />
                             <Input
                                 inputMode="text"
-                                placeholder="Buscar por Huésped, DNI o Habitación..."
+                                placeholder="Buscar por huésped, DNI o habitación..."
                                 className="pl-11 bg-background/50 h-10 rounded-xl text-sm focus:ring-1 focus:ring-primary shadow-xs"
                                 value={busqueda}
                                 onChange={e => setBusqueda(e.target.value)}
                             />
                         </div>
-                        <div className="flex gap-2 p-1 bg-card/40 backdrop-blur-xl rounded-md border border-border/40 overflow-x-auto scrollbar-hide no-scrollbar shadow-sm">
-                            {['todas', 'pendiente', 'activa', 'finalizada'].map(f => (
-                                <button
-                                    key={f}
-                                    onClick={() => setFiltro(f)}
-                                    className={cn(
-                                        "px-3 py-1.5 rounded text-[11px] font-semibold uppercase tracking-wider transition-all duration-300 active:scale-95 whitespace-nowrap flex items-center justify-center",
-                                        filtro === f ? "bg-background text-foreground shadow-sm border border-border/60 dark:border-white/10" : "text-muted-foreground hover:bg-muted/30 hover:text-foreground"
-                                    )}
-                                >
-                                    {f}
-                                </button>
-                            ))}
-                        </div>
+                        <p className="shrink-0 text-xs font-medium text-muted-foreground" aria-live="polite">
+                            {filtradas.length} resultado{filtradas.length === 1 ? '' : 's'}
+                        </p>
                     </div>
                     
                     <div className="space-y-4">
                         {filtradas.length === 0 ? (
-                            <EmptyState icon={CalendarDays} title="No hay reservas" description="No se encontraron reservas con los filtros actuales." action={{ label: 'Nueva Reserva', icon: Plus, onClick: () => setOpen(true) }} />
+                            <EmptyState
+                                icon={filtro === 'atencion' ? CheckCircle2 : CalendarDays}
+                                title={filtro === 'atencion' ? 'Todo está al día' : 'No hay reservas'}
+                                description={filtro === 'atencion' ? 'No hay llegadas ni salidas que requieran atención ahora.' : 'No se encontraron reservas con los filtros actuales.'}
+                                action={{ label: 'Nueva Reserva', icon: Plus, onClick: () => setOpen(true) }}
+                            />
                         ) : (
                             filtradas.map(r => (
                                 <ReservaCard
@@ -530,7 +518,7 @@ export default function Recepcion() {
                     </div>
                 </>
             ) : (
-                <RecepcionTimeline reservas={reservas} habitaciones={habitacionesDisp} />
+                <RecepcionTimeline reservas={reservas} habitaciones={habitaciones} />
             )}
             {/* Slide-over nueva reserva (FULL FORM) */}
             <Sheet open={open} onOpenChange={setOpen}>
@@ -785,10 +773,10 @@ export default function Recepcion() {
  
                         {/* Footer con Botones */}
                         <div className="p-4 bg-muted/10 border-t border-border flex flex-col sm:flex-row gap-3">
-                            <Button variant="outline" className="h-9 rounded-md text-sm font-semibold border-border hover:bg-secondary order-2 sm:order-1" onClick={() => setOpen(false)}>
+                            <Button variant="outline" className="order-2 sm:order-1" onClick={() => setOpen(false)}>
                                 Cancelar
                             </Button>
-                            <Button className="flex-1 h-9 rounded-md text-sm font-semibold shadow-sm order-1 sm:order-2"
+                            <Button className="order-1 flex-1 shadow-sm sm:order-2"
                                 onClick={() => {
                                     if (form.huesped_dni && form.huesped_dni.length !== 8 && form.huesped_dni.length !== 11 && form.huesped_dni.length !== 12) {
                                         toast.error('El documento ingresado no tiene un formato válido (DNI 8, RUC 11, CE 12)');

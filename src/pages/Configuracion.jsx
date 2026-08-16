@@ -5,7 +5,9 @@ import { Save, CheckCircle, Settings } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useHotelData } from '@/hooks/use-hotel-data';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { encryptData } from '@/lib/crypto';
+import { supabase } from '@/lib/supabaseClient';
+import logger from '@/lib/logger';
+import { toast } from 'sonner';
 import { useGsapStaggerList } from '@/hooks/useGsapStaggerList';
 import { useGsapCardHover } from '@/hooks/useGsapCardHover';
 import { cn } from '@/lib/utils';
@@ -105,7 +107,7 @@ const Configuracion = memo(function Configuracion() {
                 modo_automatico: hotel.modo_automatico ?? false,
                 pasarela_activa: hotel.pasarela_activa || 'culqi',
                 pasarela_public_key: hotel.pasarela_public_key || '',
-                pasarela_private_key: hotel.pasarela_private_key || '', // En la base de datos estará encriptada, idealmente el back la desencriptaría, pero para este demo lo dejamos así.
+                pasarela_private_key: '',
                 qr_yape_url: hotel.qr_yape_url || '',
                 qr_plin_url: hotel.qr_plin_url || '',
             });
@@ -113,21 +115,44 @@ const Configuracion = memo(function Configuracion() {
     }, [hotel]);
 
     const guardar = useMutation({
-        mutationFn: () => {
-            const dataToSave = { ...form };
-            if (dataToSave.sunat_clave_sol && dataToSave.sunat_clave_sol.length < 50) { // rudimentario check de si ya está cifrada
-                dataToSave.sunat_clave_sol = encryptData(dataToSave.sunat_clave_sol);
+        mutationFn: async () => {
+            const {
+                sunat_clave_sol,
+                sunat_certificado_pem,
+                pasarela_private_key,
+                ...publicHotelData
+            } = form;
+
+            await hotelDb.Hotel.update(hotelId, publicHotelData);
+
+            if (sunat_clave_sol || sunat_certificado_pem || pasarela_private_key) {
+                const { error: secretError } = await supabase.functions.invoke('configure-hotel-secrets', {
+                    body: {
+                        hotel_id: hotelId,
+                        sunat_clave_sol: sunat_clave_sol || null,
+                        sunat_certificado_pem: sunat_certificado_pem || null,
+                        pasarela_private_key: pasarela_private_key || null,
+                    },
+                });
+                if (secretError) throw secretError;
             }
-            if (dataToSave.pasarela_private_key && dataToSave.pasarela_private_key.length < 50) {
-                dataToSave.pasarela_private_key = encryptData(dataToSave.pasarela_private_key);
-            }
-            return hotelDb.Hotel.update(hotelId, dataToSave);
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['hotel-config'] });
             queryClient.invalidateQueries({ queryKey: ['hotel-actual'] });
+            setForm(current => ({
+                ...current,
+                sunat_clave_sol: '',
+                sunat_certificado_pem: '',
+                pasarela_private_key: '',
+            }));
             setSaved(true);
             setTimeout(() => setSaved(false), 3000);
+            toast.success('Configuración guardada de forma segura.');
+        },
+        onError: (err) => {
+            logger.error('Error guardando configuración:', err);
+            toast.error(err?.message || 'No se pudo guardar la configuración.');
         },
     });
 
@@ -138,9 +163,9 @@ const Configuracion = memo(function Configuracion() {
     });
 
     return (
-        <div className="pt-1 sm:pt-2 pb-12 max-w-2xl mx-auto space-y-4 page-enter">
+        <div className="page-shell page-enter mx-auto max-w-5xl pt-1 sm:pt-2">
             {/* Header */}
-            <div className="enterprise-card p-4 rounded-xl shadow-sm mb-6 flex items-center justify-between">
+            <div className="enterprise-card section-card ui-card-pad flex items-center justify-between shadow-sm">
                 <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center border border-primary/20 shadow-xs">
                         <Settings className="w-5 h-5 text-primary" />
@@ -152,13 +177,13 @@ const Configuracion = memo(function Configuracion() {
                 </div>
             </div>
 
-            <div className="flex gap-2 mb-6 overflow-x-auto pb-2">
-                <Button variant={activeTab === 'general' ? 'default' : 'ghost'} className={cn('justify-start h-9 px-3', activeTab === 'general' ? 'bg-primary/20 text-primary hover:bg-primary/30 shadow-none' : '')} onClick={() => setActiveTab('general')}><Settings className="w-4 h-4 mr-2" /> General</Button>
-                <Button variant={activeTab === 'ventas' ? 'default' : 'ghost'} className={cn('justify-start h-9 px-3', activeTab === 'ventas' ? 'bg-primary/20 text-primary hover:bg-primary/30 shadow-none' : '')} onClick={() => setActiveTab('ventas')}><Settings className="w-4 h-4 mr-2" /> Ventas & Pagos</Button>
-                <Button variant={activeTab === 'distribucion' ? 'default' : 'ghost'} className={cn('justify-start h-9 px-3', activeTab === 'distribucion' ? 'bg-primary/20 text-primary hover:bg-primary/30 shadow-none' : '')} onClick={() => setActiveTab('distribucion')}><Settings className="w-4 h-4 mr-2" /> Distribución</Button>
-                <Button variant={activeTab === 'integraciones' ? 'default' : 'ghost'} className={cn('justify-start h-9 px-3', activeTab === 'integraciones' ? 'bg-primary/20 text-primary hover:bg-primary/30 shadow-none' : '')} onClick={() => setActiveTab('integraciones')}><Settings className="w-4 h-4 mr-2" /> OTAs & Canales</Button>
-                <Button variant={activeTab === 'api' ? 'default' : 'ghost'} className={cn('justify-start h-9 px-3', activeTab === 'api' ? 'bg-primary/20 text-primary hover:bg-primary/30 shadow-none' : '')} onClick={() => setActiveTab('api')}><Settings className="w-4 h-4 mr-2" /> APIs & Webhooks</Button>
-                <Button variant={activeTab === 'avanzado' ? 'default' : 'ghost'} className={cn('justify-start h-9 px-3', activeTab === 'avanzado' ? 'bg-primary/20 text-primary hover:bg-primary/30 shadow-none' : '')} onClick={() => setActiveTab('avanzado')}><Settings className="w-4 h-4 mr-2" /> Avanzado</Button>
+            <div className="config-tabs" role="tablist" aria-label="Secciones de configuración">
+                <Button role="tab" aria-selected={activeTab === 'general'} size="sm" variant={activeTab === 'general' ? 'default' : 'ghost'} className={cn('min-w-0 justify-center', activeTab === 'general' ? 'bg-card text-primary hover:bg-card shadow-sm' : '')} onClick={() => setActiveTab('general')}><Settings className="w-4 h-4 shrink-0" /> <span>General</span></Button>
+                <Button role="tab" aria-selected={activeTab === 'ventas'} size="sm" variant={activeTab === 'ventas' ? 'default' : 'ghost'} className={cn('min-w-0 justify-center', activeTab === 'ventas' ? 'bg-card text-primary hover:bg-card shadow-sm' : '')} onClick={() => setActiveTab('ventas')}><Settings className="w-4 h-4 shrink-0" /> <span>Ventas &amp; Pagos</span></Button>
+                <Button role="tab" aria-selected={activeTab === 'distribucion'} size="sm" variant={activeTab === 'distribucion' ? 'default' : 'ghost'} className={cn('min-w-0 justify-center', activeTab === 'distribucion' ? 'bg-card text-primary hover:bg-card shadow-sm' : '')} onClick={() => setActiveTab('distribucion')}><Settings className="w-4 h-4 shrink-0" /> <span>Distribución</span></Button>
+                <Button role="tab" aria-selected={activeTab === 'integraciones'} size="sm" variant={activeTab === 'integraciones' ? 'default' : 'ghost'} className={cn('min-w-0 justify-center', activeTab === 'integraciones' ? 'bg-card text-primary hover:bg-card shadow-sm' : '')} onClick={() => setActiveTab('integraciones')}><Settings className="w-4 h-4 shrink-0" /> <span>OTAs &amp; Canales</span></Button>
+                <Button role="tab" aria-selected={activeTab === 'api'} size="sm" variant={activeTab === 'api' ? 'default' : 'ghost'} className={cn('min-w-0 justify-center', activeTab === 'api' ? 'bg-card text-primary hover:bg-card shadow-sm' : '')} onClick={() => setActiveTab('api')}><Settings className="w-4 h-4 shrink-0" /> <span>APIs &amp; Webhooks</span></Button>
+                <Button role="tab" aria-selected={activeTab === 'avanzado'} size="sm" variant={activeTab === 'avanzado' ? 'default' : 'ghost'} className={cn('min-w-0 justify-center', activeTab === 'avanzado' ? 'bg-card text-primary hover:bg-card shadow-sm' : '')} onClick={() => setActiveTab('avanzado')}><Settings className="w-4 h-4 shrink-0" /> <span>Avanzado</span></Button>
             </div>
 
             {/* Sub-componentes con stagger + hover micro-interactions */}
@@ -208,7 +233,7 @@ const Configuracion = memo(function Configuracion() {
                 <Button 
                     onClick={() => guardar.mutate()} 
                     disabled={guardar.isPending || !form.nombre} 
-                    className="gap-2 px-6 h-10 rounded-md text-xs font-extrabold uppercase tracking-widest shadow-md active:scale-95 transition-all"
+                    className="gap-2 px-6 text-xs font-extrabold uppercase tracking-widest"
                 >
                     {saved ? <><CheckCircle className="w-4 h-4" /> Guardado</> : <><Save className="w-4 h-4" /> {guardar.isPending ? 'Guardando...' : 'Guardar Configuración'}</>}
                 </Button>
@@ -241,7 +266,7 @@ const Configuracion = memo(function Configuracion() {
                             <Button 
                                 onClick={() => setShowQrModal(null)} 
                                 variant="outline"
-                                className="w-full h-9 rounded-md text-[10px] font-extrabold uppercase tracking-widest hover:bg-muted active:scale-95 transition-all border-border/40 shadow-xs"
+                                className="w-full text-[10px] font-extrabold uppercase tracking-widest"
                             >
                                 Cerrar
                             </Button>

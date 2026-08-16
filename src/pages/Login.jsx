@@ -139,7 +139,7 @@ const Login = memo(function Login() {
     };
 
     return (
-        <div className="relative min-h-screen flex items-center justify-center px-4 overflow-hidden bg-black">
+        <div className="relative flex min-h-dvh items-center justify-center overflow-hidden bg-black px-4 py-6 sm:py-10">
             {/* Background Layer (Cinematic) */}
             <div
                 ref={bgRef}
@@ -160,10 +160,10 @@ const Login = memo(function Login() {
                 <div className="text-center mb-6">
                     <div
                         ref={logoRef}
-                        className="w-32 h-32 mx-auto mb-4 rounded-3xl overflow-hidden shadow-[0_15px_40px_rgba(0,0,0,0.5)] border border-white/20 relative group bg-white flex items-center justify-center p-2"
+                        className="group relative mx-auto mb-4 flex h-24 w-24 items-center justify-center overflow-hidden rounded-2xl border border-white/20 bg-white p-2 shadow-[0_15px_40px_rgba(0,0,0,0.5)] sm:h-28 sm:w-28"
                     >
                         <img
-                            src="/logo.png"
+                            src="/logo.jpg"
                             alt="PMS JCAR LABS Logo"
                             className="w-full h-full object-contain rounded-2xl group-hover:scale-105 transition-transform duration-300 origin-center"
                         />
@@ -185,7 +185,7 @@ const Login = memo(function Login() {
                 {/* Login Card */}
                 <div
                     ref={cardRef}
-                    className="bg-white/[0.03] backdrop-blur-3xl border border-white/10 rounded-[2.5rem] p-8 sm:p-10 shadow-[0_20px_50px_rgba(0,0,0,0.5)]"
+                    className="rounded-3xl border border-white/10 bg-white/[0.04] p-6 shadow-[0_20px_50px_rgba(0,0,0,0.5)] backdrop-blur-3xl sm:p-8"
                 >
                     <h2 className="text-xl font-bold text-white mb-6 text-center">Iniciar Sesión</h2>
 
@@ -207,7 +207,7 @@ const Login = memo(function Login() {
                                     required
                                     aria-invalid={touched.email && fieldErrors.email ? 'true' : 'false'}
                                     aria-describedby={fieldErrors.email ? 'email-error' : undefined}
-                                    className={`w-full pl-12 pr-4 py-3.5 bg-white/[0.05] border rounded-2xl text-white placeholder-muted-foreground/50 focus:outline-none focus:ring-4 transition-all duration-300 font-medium ${touched.email && fieldErrors.email
+                                    className={`h-12 w-full rounded-xl border bg-white/[0.05] pl-12 pr-4 text-white placeholder-muted-foreground/50 focus:outline-none focus:ring-4 transition-all duration-300 font-medium ${touched.email && fieldErrors.email
                                         ? 'border-red-500/50 focus:border-red-500/70 focus:ring-red-500/10'
                                         : 'border-white/10 focus:border-primary/50 focus:ring-primary/10'
                                         }`}
@@ -238,15 +238,16 @@ const Login = memo(function Login() {
                                     minLength={6}
                                     aria-invalid={touched.password && fieldErrors.password ? 'true' : 'false'}
                                     aria-describedby={fieldErrors.password ? 'password-error' : undefined}
-                                    className={`w-full pl-12 pr-14 py-3.5 bg-white/[0.05] border rounded-2xl text-white placeholder-muted-foreground/50 focus:outline-none focus:ring-4 transition-all duration-300 font-medium ${touched.password && fieldErrors.password
+                                    className={`h-12 w-full rounded-xl border bg-white/[0.05] pl-12 pr-14 text-white placeholder-muted-foreground/50 focus:outline-none focus:ring-4 transition-all duration-300 font-medium ${touched.password && fieldErrors.password
                                         ? 'border-red-500/50 focus:border-red-500/70 focus:ring-red-500/10'
                                         : 'border-white/10 focus:border-primary/50 focus:ring-primary/10'
                                         }`}
                                 />
                                 <button
                                     type="button"
+                                    aria-label={showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
                                     onClick={() => setShowPassword(!showPassword)}
-                                    className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-white transition-colors duration-200"
+                                    className="absolute right-1 top-1/2 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-lg text-muted-foreground transition-colors duration-200 hover:bg-white/5 hover:text-white"
                                     tabIndex={-1}
                                 >
                                     {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
@@ -268,8 +269,9 @@ const Login = memo(function Login() {
 
                         <Button
                             type="submit"
+                            size="lg"
                             disabled={loading || !email || !password || Object.values(fieldErrors).some(e => e)}
-                            className="w-full h-13 bg-primary hover:bg-primary/90 text-white font-bold rounded-2xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed shadow-xl shadow-primary/20 text-base relative overflow-hidden group"
+                            className="group relative w-full overflow-hidden rounded-xl bg-primary text-base text-white shadow-xl shadow-primary/20 hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50"
                         >
                             {loading ? (
                                 <div className="flex items-center justify-center gap-2">

@@ -118,6 +118,7 @@ interface Hotel {
   email?: string;                // Correo del establecimiento
   logo_url?: string;             // URL del logo en Supabase Storage
   mensaje_ticket?: string;       // Pie de página del ticket (default "¡Gracias por su preferencia!")
+  activo: boolean;               // Default true; desactivación lógica del tenant
   
   // Configuración fiscal
   aplica_igv: boolean;           // true → IGV 18%, false → exención (Amazonía Ley 27037)

@@ -18,6 +18,8 @@ import { useGsapCardHover } from '@/hooks/useGsapCardHover';
 import { useGsapStaggerList } from '@/hooks/useGsapStaggerList';
 import { useAuth } from '@/contexts/AuthContext';
 import BroomIcon from '@/components/ui/icons/BroomIcon';
+import { DailyAuditSummary } from '@/components/dashboard/DailyAuditSummary';
+import { calcularDesgloseMetodosPago, calcularDesgloseSunat } from '@/services/caja.service';
 
 /** @param {{from?: number, to: number}} props */
 function Counter({ to }) {
@@ -82,7 +84,7 @@ function KpiCard({ kpi }) {
         <div
             ref={ref}
             className={cn(
-                'enterprise-card relative overflow-hidden p-5 flex flex-col justify-between group transition-all duration-300 ease-out hover:-translate-y-1',
+                'enterprise-card metric-card ui-card-pad relative overflow-hidden flex flex-col justify-between group transition-all duration-300 ease-out hover:-translate-y-1',
                 kpi.border
             )}
         >
@@ -148,14 +150,16 @@ export default function Dashboard() {
         window.addEventListener('offline_queue_updated', handleQueue);
 
         // Initial check
-        import('@/lib/sync-queue').then(m => m.getPendingCount().then(setQueueCount));
+        if (user?.id && hotelId) {
+            import('@/lib/sync-queue').then(m => m.getPendingCount(user.id, hotelId).then(setQueueCount));
+        }
 
         return () => {
             window.removeEventListener('offline', handleOffline);
             window.removeEventListener('online', handleOnline);
             window.removeEventListener('offline_queue_updated', handleQueue);
         };
-    }, []);
+    }, [user?.id, hotelId]);
 
     const { data: reservas = [] } = useQuery({
         queryKey: ["reservas", hotelId],
@@ -170,7 +174,7 @@ export default function Dashboard() {
             hace7Dias.setDate(hace7Dias.getDate() - 7);
             const { data } = await supabase
                 .from('ventas')
-                .select('id, total, fecha_pago, created_date, metodo_pago, numero_ticket, huesped_nombre, habitacion_numero')
+                .select('id, total, fecha_pago, created_date, metodo_pago, estado_comprobante, numero_ticket, huesped_nombre, habitacion_numero')
                 .eq('hotel_id', hotelId)
                 .gte('created_date', hace7Dias.toISOString())
                 .order('created_date', { ascending: false });
@@ -186,7 +190,7 @@ export default function Dashboard() {
             hace7Dias.setDate(hace7Dias.getDate() - 7);
             const { data } = await supabase
                 .from('ventas_pos')
-                .select('id, total, fecha_venta, created_date, metodo_pago, numero_ticket, huesped_nombre, habitacion_numero')
+                .select('id, total, fecha_venta, created_date, metodo_pago, estado_comprobante, numero_ticket, huesped_nombre, habitacion_numero')
                 .eq('hotel_id', hotelId)
                 .gte('created_date', hace7Dias.toISOString())
                 .order('created_date', { ascending: false });
@@ -217,6 +221,9 @@ export default function Dashboard() {
             ...ventasHotel.map(v => ({ ...v, _tipo: 'hotel' })),
             ...ventasPos.map(v => ({ ...v, _tipo: 'pos', fecha_pago: v.fecha_venta }))
         ];
+        const ventasHoy = todasLasVentas.filter(v => (v.fecha_pago || v.created_date || '').split('T')[0] === hoyYMD);
+        const metodosHoy = calcularDesgloseMetodosPago(ventasHoy);
+        const sunatHoy = calcularDesgloseSunat(ventasHoy);
 
         // Chart Data calculations using only the last 7 days of local data
         const chartData = Array.from({ length: 10 }).map((_, i) => {
@@ -280,6 +287,9 @@ export default function Dashboard() {
             salidasHoy,
             variacionIngresos,
             habitacionesTotal: dbStats?.habitaciones_total || 0,
+            metodosHoy,
+            sunatHoy,
+            transaccionesHoy: ventasHoy.length,
         };
     }, [ventasHotel, ventasPos, reservas, dbStats]);
 
@@ -287,7 +297,8 @@ export default function Dashboard() {
         libres, ocupadas, mantenimiento, limpieza,
         todasLasVentas, ingresosHoy, ocupacionPct,
         chartData, ocupadasYPendientes, ingresosHospedajeHoy, ingresosPosHoy,
-        acumuladoMes, llegadasHoy, salidasHoy, variacionIngresos, habitacionesTotal
+        acumuladoMes, llegadasHoy, salidasHoy, variacionIngresos, habitacionesTotal,
+        metodosHoy, sunatHoy, transaccionesHoy
     } = metrics;
 
     const kpis = [
@@ -409,9 +420,9 @@ export default function Dashboard() {
 
 
     return (
-        <div className="space-y-6 pb-10">
+        <div className="page-shell">
             {/* ═══ Header — Saludo Personalizado ═══ */}
-            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-2">
+            <div className="page-header lg:items-center">
                 <div>
                     <p className="text-sm font-medium text-muted-foreground mb-0.5">
                         {getGreeting()}, <span className="font-display font-bold text-foreground">{user?.full_name?.split(' ')[0] || 'Admin'}</span> 👋
@@ -444,14 +455,22 @@ export default function Dashboard() {
             </div>
 
             {/* MAIN BENTO GRID UNIFICADO */}
-            <div ref={kpiGridRef} className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+            <div ref={kpiGridRef} className="ui-card-grid grid grid-cols-2 lg:grid-cols-4">
                 {/* 1. KPIs (4 celdas 1x1) */}
                 {kpis.map((kpi) => (
                     <KpiCard key={kpi.label} kpi={kpi} />
                 ))}
 
+                <DailyAuditSummary
+                    total={ingresosHoy}
+                    transactions={transaccionesHoy}
+                    methods={metodosHoy}
+                    sunat={sunatHoy}
+                    onOpenCaja={() => navigate('/caja')}
+                />
+
                 {/* 2. Análisis Semanal Chart (Toma 3 columnas) */}
-                <div ref={chartCardRef} className="col-span-2 lg:col-span-3 enterprise-card p-5 flex flex-col justify-between hover:shadow-md transition-all duration-300 ease-out overflow-hidden">
+                <div ref={chartCardRef} className="enterprise-card section-card ui-card-pad col-span-2 flex flex-col justify-between overflow-hidden transition-all duration-300 ease-out hover:shadow-md lg:col-span-3">
                     <div className="mb-2 flex justify-between items-start">
                         <div>
                             <span className="text-xs text-muted-foreground font-medium mb-1 inline-block">Análisis Semanal</span>
@@ -484,7 +503,7 @@ export default function Dashboard() {
                 </div>
 
                 {/* 3. Ingresos Diarios Card (Toma 1 columna, al lado del chart) */}
-                <div ref={incomeCardRef} className="col-span-2 lg:col-span-1 enterprise-card p-5 flex flex-col justify-between hover:shadow-md transition-all duration-300 ease-out">
+                <div ref={incomeCardRef} className="enterprise-card section-card ui-card-pad col-span-2 flex flex-col justify-between transition-all duration-300 ease-out hover:shadow-md lg:col-span-1">
                     <div className="flex items-center gap-2 mb-3">
                         <div className="w-6 h-6 rounded-md bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shadow-sm flex-shrink-0">
                             <TrendingUp className="w-3.5 h-3.5" />
@@ -536,7 +555,7 @@ export default function Dashboard() {
                 </div>
 
                 {/* 4. Estado del Inventario — Donut Chart (Toma 2 columnas) */}
-                <div ref={occupationCardRef} className="col-span-2 lg:col-span-2 enterprise-card p-5 flex flex-col justify-between transition-all duration-300 ease-out">
+                <div ref={occupationCardRef} className="enterprise-card section-card ui-card-pad col-span-2 flex flex-col justify-between transition-all duration-300 ease-out lg:col-span-2">
                     <div className="flex items-center justify-between mb-3">
                         <div className="flex items-center gap-2">
                             <div className="w-7 h-7 rounded-lg bg-blue-500/10 text-blue-600 dark:text-blue-400 flex items-center justify-center shadow-sm flex-shrink-0">
@@ -581,7 +600,7 @@ export default function Dashboard() {
                         <div className="flex-1 space-y-2.5">
                             {[
                                 { label: "Libres", val: libres, color: "bg-emerald-500", textColor: "text-emerald-500" },
-                                { label: "Ocupadas", val: ocupadas, color: "bg-blue-500", textColor: "text-blue-500" },
+                                { label: "Ocupadas", val: ocupadas, color: "bg-rose-500", textColor: "text-rose-500" },
                                 { label: "Limpieza", val: limpieza, color: "bg-purple-500", textColor: "text-purple-500" },
                                 { label: "Mantenimiento", val: mantenimiento, color: "bg-amber-500", textColor: "text-amber-500" }
                             ].map(r => (
@@ -607,7 +626,7 @@ export default function Dashboard() {
                 </div>
 
                 {/* 5. Actividad Reciente Premium (Toma 2 columnas) */}
-                <div ref={activityCardRef} className="col-span-2 lg:col-span-2 enterprise-card p-5 flex flex-col transition-all duration-300 ease-out">
+                <div ref={activityCardRef} className="enterprise-card section-card ui-card-pad col-span-2 flex flex-col transition-all duration-300 ease-out lg:col-span-2">
                     <div className="flex items-center justify-between mb-4">
                         <div className="flex items-center gap-2">
                             <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
@@ -658,7 +677,7 @@ export default function Dashboard() {
                 </div>
 
                 {/* 6. Quick Actions (Toma 2 columnas) */}
-                <div className="col-span-2 lg:col-span-2 enterprise-card p-5 flex flex-col transition-all duration-300 ease-out">
+                <div className="enterprise-card section-card ui-card-pad col-span-2 flex flex-col transition-all duration-300 ease-out lg:col-span-2">
                     <div className="flex items-center gap-2 mb-4">
                         <div className="w-7 h-7 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
                             <Zap className="w-3.5 h-3.5 text-primary" />
@@ -686,7 +705,7 @@ export default function Dashboard() {
                 </div>
 
                 {/* 7. Alertas Operacionales (Toma 2 columnas) */}
-                <div className="col-span-2 lg:col-span-2 enterprise-card p-5 flex flex-col transition-all duration-300 ease-out">
+                <div className="enterprise-card section-card ui-card-pad col-span-2 flex flex-col transition-all duration-300 ease-out lg:col-span-2">
                     <div className="flex items-center justify-between mb-4">
                         <div className="flex items-center gap-2">
                             <div className="w-7 h-7 rounded-lg bg-amber-500/10 flex items-center justify-center flex-shrink-0">
@@ -718,7 +737,7 @@ export default function Dashboard() {
                 </div>
 
                 {/* 8. Panel de Llegadas y Salidas de Hoy (Toma 4 columnas completas) */}
-                <div className="col-span-2 lg:col-span-4 enterprise-card p-5 flex flex-col transition-all duration-300 ease-out">
+                <div className="enterprise-card section-card ui-card-pad col-span-2 flex flex-col transition-all duration-300 ease-out lg:col-span-4">
                     <div className="flex items-center justify-between mb-4">
                         <h3 className="text-sm font-bold text-foreground tracking-tight flex items-center gap-2">
                             <CalendarDays className="w-4 h-4 text-primary" />

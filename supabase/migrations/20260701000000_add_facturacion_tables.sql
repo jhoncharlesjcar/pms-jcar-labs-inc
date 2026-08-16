@@ -57,6 +57,18 @@ CREATE TABLE IF NOT EXISTS public.cdr (
     archivo_xml TEXT
 );
 
+-- Fail closed until tenant-aware read policies are installed by the hardening migration.
+ALTER TABLE public.comprobantes ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.comprobante_detalle ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.comprobante_xml ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.sunat_envios ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.cdr ENABLE ROW LEVEL SECURITY;
+REVOKE ALL ON public.comprobantes FROM anon, authenticated;
+REVOKE ALL ON public.comprobante_detalle FROM anon, authenticated;
+REVOKE ALL ON public.comprobante_xml FROM anon, authenticated;
+REVOKE ALL ON public.sunat_envios FROM anon, authenticated;
+REVOKE ALL ON public.cdr FROM anon, authenticated;
+
 -- Trigger to notify Edge Function when a new pending comprobante is inserted
 CREATE OR REPLACE FUNCTION notify_facturacion_pending() RETURNS trigger AS $$
 BEGIN

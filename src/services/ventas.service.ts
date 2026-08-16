@@ -65,6 +65,7 @@ export interface VentaPOS {
 export type VentaConsolidada = (VentaHotel | VentaPOS) & {
   _tipo: 'hotel' | 'pos';
   fecha_pago?: string; // normalizado para ambas fuentes
+  fecha_venta?: string; // disponible en la fuente POS
 };
 
 export interface ProductoData {

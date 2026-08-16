@@ -7,7 +7,9 @@ export const ConfigEnlacesPublicos = memo(function ConfigEnlacesPublicos({ hotel
     const [copiedCheckin, setCopiedCheckin] = useState(false);
 
     const bookingUrl = `${window.location.origin}/booking/${hotelId}`;
-    const checkinUrl = `${window.location.origin}/public-checkin/${hotelId}`;
+    // El pre check-in requiere un token individual ligado a una reserva.
+    // Nunca se publica un hotel_id como credencial de acceso.
+    const checkinUrl = '';
 
     const handleCopy = (text, type) => {
         navigator.clipboard.writeText(text);
@@ -111,11 +113,12 @@ export const ConfigEnlacesPublicos = memo(function ConfigEnlacesPublicos({ hotel
 
                     <div className="flex items-center gap-1.5 bg-background/50 p-2 rounded-lg border border-border/40 shadow-inner">
                         <span className="text-[10px] sm:text-xs text-muted-foreground truncate flex-1 px-2 font-mono font-bold">
-                            {checkinUrl}
+                            Se genera desde una reserva confirmada
                         </span>
                         <Button 
                             size="sm" 
                             variant="ghost" 
+                            disabled
                             onClick={() => handleCopy(checkinUrl, 'checkin')}
                             className="h-8 w-8 p-0 rounded-md text-muted-foreground hover:text-indigo-500 hover:bg-indigo-500/10 active:scale-95 transition-all"
                         >
@@ -127,7 +130,7 @@ export const ConfigEnlacesPublicos = memo(function ConfigEnlacesPublicos({ hotel
                         <Button 
                             size="sm" 
                             variant="outline" 
-                            onClick={() => window.open(checkinUrl, '_blank')}
+                            disabled
                             className="flex-1 text-[9px] font-extrabold uppercase tracking-widest gap-1 h-8 rounded-lg border-border/40 hover:bg-indigo-500/5 active:scale-95 transition-all"
                         >
                             <ExternalLink className="w-3.5 h-3.5" /> Probar
@@ -135,10 +138,7 @@ export const ConfigEnlacesPublicos = memo(function ConfigEnlacesPublicos({ hotel
                         <Button 
                             size="sm" 
                             variant="outline"
-                            onClick={() => {
-                                const text = `🏨 *Pre-registro Check-in Digital* 🏨\n\nPara agilizar tu ingreso y cumplir con las normativas legales, por favor completa tu ficha de huésped antes de llegar al hotel ingresando aquí:\n\n🔗 ${checkinUrl}\n\n¡Gracias por tu colaboración!`;
-                                window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`, '_blank');
-                            }}
+                            disabled
                             className="flex-1 text-[9px] font-extrabold uppercase tracking-widest gap-1 h-8 rounded-lg border-indigo-500/20 hover:bg-indigo-500/10 hover:text-indigo-600 text-indigo-500 bg-indigo-500/5 active:scale-95 transition-all shadow-xs"
                         >
                             <Share2 className="w-3.5 h-3.5" /> Compartir
@@ -146,7 +146,7 @@ export const ConfigEnlacesPublicos = memo(function ConfigEnlacesPublicos({ hotel
                         <Button 
                             size="sm" 
                             variant="outline"
-                            onClick={() => setShowQrModal({ title: 'QR de Check-in Digital', url: checkinUrl })}
+                            disabled
                             className="h-8 w-8 p-0 rounded-lg border-border/40 hover:bg-indigo-500/5 active:scale-95 transition-all"
                             title="Mostrar Código QR"
                         >

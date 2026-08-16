@@ -13,15 +13,7 @@ const SystemInfo = memo(function SystemInfo({ version, hoteles = [], hotelesCoun
     const [selectedHotelId, setSelectedHotelId] = useState(hoteles[0]?.id || '');
     const [isPrinting, setIsPrinting] = useState(false);
 
-    const selectedHotel = hoteles.find(h => h.id === selectedHotelId) || hoteles[0] || {
-        nombre: 'PMS JCAR LABS (DEMO)',
-        ruc: '11111111111',
-        direccion: 'Av. Floral 123',
-        ciudad: 'Chachapoyas',
-        telefono: '987654321',
-        aplica_igv: false,
-        mensaje_ticket: 'Ticket de prueba de hardware'
-    };
+    const selectedHotel = hoteles.find(h => h.id === selectedHotelId) || hoteles[0] || null;
 
     return (
         <div className="space-y-3 max-w-2xl">
@@ -92,12 +84,13 @@ const SystemInfo = memo(function SystemInfo({ version, hoteles = [], hotelesCoun
                 ) : (
                     <div className="flex items-center gap-2 text-[10px] font-bold text-amber-600 bg-amber-50 border border-amber-200 rounded-lg p-2.5">
                         <AlertTriangle className="w-3.5 h-3.5" />
-                        <span>No hay hoteles registrados. Se usará una configuración mock para la prueba.</span>
+                        <span>Registra un hotel antes de probar la impresión.</span>
                     </div>
                 )}
 
                 <button
                     onClick={async () => {
+                        if (!selectedHotel) return;
                         setIsPrinting(true);
                         try {
                             const ticket = buildTicketPrueba58mm(selectedHotel);
@@ -110,7 +103,7 @@ const SystemInfo = memo(function SystemInfo({ version, hoteles = [], hotelesCoun
                             setIsPrinting(false);
                         }
                     }}
-                    disabled={isPrinting}
+                    disabled={isPrinting || !selectedHotel}
                     className="w-full flex items-center justify-center gap-2 bg-amber-500 hover:bg-amber-600 disabled:opacity-50 text-white font-extrabold text-[10px] uppercase tracking-widest h-9 px-4 rounded-md shadow-sm transition-[transform,opacity]"
                 >
                     <Printer className="w-3.5 h-3.5" />

@@ -83,7 +83,7 @@ export function ConfigYield() {
             try {
                 await supabase.from('tarifas_dinamicas').delete().eq('id', rule.id);
                 toast.success('Regla eliminada');
-            } catch (err) {
+            } catch {
                 toast.error('Error eliminando');
                 return;
             }

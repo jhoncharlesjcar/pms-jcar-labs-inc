@@ -24,7 +24,7 @@ export default defineConfig({
         VitePWA({
             disable: process.env.SKIP_PWA === 'true',
             registerType: 'autoUpdate',
-            includeAssets: ['logo.png', 'logo.svg'],
+            includeAssets: ['logo.jpg'],
             manifest: {
                 name: 'PMS JCAR LABS',
                 short_name: 'PMS JCAR LABS',
@@ -35,33 +35,20 @@ export default defineConfig({
                 start_url: '/',
                 icons: [
                     {
-                        src: 'logo.png',
-                        sizes: '192x192',
-                        type: 'image/png'
-                    },
-                    {
-                        src: 'logo.png',
-                        sizes: '512x512',
-                        type: 'image/png'
+                        src: 'logo.jpg',
+                        sizes: '1024x897',
+                        type: 'image/jpeg',
+                        purpose: 'any'
                     }
                 ]
             },
             workbox: {
                 globPatterns: ['**/*.{js,css,html,ico,png,svg,woff,woff2}'],
-                runtimeCaching: [
-                    {
-                        urlPattern: /^https:\/\/.*\.supabase\.co\/rest\/v1\/.*/i,
-                        handler: 'NetworkFirst',
-                        options: {
-                            cacheName: 'supabase-api-cache',
-                            expiration: {
-                                maxEntries: 100,
-                                maxAgeSeconds: 60 * 60 * 24 // 24 horas
-                            },
-                            networkTimeoutSeconds: 5,
-                        }
-                    }
-                ]
+                // SECURITY: No cachear respuestas de Supabase REST API.
+                // Las respuestas autenticadas no deben sobrevivir al Service Worker
+                // porque pueden filtrar datos entre sesiones o servir estados de
+                // autorización obsoletos. (Hallazgo #9 de auditoría)
+                runtimeCaching: []
             }
         }),
     ],

@@ -17,7 +17,7 @@ import SkeletonBlock from './SkeletonBlock';
 
 function DashboardSkeleton() {
   return (
-    <div className="space-y-8 lg:space-y-10 pb-10 animate-in fade-in duration-300">
+    <div className="space-y-6 pb-10 animate-in fade-in duration-300">
       {/* Header */}
       <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6 mb-6">
         <div className="space-y-3">
@@ -28,25 +28,25 @@ function DashboardSkeleton() {
       </div>
 
       {/* KPI Grid */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         {Array.from({ length: 4 }).map((_, i) => (
-          <SkeletonBlock key={`kpi-${i}`} variant="card" className="min-h-[140px]" />
+          <SkeletonBlock key={`kpi-${i}`} variant="card" className="min-h-[100px]" />
         ))}
       </div>
 
       {/* Bento Grid */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
         <div className="col-span-2 lg:col-span-3">
-          <SkeletonBlock variant="chart" className="min-h-[380px]" />
+          <SkeletonBlock variant="chart" className="min-h-[300px]" />
         </div>
         <div className="col-span-2 lg:col-span-1">
-          <SkeletonBlock variant="card" className="min-h-[380px]" />
+          <SkeletonBlock variant="card" className="min-h-[300px]" />
         </div>
         <div className="col-span-2 lg:col-span-2">
-          <SkeletonBlock variant="card" className="min-h-[200px]" />
+          <SkeletonBlock variant="card" className="min-h-[180px]" />
         </div>
         <div className="col-span-2 lg:col-span-2">
-          <SkeletonBlock variant="card" className="min-h-[200px]" />
+          <SkeletonBlock variant="card" className="min-h-[180px]" />
         </div>
       </div>
     </div>
@@ -174,7 +174,7 @@ function CajaSkeleton() {
       {/* Stats cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {Array.from({ length: 4 }).map((_, i) => (
-          <SkeletonBlock key={`caja-stat-${i}`} variant="card" className="min-h-[120px]" />
+          <SkeletonBlock key={`caja-stat-${i}`} variant="card" className="min-h-[104px]" />
         ))}
       </div>
 

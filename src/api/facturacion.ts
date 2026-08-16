@@ -1,37 +1,17 @@
-// src/api/facturacion.ts
-// Wrapper for Facturación Edge Function API
+import { supabase } from '@/lib/supabaseClient';
+
+export type FacturacionSource = 'ventas' | 'ventas_pos';
 
 /**
- * Envía los datos necesarios para generar un comprobante y enviarlo a SUNAT.
- * La respuesta incluye el estado final del envío (aceptado, observado, rechazado)
- * y el ID del comprobante creado.
+ * Solicita emisión usando únicamente la venta persistida. La Edge Function
+ * reconstruye tenant, receptor, líneas, impuestos y correlativo desde BD.
  */
-export async function crearComprobante(payload: any) {
-  const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-  const token = await getSupabaseSessionToken();
-
-  const response = await fetch(`${supabaseUrl}/functions/v1/facturacion/generar-comprobante`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      // Supabase auth token (if needed). Assuming the user is authenticated via supabase client.
-      Authorization: `Bearer ${token}`,
-    },
-    body: JSON.stringify(payload),
+export async function crearComprobante(ventaId: string, source: FacturacionSource) {
+  if (!ventaId) throw new Error('No se puede emitir un comprobante sin una venta persistida');
+  const { data, error } = await supabase.functions.invoke('facturacion', {
+    body: { venta_id: ventaId, source },
   });
-
-  if (!response.ok) {
-    const err = await response.text();
-    throw new Error(`Error generando comprobante: ${err}`);
-  }
-
-  return response.json();
-}
-
-// Helper to obtain current supabase session access token
-async function getSupabaseSessionToken() {
-  // Import inside to avoid circular deps (supabase client is already loaded elsewhere)
-  const { supabase } = await import('@/lib/supabaseClient');
-  const { data } = await supabase.auth.getSession();
-  return data.session?.access_token ?? '';
+  if (error) throw new Error(error.message || 'El servicio de facturación no está disponible');
+  if (!data || data.error) throw new Error(data?.error || 'SUNAT no confirmó la emisión');
+  return data;
 }

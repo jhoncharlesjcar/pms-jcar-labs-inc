@@ -212,6 +212,36 @@ export function calcularBalanceEfectivo(
   return Math.round((totalEfectivo - totalEgresos) * 100) / 100;
 }
 
+export type EstadoArqueo = 'sin_conteo' | 'cuadrado' | 'faltante' | 'sobrante';
+
+/**
+ * Compara el efectivo que el sistema espera con el conteo físico del turno.
+ * No altera el saldo contable: solo aporta una señal de auditoría para el cierre.
+ */
+export function evaluarArqueoEfectivo(
+  efectivoEsperado: number,
+  efectivoContado?: number | null
+): {
+  estado: EstadoArqueo;
+  diferencia: number;
+  requiereNota: boolean;
+} {
+  if (efectivoContado === null || efectivoContado === undefined || Number.isNaN(Number(efectivoContado))) {
+    return { estado: 'sin_conteo', diferencia: 0, requiereNota: false };
+  }
+
+  const diferencia = Math.round((Number(efectivoContado) - Number(efectivoEsperado || 0)) * 100) / 100;
+  if (Math.abs(diferencia) <= 0.01) {
+    return { estado: 'cuadrado', diferencia: 0, requiereNota: false };
+  }
+
+  return {
+    estado: diferencia < 0 ? 'faltante' : 'sobrante',
+    diferencia,
+    requiereNota: true,
+  };
+}
+
 /**
  * Calcula el desglose de estados SUNAT a partir de ventas.
  *

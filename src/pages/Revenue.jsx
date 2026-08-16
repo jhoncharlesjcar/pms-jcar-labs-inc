@@ -9,7 +9,7 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useHotelData } from '@/hooks/use-hotel-data';
-import { format, addDays, isWithinInterval, startOfMonth, endOfMonth, differenceInDays } from 'date-fns';
+import { format, addDays, isWithinInterval, startOfMonth, endOfMonth, differenceInDays, subMonths } from 'date-fns';
 import { es } from 'date-fns/locale';
 
 export const Revenue = memo(function Revenue() {
@@ -28,13 +28,7 @@ export const Revenue = memo(function Revenue() {
         enabled: !!hotelId,
     });
 
-    const { data: ventas = [] } = useQuery({
-        queryKey: ['ventas', hotelId],
-        queryFn: () => hotelDb.Venta.list(),
-        enabled: !!hotelId,
-    });
-
-    // Cálculos de KPIs mensuales (Actual vs Mes Pasado para simular tendencias)
+    // Cálculos de KPIs mensuales con comparación contra datos reales del mes anterior.
     const kpis = useMemo(() => {
         const totalHabitaciones = habitaciones.length || 1;
         
@@ -51,18 +45,25 @@ export const Revenue = memo(function Revenue() {
         const adr = nochesVendidas > 0 ? ingresosMes / nochesVendidas : 0;
         const revpar = ingresosMes / (totalHabitaciones * diasMes);
 
-        // Mes Anterior (Mocks rápidos para tendencias)
-        const ocupacionAnt = ocupacionPorcentaje * 0.85; // Simular crecimiento del 15%
-        const adrAnt = adr * 0.90; // Simular crecimiento del 10%
-        const revparAnt = revpar * 0.80; 
+        const mesAnterior = subMonths(new Date(), 1);
+        const inicioAnterior = startOfMonth(mesAnterior);
+        const finAnterior = endOfMonth(mesAnterior);
+        const diasAnterior = differenceInDays(finAnterior, inicioAnterior) + 1;
+        const reservasAnterior = reservas.filter(r => r.fecha_entrada && isWithinInterval(new Date(r.fecha_entrada), { start: inicioAnterior, end: finAnterior }));
+        const nochesAnterior = reservasAnterior.reduce((sum, r) => sum + Number(r.noches || 1), 0);
+        const ingresosAnterior = reservasAnterior.reduce((sum, r) => sum + Number(r.total || 0), 0);
+        const ocupacionAnt = (nochesAnterior / (totalHabitaciones * diasAnterior)) * 100;
+        const adrAnt = nochesAnterior > 0 ? ingresosAnterior / nochesAnterior : 0;
+        const revparAnt = ingresosAnterior / (totalHabitaciones * diasAnterior);
+        const trend = (actual, anterior) => anterior > 0 ? ((actual - anterior) / anterior) * 100 : null;
 
         return {
             ocupacion: ocupacionPorcentaje.toFixed(1),
-            ocupacionTrend: ocupacionPorcentaje >= ocupacionAnt ? 'up' : 'down',
+            ocupacionTrend: trend(ocupacionPorcentaje, ocupacionAnt),
             adr: adr.toFixed(2),
-            adrTrend: adr >= adrAnt ? 'up' : 'down',
+            adrTrend: trend(adr, adrAnt),
             revpar: revpar.toFixed(2),
-            revparTrend: revpar >= revparAnt ? 'up' : 'down'
+            revparTrend: trend(revpar, revparAnt)
         };
     }, [reservas, habitaciones]);
 
@@ -121,7 +122,7 @@ export const Revenue = memo(function Revenue() {
     };
 
     return (
-        <div className="pt-2 sm:pt-4 pb-12 max-w-6xl mx-auto space-y-6 page-enter">
+        <div className="page-shell page-enter mx-auto max-w-6xl pt-2 sm:pt-4">
             {/* Header */}
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                 <div className="flex items-center gap-3">
@@ -161,40 +162,40 @@ export const Revenue = memo(function Revenue() {
             </div>
 
             {/* KPIs */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <div className="bg-card/40 backdrop-blur-xl rounded-2xl border border-border/50 p-6 space-y-2">
+            <div className="ui-card-grid grid grid-cols-1 sm:grid-cols-3">
+                <div className="enterprise-card metric-card ui-card-pad space-y-2">
                     <p className="text-xs font-black text-muted-foreground uppercase tracking-widest flex items-center gap-2">
                         RevPAR <span className="px-1.5 py-0.5 rounded-full bg-primary/10 text-primary text-[9px]">Mes</span>
                     </p>
                     <div className="flex items-end gap-3">
                         <span className="text-3xl font-black text-foreground">S/ {kpis.revpar}</span>
-                        <span className={`flex items-center text-xs font-bold ${kpis.revparTrend === 'up' ? 'text-emerald-500' : 'text-red-500'}`}>
-                            {kpis.revparTrend === 'up' ? <ArrowUpRight className="w-3 h-3 mr-0.5" /> : <ArrowDownRight className="w-3 h-3 mr-0.5" />}
-                            20%
+                        <span className={`flex items-center text-xs font-bold ${kpis.revparTrend == null ? 'text-muted-foreground' : kpis.revparTrend >= 0 ? 'text-emerald-500' : 'text-red-500'}`}>
+                            {kpis.revparTrend != null && (kpis.revparTrend >= 0 ? <ArrowUpRight className="w-3 h-3 mr-0.5" /> : <ArrowDownRight className="w-3 h-3 mr-0.5" />)}
+                            {kpis.revparTrend == null ? 'Sin base previa' : `${Math.abs(kpis.revparTrend).toFixed(1)}%`}
                         </span>
                     </div>
                 </div>
-                <div className="bg-card/40 backdrop-blur-xl rounded-2xl border border-border/50 p-6 space-y-2">
+                <div className="enterprise-card metric-card ui-card-pad space-y-2">
                     <p className="text-xs font-black text-muted-foreground uppercase tracking-widest flex items-center gap-2">
                         ADR <span className="px-1.5 py-0.5 rounded-full bg-primary/10 text-primary text-[9px]">Mes</span>
                     </p>
                     <div className="flex items-end gap-3">
                         <span className="text-3xl font-black text-foreground">S/ {kpis.adr}</span>
-                        <span className={`flex items-center text-xs font-bold ${kpis.adrTrend === 'up' ? 'text-emerald-500' : 'text-red-500'}`}>
-                            {kpis.adrTrend === 'up' ? <ArrowUpRight className="w-3 h-3 mr-0.5" /> : <ArrowDownRight className="w-3 h-3 mr-0.5" />}
-                            10%
+                        <span className={`flex items-center text-xs font-bold ${kpis.adrTrend == null ? 'text-muted-foreground' : kpis.adrTrend >= 0 ? 'text-emerald-500' : 'text-red-500'}`}>
+                            {kpis.adrTrend != null && (kpis.adrTrend >= 0 ? <ArrowUpRight className="w-3 h-3 mr-0.5" /> : <ArrowDownRight className="w-3 h-3 mr-0.5" />)}
+                            {kpis.adrTrend == null ? 'Sin base previa' : `${Math.abs(kpis.adrTrend).toFixed(1)}%`}
                         </span>
                     </div>
                 </div>
-                <div className="bg-card/40 backdrop-blur-xl rounded-2xl border border-border/50 p-6 space-y-2">
+                <div className="enterprise-card metric-card ui-card-pad space-y-2">
                     <p className="text-xs font-black text-muted-foreground uppercase tracking-widest flex items-center gap-2">
                         Ocupación <span className="px-1.5 py-0.5 rounded-full bg-primary/10 text-primary text-[9px]">Mes</span>
                     </p>
                     <div className="flex items-end gap-3">
                         <span className="text-3xl font-black text-foreground">{kpis.ocupacion}%</span>
-                        <span className={`flex items-center text-xs font-bold ${kpis.ocupacionTrend === 'up' ? 'text-emerald-500' : 'text-red-500'}`}>
-                            {kpis.ocupacionTrend === 'up' ? <ArrowUpRight className="w-3 h-3 mr-0.5" /> : <ArrowDownRight className="w-3 h-3 mr-0.5" />}
-                            15%
+                        <span className={`flex items-center text-xs font-bold ${kpis.ocupacionTrend == null ? 'text-muted-foreground' : kpis.ocupacionTrend >= 0 ? 'text-emerald-500' : 'text-red-500'}`}>
+                            {kpis.ocupacionTrend != null && (kpis.ocupacionTrend >= 0 ? <ArrowUpRight className="w-3 h-3 mr-0.5" /> : <ArrowDownRight className="w-3 h-3 mr-0.5" />)}
+                            {kpis.ocupacionTrend == null ? 'Sin base previa' : `${Math.abs(kpis.ocupacionTrend).toFixed(1)}%`}
                         </span>
                     </div>
                 </div>

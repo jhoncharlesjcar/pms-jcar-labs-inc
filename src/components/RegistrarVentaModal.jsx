@@ -9,27 +9,34 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { CheckCircle, ExternalLink, Award, Loader2 } from 'lucide-react';
+import { CheckCircle, ExternalLink, Award, Loader2, BedDouble, CircleAlert, ReceiptText, ShieldCheck } from 'lucide-react';
 import { supabase } from '@/lib/supabaseClient';
 import TicketPDF from '@/components/TicketPDF';
 import { useHotel } from '@/lib/HotelContext';
 import { YapeIcon, PlinIcon, EfectivoIcon, TarjetaIcon } from '@/components/PaymentIcons';
 import { toast } from 'sonner';
+import CheckoutProgress from '@/components/checkout/CheckoutProgress';
 
 // ─── Orquestación (servicio de dominio) ────────────────────────────────────
 import { useCheckout } from '@/hooks/useCheckout';
 import { useAuth } from '@/contexts/AuthContext';
-import { METODOS_CON_REFERENCIA, calcularTotal, calcularIGV } from '@/services/checkout.service';
+import {
+    METODOS_CON_REFERENCIA,
+    calcularTotal,
+    calcularIGV,
+    validarComprobante,
+    validarReferenciaYapePlin,
+} from '@/services/checkout.service';
 import { useLoyaltyAccount } from '@/hooks/useLoyalty';
 import { isSimpleRoomType, canRedeemSimpleDiscount, calculateSimpleRoomDiscount, calculateEarnedPoints } from '@/services/loyalty.service';
 
 // ─── Constantes de UI (solo visual) ────────────────────────────────────────
 const METODOS_UI = [
-    { value: 'efectivo', label: <span className="flex items-center gap-1"><EfectivoIcon /> Efectivo</span> },
-    { value: 'yape', label: <span className="flex items-center gap-1"><YapeIcon /> Yape</span> },
-    { value: 'plin', label: <span className="flex items-center gap-1"><PlinIcon /> Plin</span> },
-    { value: 'transferencia', label: '🏦 Transferencia' },
-    { value: 'tarjeta', label: <span className="flex items-center gap-1"><TarjetaIcon /> Tarjeta</span> },
+    { value: 'efectivo', label: 'Efectivo', icon: EfectivoIcon },
+    { value: 'yape', label: 'Yape', icon: YapeIcon },
+    { value: 'plin', label: 'Plin', icon: PlinIcon },
+    { value: 'transferencia', label: 'Transferencia', icon: ReceiptText },
+    { value: 'tarjeta', label: 'Tarjeta', icon: TarjetaIcon },
 ];
 
 
@@ -75,10 +82,14 @@ const RegistrarVentaModal = memo(function RegistrarVentaModal({ reserva, onClose
     const descuentoTotal = Number(descuento || 0) + descuentoPuntos;
 
     // ─── Total parcial (solo para preview en UI) ───────────────────────
+    const totalConsumos = Math.max(
+        0,
+        Number(reserva.total || 0) - Number(reserva.precio_noche || 0) * Number(reserva.noches || 1)
+    );
     const totalCalc = calcularTotal({
         precio_noche: reserva.precio_noche || 0,
         noches: reserva.noches || 1,
-        total_consumos: Math.max(0, (reserva.total || 0) - (reserva.precio_noche || 0) * (reserva.noches || 1)),
+        total_consumos: totalConsumos,
         descuento: descuentoTotal,
     });
     const igvCalc = calcularIGV(totalCalc.total_final, config.aplica_igv !== false);
@@ -126,18 +137,23 @@ const RegistrarVentaModal = memo(function RegistrarVentaModal({ reserva, onClose
             const { data, error } = await supabase.functions.invoke('generate-payment', {
                 body: { 
                     reserva_id: reserva.id, 
-                    monto: totalCalc.total_final,
-                    pasarela: config.pasarela_activa || 'culqi',
-                    hotel_id: hotelId
+                    pasarela: config.pasarela_activa || 'culqi'
                 }
             });
-            if (error) throw error;
+            if (error) {
+                let detail = error.message;
+                try { detail = (await error.context?.json())?.error || detail; } catch { /* respuesta no JSON */ }
+                throw new Error(detail);
+            }
             if (data?.qrUrl) {
                 setQrDinamico(data.qrUrl);
                 setEsperandoWebhook(true);
+            } else {
+                throw new Error(data?.error || 'La pasarela no devolvió una orden de pago verificable');
             }
-        } catch {
-            toast.error('Error generando QR de pasarela');
+        } catch (error) {
+            logger.error('Pago automático no disponible:', error);
+            toast.error(error?.message || 'Pago automático no disponible. Usa un método manual.');
         } finally {
             setGenerandoQR(false);
         }
@@ -156,6 +172,29 @@ const RegistrarVentaModal = memo(function RegistrarVentaModal({ reserva, onClose
         nombreCliente,
         redimirPuntos: redimirPuntos && canRedeem,
     };
+
+    const checkoutIssue = (() => {
+        if (config.modo_automatico && METODOS_CON_REFERENCIA.includes(metodo)) {
+            if (webhookSuccess) return 'Pago confirmado. Cerrando la operación…';
+            return qrDinamico ? 'Esperando la confirmación automática del pago.' : 'Genera el QR para continuar con el pago.';
+        }
+
+        const referenceValidation = validarReferenciaYapePlin({ metodo, codigoReferencia });
+        if (!referenceValidation.valido) return referenceValidation.error;
+
+        if (requiereComprobante) {
+            const receiptValidation = validarComprobante({
+                tipo: tipoComprobante,
+                ruc: rucCliente,
+                razonSocial,
+                dni: dniCliente,
+                nombre: nombreCliente,
+            });
+            if (!receiptValidation.valido) return receiptValidation.errors[0];
+        }
+
+        return null;
+    })();
 
     // ─── Hook de orquestación ──────────────────────────────────────────────
     const {
@@ -199,16 +238,21 @@ const RegistrarVentaModal = memo(function RegistrarVentaModal({ reserva, onClose
     if (ventaCreada) {
         return (
             <Dialog open onOpenChange={onClose}>
-                <DialogContent className="max-w-md p-6 rounded-xl border border-border/80 shadow-xl glass-panel">
-                    <DialogHeader>
-                        <DialogTitle className="flex items-center gap-2 text-green-700 font-semibold text-base">
-                            <CheckCircle className="w-5 h-5" /> Pago Registrado
+                <DialogContent className="max-w-md overflow-y-auto p-4 sm:p-6 rounded-none sm:rounded-xl border border-border/80 shadow-xl glass-panel max-sm:left-0 max-sm:top-0 max-sm:h-[100dvh] max-sm:max-h-none max-sm:w-full max-sm:max-w-none max-sm:translate-x-0 max-sm:translate-y-0">
+                    <DialogHeader className="space-y-4 text-left">
+                        <CheckoutProgress current="complete" />
+                        <DialogTitle className="flex items-center gap-2 text-emerald-700 font-semibold text-base dark:text-emerald-400">
+                            <CheckCircle className="w-5 h-5" /> Pago registrado
                         </DialogTitle>
                     </DialogHeader>
                     <div className="text-center space-y-4">
-                        <div className="bg-green-500/10 border border-green-500/20 rounded-xl p-4">
-                            <p className="text-2xl font-bold text-green-700">S/ {ventaCreada.total?.toFixed(2)}</p>
-                            <p className="text-xs text-green-600">Ticket #{ventaCreada.numero_ticket} · {ventaCreada.metodo_pago}</p>
+                        <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-xl p-4">
+                            <p className="text-3xl font-bold text-emerald-700 dark:text-emerald-400">S/ {Number(ventaCreada.total || 0).toFixed(2)}</p>
+                            <p className="mt-1 text-xs font-medium capitalize text-emerald-700/80 dark:text-emerald-400/80">Ticket #{ventaCreada.numero_ticket} · {ventaCreada.metodo_pago}</p>
+                            <div className="mt-3 flex items-center justify-center gap-2 rounded-lg bg-background/70 px-3 py-2 text-xs font-semibold text-foreground">
+                                <BedDouble className="h-4 w-4 text-violet-500" />
+                                Habitación #{reserva.habitacion_numero} enviada a limpieza
+                            </div>
                         </div>
 
                         <TicketPDF venta={ventaCreada} config={config} />
@@ -224,8 +268,8 @@ const RegistrarVentaModal = memo(function RegistrarVentaModal({ reserva, onClose
                         )}
 
                         <div className="flex gap-3">
-                            <Button variant="outline" className="flex-1 h-10 rounded-lg text-sm font-semibold" onClick={() => { onSuccess(); onClose(); }}>
-                                Cerrar
+                            <Button className="flex-1 h-11 rounded-lg text-sm font-semibold" onClick={() => { onSuccess(); onClose(); }}>
+                                Finalizar checkout
                             </Button>
                         </div>
                     </div>
@@ -236,50 +280,96 @@ const RegistrarVentaModal = memo(function RegistrarVentaModal({ reserva, onClose
 
     return (
         <Sheet open onOpenChange={onClose}>
-            <SheetContent side="right" className="sm:max-w-md glass-panel border-l border-border/80 shadow-2xl overflow-y-auto p-6">
-                <SheetHeader className="mb-6">
-                    <SheetTitle className="font-semibold text-base text-foreground">Registrar Cobro — Hab. #{reserva.habitacion_numero}</SheetTitle>
-                </SheetHeader>
-                <div className="space-y-6">
-                    {/* Resumen */}
-                    <div className="bg-secondary/50 border border-border/50 rounded-xl p-4 text-sm space-y-1.5">
-                        <div className="flex justify-between"><span className="text-muted-foreground">Huésped</span><span className="font-semibold">{reserva.huesped_nombre}</span></div>
-                        <div className="flex justify-between"><span className="text-muted-foreground">Habitación</span><span className="font-semibold">#{reserva.habitacion_numero} ({reserva.habitacion_tipo})</span></div>
-                        <div className="flex justify-between"><span className="text-muted-foreground">Noches</span><span className="font-semibold">{reserva.noches}</span></div>
-                        <div className="flex justify-between"><span className="text-muted-foreground">S/ {reserva.precio_noche} × {reserva.noches}</span><span className="font-semibold">S/ {totalCalc.total_estadia.toFixed(2)}</span></div>
-                        {totalCalc.descuento > 0 && (
-                            <div className="flex justify-between text-red-500"><span className="text-muted-foreground text-red-400">Descuento</span><span className="font-semibold">-S/ {totalCalc.descuento.toFixed(2)}</span></div>
-                        )}
-                        {igvCalc.igv > 0 && (
-                            <div className="flex justify-between text-xs pt-1 border-t border-border/30 mt-1">
-                                <span className="text-muted-foreground">Base imponible</span><span className="font-semibold">S/ {igvCalc.base_imponible.toFixed(2)}</span>
-                            </div>
-                        )}
-                        {igvCalc.igv > 0 && (
-                            <div className="flex justify-between text-xs">
-                                <span className="text-muted-foreground">IGV (18%)</span><span className="font-semibold">S/ {igvCalc.igv.toFixed(2)}</span>
-                            </div>
-                        )}
+            <SheetContent side="right" className="flex h-[100dvh] w-full flex-col overflow-hidden border-l border-border/80 p-0 shadow-2xl glass-panel sm:max-w-lg">
+                <div className="shrink-0 border-b border-border/70 bg-background/95 p-4 pr-12 backdrop-blur sm:p-5 sm:pr-12">
+                    <SheetHeader className="space-y-1 text-left">
+                        <SheetTitle className="font-semibold text-base text-foreground">Registrar Cobro — Hab. #{reserva.habitacion_numero}</SheetTitle>
+                        <p className="text-xs text-muted-foreground">Revisa la cuenta antes de confirmar la liquidación.</p>
+                    </SheetHeader>
+                    <div className="mt-4">
+                        <CheckoutProgress current="payment" />
                     </div>
+                </div>
 
-                    {/* Descuento */}
-                    <div className="grid grid-cols-2 gap-3">
-                        <div className="space-y-1">
-                            <Label className="text-xs font-semibold text-muted-foreground/80 uppercase tracking-wider ml-1">Descuento Manual (S/)</Label>
-                            <Input type="number" min={0} value={descuento} onChange={e => setDescuento(Number(e.target.value))} className="h-10 rounded-lg bg-background/50" />
+                <div className="flex-1 space-y-5 overflow-y-auto p-4 sm:p-5">
+                    <section aria-labelledby="checkout-resumen" className="space-y-3">
+                        <div className="flex items-center gap-2">
+                            <ReceiptText className="h-4 w-4 text-primary" />
+                            <h3 id="checkout-resumen" className="text-sm font-semibold text-foreground">Resumen de la cuenta</h3>
                         </div>
-                        <div className="space-y-1">
-                            <Label className="text-xs font-semibold text-muted-foreground/80 uppercase tracking-wider ml-1">Método de pago</Label>
-                            <Select value={metodo} onValueChange={setMetodo}>
-                                <SelectTrigger className="h-10 rounded-lg bg-background/50"><SelectValue /></SelectTrigger>
-                                <SelectContent>
-                                    {METODOS_UI.map(m => (
-                                        <SelectItem key={m.value} value={m.value} className="capitalize">{m.label}</SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
+                        <div className="rounded-xl border border-border/60 bg-secondary/30 p-4 text-sm">
+                            <div className="flex items-start justify-between gap-4 border-b border-border/50 pb-3">
+                                <div className="min-w-0">
+                                    <p className="truncate font-semibold text-foreground">{reserva.huesped_nombre}</p>
+                                    <p className="mt-0.5 text-xs text-muted-foreground">Habitación #{reserva.habitacion_numero} · {reserva.habitacion_tipo}</p>
+                                </div>
+                                <span className="shrink-0 rounded-full bg-background px-2.5 py-1 text-xs font-semibold">{reserva.noches} {reserva.noches === 1 ? 'noche' : 'noches'}</span>
+                            </div>
+                            <div className="space-y-2 pt-3">
+                                <div className="flex justify-between gap-4">
+                                    <span className="text-muted-foreground">Estadía · S/ {Number(reserva.precio_noche || 0).toFixed(2)} × {reserva.noches}</span>
+                                    <span className="font-semibold tabular-nums">S/ {totalCalc.total_estadia.toFixed(2)}</span>
+                                </div>
+                                {totalConsumos > 0 && (
+                                    <div className="flex justify-between gap-4">
+                                        <span className="text-muted-foreground">Consumos adicionales</span>
+                                        <span className="font-semibold tabular-nums">S/ {totalConsumos.toFixed(2)}</span>
+                                    </div>
+                                )}
+                                {totalCalc.descuento > 0 && (
+                                    <div className="flex justify-between gap-4 text-rose-600 dark:text-rose-400">
+                                        <span>Descuento aplicado</span>
+                                        <span className="font-semibold tabular-nums">-S/ {totalCalc.descuento.toFixed(2)}</span>
+                                    </div>
+                                )}
+                                {igvCalc.igv > 0 && (
+                                    <>
+                                        <div className="flex justify-between gap-4 border-t border-border/40 pt-2 text-xs">
+                                            <span className="text-muted-foreground">Base imponible</span>
+                                            <span className="font-semibold tabular-nums">S/ {igvCalc.base_imponible.toFixed(2)}</span>
+                                        </div>
+                                        <div className="flex justify-between gap-4 text-xs">
+                                            <span className="text-muted-foreground">IGV (18%)</span>
+                                            <span className="font-semibold tabular-nums">S/ {igvCalc.igv.toFixed(2)}</span>
+                                        </div>
+                                    </>
+                                )}
+                            </div>
                         </div>
-                    </div>
+                    </section>
+
+                    <section aria-labelledby="checkout-pago" className="space-y-3">
+                        <div className="flex items-center justify-between gap-3">
+                            <div className="flex items-center gap-2">
+                                <ShieldCheck className="h-4 w-4 text-primary" />
+                                <h3 id="checkout-pago" className="text-sm font-semibold text-foreground">Forma de pago</h3>
+                            </div>
+                            <span className="text-[11px] font-medium text-muted-foreground">Selecciona una opción</span>
+                        </div>
+                        <div className="grid grid-cols-2 gap-2 sm:grid-cols-3" role="radiogroup" aria-label="Método de pago">
+                            {METODOS_UI.map(paymentMethod => {
+                                const PaymentIcon = paymentMethod.icon;
+                                const selected = metodo === paymentMethod.value;
+                                return (
+                                    <button
+                                        key={paymentMethod.value}
+                                        type="button"
+                                        role="radio"
+                                        aria-checked={selected}
+                                        onClick={() => setMetodo(paymentMethod.value)}
+                                        className={`flex min-h-12 items-center justify-center gap-2 rounded-lg border px-2 text-xs font-semibold transition-colors ${selected ? 'border-primary/40 bg-primary/10 text-primary ring-1 ring-primary/15' : 'border-border/70 bg-background text-muted-foreground hover:bg-muted/40 hover:text-foreground'}`}
+                                    >
+                                        <PaymentIcon className="h-4 w-4" />
+                                        <span className="truncate">{paymentMethod.label}</span>
+                                    </button>
+                                );
+                            })}
+                        </div>
+                        <div className="space-y-1.5">
+                            <Label htmlFor="checkout-discount" className="text-[11px] font-semibold text-muted-foreground">Descuento manual (S/)</Label>
+                            <Input id="checkout-discount" type="number" min={0} value={descuento} onChange={e => setDescuento(Math.max(0, Number(e.target.value)))} className="h-10 rounded-lg bg-background/60" />
+                        </div>
+                    </section>
 
                     {/* Tarjeta de Fidelidad por Puntos (Regla 2 & 6) */}
                     {isLoyaltyEnabled && (
@@ -323,12 +413,6 @@ const RegistrarVentaModal = memo(function RegistrarVentaModal({ reserva, onClose
                             )}
                         </div>
                     )}
-
-                    {/* Total */}
-                    <div className="bg-primary/5 border border-primary/20 rounded-xl p-4 flex justify-between items-center">
-                        <span className="font-semibold text-foreground">TOTAL A COBRAR</span>
-                        <span className="text-2xl font-bold text-primary">S/ {totalCalc.total_final.toFixed(2)}</span>
-                    </div>
 
                     {/* QR Yape / Plin con Confirmación */}
                     {METODOS_CON_REFERENCIA.includes(metodo) && (
@@ -392,17 +476,24 @@ const RegistrarVentaModal = memo(function RegistrarVentaModal({ reserva, onClose
                         )
                     )}
 
-                    {/* Comprobante SUNAT */}
-                    <div className="border border-border rounded-xl p-4 space-y-3">
-                        <p className="text-sm font-semibold text-foreground">¿El cliente requiere comprobante?</p>
+                    <section aria-labelledby="checkout-comprobante" className="border border-border rounded-xl p-4 space-y-3">
+                        <div className="flex items-center gap-2">
+                            <ReceiptText className="h-4 w-4 text-primary" />
+                            <h3 id="checkout-comprobante" className="text-sm font-semibold text-foreground">Comprobante</h3>
+                        </div>
+                        <p className="text-xs text-muted-foreground">¿El cliente requiere comprobante electrónico?</p>
                         <div className="flex gap-3">
                             <button
+                                type="button"
+                                aria-pressed={!requiereComprobante}
                                 onClick={() => setRequiereComprobante(false)}
                                 className={`flex-1 h-10 rounded-lg border text-xs font-semibold transition-[transform,opacity] ${!requiereComprobante ? 'border-primary bg-primary/5 text-primary' : 'border-border text-muted-foreground'}`}
                             >
                                 No — Ticket rápido
                             </button>
                             <button
+                                type="button"
+                                aria-pressed={requiereComprobante}
                                 onClick={() => setRequiereComprobante(true)}
                                 className={`flex-1 h-10 rounded-lg border text-xs font-semibold transition-[transform,opacity] ${requiereComprobante ? 'border-blue-500 bg-blue-50 text-blue-700' : 'border-border text-muted-foreground'}`}
                             >
@@ -453,15 +544,36 @@ const RegistrarVentaModal = memo(function RegistrarVentaModal({ reserva, onClose
                                 </div>
                             </div>
                         )}
-                    </div>
+                    </section>
+                </div>
 
-                    <div className="flex gap-3">
-                        <Button 
-                            className="flex-1 h-12 rounded-xl text-sm font-extrabold uppercase tracking-widest shadow-lg shadow-primary/20 hover:shadow-primary/30 active:scale-95 transition-all" 
-                            disabled={isPending || (config.modo_automatico && METODOS_CON_REFERENCIA.includes(metodo) && !webhookSuccess) || (METODOS_CON_REFERENCIA.includes(metodo) && !codigoReferencia.trim() && !config.modo_automatico)}
+                <div className="shrink-0 border-t border-border/70 bg-background/95 p-3 backdrop-blur sm:p-4">
+                    <div className="mb-3 flex items-center justify-between gap-4">
+                        <div>
+                            <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Total a cobrar</p>
+                            <p className="text-2xl font-bold tabular-nums text-primary">S/ {totalCalc.total_final.toFixed(2)}</p>
+                        </div>
+                        <div className="text-right text-xs text-muted-foreground">
+                            <p className="font-semibold capitalize text-foreground">{METODOS_UI.find(item => item.value === metodo)?.label}</p>
+                            <p>{requiereComprobante ? tipoComprobante : 'Ticket interno'}</p>
+                        </div>
+                    </div>
+                    {checkoutIssue && (
+                        <p className="mb-3 flex items-start gap-2 rounded-lg bg-amber-500/10 px-3 py-2 text-[11px] font-medium text-amber-700 dark:text-amber-400" role="status">
+                            <CircleAlert className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+                            {checkoutIssue}
+                        </p>
+                    )}
+                    <div className="grid grid-cols-[auto_1fr] gap-2">
+                        <Button variant="outline" className="h-11 rounded-lg px-4" disabled={isPending} onClick={onClose}>
+                            Cancelar
+                        </Button>
+                        <Button
+                            className="h-11 rounded-lg text-sm font-semibold shadow-md shadow-primary/15"
+                            disabled={isPending || !!checkoutIssue}
                             onClick={() => registrarPago.mutate()}
                         >
-                            {isPending ? 'Procesando...' : config.modo_automatico && METODOS_CON_REFERENCIA.includes(metodo) ? (webhookSuccess ? 'Cobro Exitoso' : 'Esperando Pago...') : 'Confirmar Cobro Manual'}
+                            {isPending ? <><Loader2 className="h-4 w-4 animate-spin" /> Procesando…</> : `Confirmar cobro · S/ ${totalCalc.total_final.toFixed(2)}`}
                         </Button>
                     </div>
                 </div>

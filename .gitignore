@@ -33,11 +33,6 @@ skills-lock.json
 !.env.example
 .env*.local
 
-# Generated reports
-coverage/
-playwright-report/
-test-results/
-
 # Logs
 /logs
 *.log
@@ -63,6 +58,11 @@ dist-ssr
 
 # Infrastructure
 .vercel
+.supabase/
+.pnpm-store/
+
+# Repository-local AI tooling
+.github/prompts/
 
 # Windows reserved files
 nul

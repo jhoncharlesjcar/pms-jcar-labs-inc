@@ -13,10 +13,11 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useHotelData } from '@/hooks/use-hotel-data';
+import { downloadCsv } from '@/lib/csv';
 import { cn } from '@/lib/utils';
 import { useGsapStaggerList } from '@/hooks/useGsapStaggerList';
 import { format, startOfDay, endOfDay, startOfMonth, endOfMonth, startOfYear, endOfYear, isWithinInterval, parseISO } from 'date-fns';
-// jsPDF y XLSX se importan dinámicamente para evitar cargarlos en todas las páginas
+// jsPDF se importa dinámicamente para evitar cargarlo en todas las páginas.
 
 // ─── Funciones puras desde el servicio de Ventas ──────────────────────────
 import { consolidarVentas } from '@/services/ventas.service';
@@ -32,13 +33,13 @@ const Reportes = memo(function Reportes() {
     const [fechaFin, setFechaFin] = useState(format(endOfMonth(new Date()), 'yyyy-MM-dd'));
 
     // Consultas de datos
-    const { data: ventasHotel = [], isLoading: loadHotel } = useQuery({
+    const { data: ventasHotel = [] } = useQuery({
         queryKey: ['ventas', hotelId],
         queryFn: () => hotelDb.Venta.list(),
         enabled: !!hotelId,
     });
 
-    const { data: ventasPOS = [], isLoading: loadPOS } = useQuery({
+    const { data: ventasPOS = [] } = useQuery({
         queryKey: ['ventaspos', hotelId],
         queryFn: () => hotelDb.VentaPOS.list(),
         enabled: !!hotelId,
@@ -157,26 +158,16 @@ const Reportes = memo(function Reportes() {
     };
 
     const exportarExcel = async () => {
-        const XLSX = await import('xlsx');
-        const data = filtradas.map(v => ({
-            Fecha: v.fecha_pago.split('T')[0],
-            Ticket: v.numero_ticket,
-            Cliente: v.huesped_nombre || 'Cliente Mostrador',
-            Tipo: v._tipo,
-            'Método Pago': v.metodo_pago,
-            Total: Number(v.total)
-        }));
-
-        const ws = XLSX.utils.json_to_sheet(data);
-        const wb = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(wb, ws, "Reporte Ventas");
-        XLSX.writeFile(wb, `Reporte_Ventas_${fechaInicio}_${fechaFin}.xlsx`);
+        downloadCsv(`Reporte_Ventas_${fechaInicio}_${fechaFin}.csv`,
+            ['Fecha', 'Ticket', 'Cliente', 'Tipo', 'Método Pago', 'Total'],
+            filtradas.map(v => [v.fecha_pago.split('T')[0], v.numero_ticket, v.huesped_nombre || 'Cliente Mostrador', v._tipo, v.metodo_pago, Number(v.total)])
+        );
     };
 
     return (
-        <div ref={mainRef} className="pt-1 sm:pt-2 pb-6 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto space-y-4 page-enter">
+        <div ref={mainRef} className="page-shell page-enter mx-auto max-w-7xl pt-1 sm:pt-2">
 
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-card/40 backdrop-blur-xl border border-border/40 p-4 rounded-xl shadow-sm">
+            <div className="enterprise-card section-card ui-card-pad page-header shadow-sm sm:items-center">
                 <div>
                     <div className="flex items-center gap-3">
                         <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center border border-primary/20 shadow-xs">
@@ -189,16 +180,16 @@ const Reportes = memo(function Reportes() {
                     </div>
                 </div>
                 <div className="flex items-center gap-2">
-                    <Button onClick={exportarExcel} variant="outline" className="h-9 rounded-md gap-1.5 px-4 border-border/40 bg-card/40 text-[10px] font-extrabold uppercase tracking-widest hover:bg-emerald-500/10 hover:text-emerald-600 dark:hover:text-emerald-400 hover:border-emerald-500/30 active:scale-95 transition-all shadow-xs">
-                        <TableIcon className="w-3.5 h-3.5 text-emerald-500" /> Excel
+                    <Button onClick={exportarExcel} variant="outline" className="gap-1.5 border-border/40 px-4 text-[10px] font-extrabold uppercase tracking-widest hover:border-emerald-500/30 hover:bg-emerald-500/10 hover:text-emerald-600 dark:hover:text-emerald-400">
+                        <TableIcon className="w-3.5 h-3.5 text-emerald-500" /> CSV
                     </Button>
-                    <Button onClick={exportarPDF} className="h-9 rounded-md gap-1.5 px-4 shadow-md text-[10px] font-extrabold uppercase tracking-widest active:scale-95 transition-all">
+                    <Button onClick={exportarPDF} className="gap-1.5 px-4 text-[10px] font-extrabold uppercase tracking-widest">
                         <Download className="w-3.5 h-3.5" /> PDF
                     </Button>
                 </div>
             </div>
 
-            <div className="bg-card/40 backdrop-blur-xl p-4 sm:p-5 rounded-xl border border-border/40 shadow-sm space-y-3">
+            <div className="enterprise-card section-card ui-card-pad space-y-3 shadow-sm">
                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
                     <div className="space-y-1.5">
                         <label className="text-[9px] font-black text-muted-foreground uppercase tracking-widest ml-1">Periodo</label>
@@ -253,7 +244,7 @@ const Reportes = memo(function Reportes() {
                 </div>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 mt-4">
+            <div className="ui-card-grid grid grid-cols-1 sm:grid-cols-3">
                 {[
                     { label: 'Ingresos Totales', val: stats.total, icon: Wallet, color: 'text-emerald-500', bg: 'bg-emerald-500/10' },
                     { label: 'Ventas Hotel', val: stats.hotel, icon: Hotel, color: 'text-blue-500', bg: 'bg-blue-500/10' },
@@ -261,7 +252,7 @@ const Reportes = memo(function Reportes() {
                 ].map((stat) => (
                     <div 
                         key={stat.label}
-                        className="bg-card/40 backdrop-blur-xl border border-border/40 p-4 rounded-xl shadow-sm relative overflow-hidden group hover:-translate-y-1 hover:shadow-md transition-all"
+                        className="enterprise-card metric-card ui-card-pad group relative overflow-hidden transition-all hover:-translate-y-1 hover:shadow-md"
                     >
                         <div className="flex justify-between items-start mb-3">
                             <div className={cn("w-8 h-8 rounded-lg flex items-center justify-center font-bold flex-shrink-0 group-hover:scale-105 transition-transform shadow-xs", stat.bg)}>
@@ -279,8 +270,8 @@ const Reportes = memo(function Reportes() {
                 ))}
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mt-2">
-                <div className="lg:col-span-2 bg-card/40 backdrop-blur-xl p-4 sm:p-5 rounded-xl border border-border/40 shadow-sm flex flex-col justify-between min-h-[300px] sm:min-h-[350px] overflow-hidden group hover:shadow-md transition-all">
+            <div className="ui-card-grid grid grid-cols-1 lg:grid-cols-3">
+                <div className="enterprise-card section-card ui-card-pad group flex min-h-[300px] flex-col justify-between overflow-hidden transition-all hover:shadow-md sm:min-h-[350px] lg:col-span-2">
                     <div className="flex items-center justify-between mb-4">
                         <h3 className="font-extrabold text-sm sm:text-base tracking-tight text-foreground flex items-center gap-2">
                             <TrendingUp className="w-4 h-4 text-primary" /> Curva de Ingresos
@@ -304,7 +295,7 @@ const Reportes = memo(function Reportes() {
                     </div>
                 </div>
 
-                <div className="bg-card/40 backdrop-blur-xl p-4 sm:p-5 rounded-xl border border-border/40 shadow-sm flex flex-col justify-between min-h-[300px] sm:min-h-[350px] overflow-hidden group hover:shadow-md transition-all">
+                <div className="enterprise-card section-card ui-card-pad group flex min-h-[300px] flex-col justify-between overflow-hidden transition-all hover:shadow-md sm:min-h-[350px]">
                     <h3 className="font-extrabold text-sm sm:text-base tracking-tight text-foreground mb-4 flex items-center gap-2">
                         <Wallet className="w-4 h-4 text-primary" /> Métodos de Pago
                     </h3>

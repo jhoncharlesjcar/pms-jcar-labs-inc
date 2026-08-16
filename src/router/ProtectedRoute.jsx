@@ -3,32 +3,17 @@ import { Navigate, useLocation, Link } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { ShieldAlert, LogOut, ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-
-// Mapeo de rutas a roles permitidos
-// Si una ruta no se encuentra aquí, se asume accesible por admin y developer
-const ROUTE_ROLE_MAP = {
-    '/': ['admin', 'developer'],
-    '/dev': ['developer'],
-    '/configuracion': ['admin', 'developer'],
-    '/caja': ['admin', 'developer', 'recepcionista'],
-    '/reportes': ['admin', 'developer', 'recepcionista'],
-    '/ventas': ['admin', 'developer', 'recepcionista'],
-    '/recepcion': ['admin', 'developer', 'recepcionista'],
-    '/huespedes': ['admin', 'developer', 'recepcionista'],
-    '/pos': ['admin', 'developer', 'recepcionista'],
-    '/habitaciones': ['admin', 'developer', 'recepcionista', 'limpieza'],
-    '/limpieza': ['admin', 'developer', 'recepcionista', 'limpieza'],
-};
+import { canAccessPath, getRoleHome } from '@/constants/permissions';
 
 const ProtectedRoute = memo(function ProtectedRoute({ children }) {
-    const { user, db } = useAuth();
+    const { user, auth } = useAuth();
     const location = useLocation();
 
     if (!user) {
         return <Navigate to="/login" replace state={{ from: location }} />;
     }
 
-    const userRole = user.role || 'recepcionista';
+    const userRole = user.role;
     const currentPath = location.pathname;
 
     // Redirección inteligente: si el rol es limpieza y entra a '/', redirigir a '/limpieza'
@@ -40,10 +25,8 @@ const ProtectedRoute = memo(function ProtectedRoute({ children }) {
     }
 
     // Buscar si el path actual requiere roles específicos
-    const allowedRoles = ROUTE_ROLE_MAP[currentPath];
-
-    // Si tiene restricciones y el rol del usuario no está permitido:
-    if (allowedRoles && !allowedRoles.includes(userRole)) {
+    // Si el rol del usuario no está permitido:
+    if (!canAccessPath(userRole, currentPath)) {
         return (
             <div className="min-h-[80vh] flex items-center justify-center p-6 select-none">
                 <div className="max-w-md w-full bg-card/40 backdrop-blur-3xl border border-red-500/20 rounded-[2.5rem] p-8 text-center shadow-2xl relative overflow-hidden"
@@ -62,7 +45,7 @@ const ProtectedRoute = memo(function ProtectedRoute({ children }) {
                     </p>
 
                     <div className="flex flex-col gap-3">
-                        <Link to={userRole === 'limpieza' ? '/limpieza' : '/'}>
+                        <Link to={getRoleHome(userRole)}>
                             <Button className="w-full gap-2 h-12 rounded-xl text-sm font-bold shadow-lg shadow-primary/10">
                                 <ArrowLeft className="w-4 h-4" /> Volver al Inicio
                             </Button>
@@ -71,7 +54,7 @@ const ProtectedRoute = memo(function ProtectedRoute({ children }) {
                         <Button
                             variant="ghost"
                             className="w-full gap-2 h-12 rounded-xl text-sm font-bold text-muted-foreground hover:text-red-500 hover:bg-red-500/10"
-                            onClick={() => db.auth.logout()}
+                            onClick={() => auth.logout()}
                         >
                             <LogOut className="w-4 h-4" /> Cerrar Sesión
                         </Button>

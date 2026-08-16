@@ -228,52 +228,53 @@ const Habitaciones = memo(function Habitaciones() {
     });
 
     return (
-        <div className="space-y-6">
+        <div className="page-shell">
 
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                <div>
-                    <h1 className="text-2xl sm:text-3xl font-bold text-foreground tracking-tight">Habitaciones</h1>
-                    <p className="text-sm text-muted-foreground mt-1">{habitaciones.length} habitaciones registradas</p>
+            <div className="page-header sm:items-center">
+                <div className="flex items-center gap-3.5">
+                    <div className="hidden h-12 w-12 items-center justify-center rounded-2xl border border-primary/15 bg-primary/[0.07] text-primary shadow-sm sm:flex">
+                        <BedDouble className="h-5 w-5" />
+                    </div>
+                    <div>
+                        <p className="mb-1 text-[10px] font-extrabold uppercase tracking-[0.16em] text-primary/75">Inventario operativo</p>
+                        <h1 className="text-3xl font-extrabold tracking-[-0.045em] text-foreground sm:text-[2.15rem]">Habitaciones</h1>
+                        <p className="mt-1 text-sm font-medium text-muted-foreground">{habitaciones.length} unidades registradas · disponibilidad en tiempo real</p>
+                    </div>
                 </div>
                 <div className="w-full sm:w-auto">
-                    <Button onClick={openNew} className="w-full sm:w-auto gap-2 shadow-sm h-9 rounded-md text-sm font-medium px-4 transition-transform active:scale-95">
+                    <Button onClick={openNew} className="w-full gap-2 px-5 sm:w-auto">
                         <Plus className="w-4 h-4" /> Nueva Habitación
                     </Button>
                 </div>
             </div>
-            <div className="space-y-3">
-                <div className="bg-card p-1.5 rounded-lg border border-border/80 mb-6 sticky top-0 z-10 lg:relative shadow-xs w-full max-w-full overflow-hidden">
-                    <div className="flex gap-1 overflow-x-auto scrollbar-hide no-scrollbar w-full">
+            <div>
+                <div className="room-filter-bar no-scrollbar sticky top-0 z-10 w-full max-w-full lg:relative">
+                    <div className="no-scrollbar flex w-full gap-1 overflow-x-auto">
                         <button
                             onClick={() => setFiltroEstado('todos')}
                             className={cn(
-                                "flex-none lg:flex-1 min-w-[100px] py-1.5 px-3 rounded text-[11px] font-semibold uppercase tracking-wider transition-all duration-200 active:scale-95 whitespace-nowrap flex flex-col items-center gap-0.5",
-                                filtroEstado === 'todos' ? "bg-primary text-white shadow-xs" : "text-muted-foreground hover:bg-secondary/20"
+                                "flex min-h-11 min-w-[128px] flex-none items-center justify-center gap-2 rounded-xl px-3.5 text-[11px] font-bold transition-all duration-200 active:scale-95 whitespace-nowrap lg:flex-1",
+                                filtroEstado === 'todos' ? "bg-primary text-primary-foreground shadow-sm" : "text-muted-foreground hover:bg-muted/75 hover:text-foreground"
                             )}
                         >
-                            <span className="opacity-70"><BedDouble className="w-3.5 h-3.5" /></span>
-                            <span>Todas ({habitaciones.length})</span>
+                            <BedDouble className="h-4 w-4 opacity-80" />
+                            <span>Todas</span>
+                            <span className={cn("rounded-full px-2 py-0.5 text-[9px] tabular-nums", filtroEstado === 'todos' ? "bg-white/15 text-white" : "bg-muted text-muted-foreground")}>{habitaciones.length}</span>
                         </button>
                         {Object.entries(estadoConfig).map(([key, cfg]) => {
                             const count = habitaciones.filter(h => h.estado === key).length;
-                            const activeColors = {
-                                disponible: "bg-green-600 text-white shadow-xs",
-                                ocupada: "bg-red-600 text-white shadow-xs",
-                                reservada: "bg-blue-600 text-white shadow-xs",
-                                mantenimiento: "bg-amber-600 text-white shadow-xs",
-                                limpieza: "bg-purple-600 text-white shadow-xs"
-                            };
                             return (
                                 <button
                                     key={key}
                                     onClick={() => setFiltroEstado(key)}
                                     className={cn(
-                                        "flex-none lg:flex-1 min-w-[100px] py-1.5 px-3 rounded text-[11px] font-semibold uppercase tracking-wider transition-all duration-200 active:scale-95 whitespace-nowrap flex flex-col items-center gap-0.5",
-                                        filtroEstado === key ? activeColors[key] : "text-muted-foreground hover:bg-secondary/20"
+                                        "flex min-h-11 min-w-[128px] flex-none items-center justify-center gap-2 rounded-xl px-3.5 text-[11px] font-bold transition-all duration-200 active:scale-95 whitespace-nowrap lg:flex-1",
+                                        filtroEstado === key ? "bg-primary text-primary-foreground shadow-sm" : "text-muted-foreground hover:bg-muted/75 hover:text-foreground"
                                     )}
                                 >
-                                    <span className="opacity-70"><cfg.icon className="w-3.5 h-3.5" /></span>
-                                    <span>{cfg.label} ({count})</span>
+                                    <cfg.icon className={cn("h-4 w-4", filtroEstado === key ? "opacity-80" : cfg.color)} />
+                                    <span>{cfg.label}</span>
+                                    <span className={cn("rounded-full px-2 py-0.5 text-[9px] tabular-nums", filtroEstado === key ? "bg-white/15 text-white" : "bg-muted text-muted-foreground")}>{count}</span>
                                 </button>
                             );
                         })}
@@ -292,31 +293,27 @@ const Habitaciones = memo(function Habitaciones() {
                     action={filtroEstado !== 'todos' ? null : { label: 'Nueva Habitación', icon: Plus, onClick: openNew }}
                 />
             ) : (
-                <div ref={gridRef} className="space-y-10">
+                <div ref={gridRef} className="space-y-8">
                     {pisosOrdenados.map((piso) => (
-                        <div key={piso} className="space-y-4">
+                        <section key={piso} className="space-y-3.5">
                             {/* Floor Header */}
-                            <div className="flex items-center gap-4 py-2 border-b border-border/50 mb-2">
-                                <h2 className="text-lg font-display font-bold tracking-tight text-foreground whitespace-nowrap">
-                                    {piso === 'Sin Piso' ? 'Sin Asignar' : `Piso ${piso}`}
-                                </h2>
-                                <div className="h-px bg-border/80 flex-1" />
-                                <span className="text-xs font-medium text-muted-foreground bg-muted/30 px-2 py-1 rounded-md">
-                                    {agrupadasPorPiso[piso].length} habs.
+                            <div className="flex items-center gap-3">
+                                <span className="flex h-8 min-w-8 items-center justify-center rounded-lg border border-secondary/25 bg-secondary/10 px-2 text-[11px] font-extrabold text-foreground tabular-nums">
+                                    {piso === 'Sin Piso' ? '—' : String(piso).padStart(2, '0')}
                                 </span>
+                                <div className="min-w-0">
+                                    <h2 className="whitespace-nowrap text-sm font-extrabold tracking-tight text-foreground">
+                                        {piso === 'Sin Piso' ? 'Sin asignar' : `Piso ${piso}`}
+                                    </h2>
+                                    <p className="text-[10px] font-semibold text-muted-foreground">{agrupadasPorPiso[piso].length} habitaciones</p>
+                                </div>
+                                <div className="h-px flex-1 bg-border/70" />
                             </div>
 
                             {/* Floor Grid */}
-                            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-3 sm:gap-4">
+                            <div className="room-card-grid">
                                 {agrupadasPorPiso[piso].map(h => {
                                     const cfg = estadoConfig[h.estado] || estadoConfig.disponible;
-                                    const stateNumberColors = {
-                                        disponible: 'text-green-600 dark:text-green-400',
-                                        ocupada: 'text-red-600 dark:text-red-400',
-                                        reservada: 'text-blue-600 dark:text-blue-400',
-                                        mantenimiento: 'text-amber-600 dark:text-amber-400',
-                                        limpieza: 'text-purple-600 dark:text-purple-400',
-                                    };
                                     const stateIconWrapperColors = {
                                         disponible: 'bg-green-500/10 text-green-600 dark:text-green-400',
                                         ocupada: 'bg-red-500/10 text-red-600 dark:text-red-400',
@@ -325,88 +322,81 @@ const Habitaciones = memo(function Habitaciones() {
                                         limpieza: 'bg-purple-500/10 text-purple-600 dark:text-purple-400',
                                     };
                                     const StateIcon = cfg.icon;
+                                    const roomAmenities = AMENITIES_MAP.filter(a => parseAmenities(h.descripcion)[a.id]);
 
                                     return (
-                                        <div
-                                            key={h.id} 
-                                            className={cn(
-                                                "group relative overflow-hidden rounded-xl border border-border p-5 flex flex-col justify-between transition-all duration-300 ease-out hover:-translate-y-1 hover:shadow-md min-h-[140px]",
-                                                "bg-card"
-                                            )}
+                                        <article
+                                            key={h.id}
+                                            data-state={h.estado}
+                                            className="room-card group flex flex-col justify-between"
                                         >
-                                            {/* Encabezado de Tarjeta: Ícono y Número */}
-                                            <div className="flex items-start justify-between w-full">
-                                                <div className={cn(
-                                                    "p-1.5 rounded flex items-center justify-center shadow-sm",
-                                                    stateIconWrapperColors[h.estado] || stateIconWrapperColors.disponible
-                                                )}>
-                                                    <StateIcon className="w-3.5 h-3.5" />
+                                            <div className="flex items-center justify-between gap-2">
+                                                <div className="flex min-w-0 items-center gap-2">
+                                                    <div className={cn(
+                                                        "flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl border border-current/10",
+                                                        stateIconWrapperColors[h.estado] || stateIconWrapperColors.disponible
+                                                    )}>
+                                                        <StateIcon className="h-4 w-4" />
+                                                    </div>
+                                                    <StatusBadge status={h.estado} label={cfg.label} showIcon={false} className="rounded-full px-2 py-1 text-[9px] font-extrabold tracking-[0.08em]" />
                                                 </div>
-                                                <p className={cn(
-                                                    "text-xl font-bold tracking-tight tabular-nums",
-                                                    stateNumberColors[h.estado] || stateNumberColors.disponible
-                                                )}>
-                                                    {h.numero}
-                                                </p>
-                                            </div>
-
-                                            {/* Contenido Central: Tipo y Precio */}
-                                            <div className="flex flex-col gap-1 mt-2.5 w-full text-left">
-                                                <p className="text-[11px] text-muted-foreground capitalize font-medium">
-                                                    {h.tipo}
-                                                </p>
-                                                <p className="text-sm font-bold text-foreground tabular-nums">
-                                                    S/ {h.precio_noche ?? h.precio ?? 0} <span className="text-[10px] font-normal text-muted-foreground">/ noche</span>
-                                                </p>
-                                            </div>
-
-                                            {/* Footer: Badge y Amenities */}
-                                            <div className="flex items-center justify-between w-full mt-3">
-                                                <StatusBadge status={h.estado} label={cfg.label} className="text-[9px] font-semibold uppercase tracking-wider px-1.5 py-0.5 rounded" />
-                                                <div className="flex gap-1 text-muted-foreground/60">
-                                                    {AMENITIES_MAP.map(a => {
-                                                        const Icon = a.icon;
-                                                        return parseAmenities(h.descripcion)[a.id] ? (
-                                                            <span key={a.id} title={a.label} className="bg-secondary/30 p-1 rounded-md">
-                                                                <Icon className="w-3 h-3" />
-                                                            </span>
-                                                        ) : null;
-                                                    })}
-                                                </div>
-                                            </div>
-
-                                            {/* Acciones flotantes en hover */}
-                                            <div className="absolute inset-x-0 bottom-0 p-1.5 z-20 opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-all duration-300 translate-y-2 lg:translate-y-4 lg:group-hover:translate-y-0">
-                                                <div className="flex gap-1.5 p-1 bg-background/95 backdrop-blur-xl border border-border/50 rounded-lg shadow-md w-full">
-                                                    <button aria-label={`Editar habitación ${h.numero}`} onClick={() => openEdit(h)} className="flex-1 text-[11px] py-1.5 rounded-md bg-foreground/5 hover:bg-foreground/10 text-foreground font-bold flex items-center justify-center gap-1.5 transition-colors active:scale-95">
-                                                        <Pencil className="w-3 h-3 text-primary" /> <span>Editar</span>
+                                                <div className="flex items-center gap-1">
+                                                    <button aria-label={`Editar habitación ${h.numero}`} title="Editar habitación" onClick={() => openEdit(h)} className="flex h-9 w-9 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-primary/10 hover:text-primary">
+                                                        <Pencil className="h-3.5 w-3.5" />
                                                     </button>
-                                                    <button 
+                                                    <button
                                                         aria-label={`Eliminar habitación ${h.numero}`}
+                                                        title="Eliminar habitación"
                                                         onClick={() => {
                                                             const reservasHab = reservasActivas.filter(
                                                                 r => r.habitacion_id === h.id && ['activa', 'pendiente'].includes(r.estado)
                                                             );
                                                             const { permite, error } = puedeEliminarHabitacion(reservasHab.length);
-                                                            
+
                                                             if (!permite) {
                                                                 toast.error(error);
                                                                 return;
                                                             }
 
                                                             setDeleteTarget(h);
-                                                        }} 
-                                                        className="w-8 h-8 shrink-0 rounded-md bg-background/90 hover:bg-red-500/10 backdrop-blur-sm transition-all text-muted-foreground hover:text-red-500 border border-border/60 shadow-sm flex items-center justify-center active:scale-95"
+                                                        }}
+                                                        className="flex h-9 w-9 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-red-500/10 hover:text-red-500"
                                                     >
-                                                        <Trash2 className="w-3.5 h-3.5" />
+                                                        <Trash2 className="h-3.5 w-3.5" />
                                                     </button>
                                                 </div>
                                             </div>
-                                        </div>
+
+                                            <div className="my-4 flex items-end justify-between gap-4">
+                                                <div className="min-w-0">
+                                                    <p className="mb-1 text-[9px] font-extrabold uppercase tracking-[0.15em] text-muted-foreground">Habitación</p>
+                                                    <p className="room-card-number font-extrabold text-foreground">{h.numero}</p>
+                                                    <p className="mt-1.5 truncate text-[11px] font-semibold capitalize text-muted-foreground">{h.tipo}{h.piso ? ` · Piso ${h.piso}` : ''}</p>
+                                                </div>
+                                                <div className="flex-shrink-0 text-right">
+                                                    <p className="text-[9px] font-bold uppercase tracking-[0.1em] text-muted-foreground">Tarifa noche</p>
+                                                    <p className="mt-1 text-lg font-extrabold tracking-[-0.04em] text-foreground tabular-nums"><span className="mr-1 text-[11px] font-bold text-muted-foreground">S/</span>{h.precio_noche ?? h.precio ?? 0}</p>
+                                                </div>
+                                            </div>
+
+                                            <div className="flex min-h-8 items-center justify-between gap-3 border-t border-border/60 pt-3">
+                                                <div className="flex min-w-0 items-center gap-1.5 text-muted-foreground">
+                                                    {roomAmenities.length > 0 ? roomAmenities.map(a => {
+                                                        const Icon = a.icon;
+                                                        return (
+                                                            <span key={a.id} title={a.label} className="flex h-7 w-7 items-center justify-center rounded-lg bg-muted/80 text-muted-foreground">
+                                                                <Icon className="h-3.5 w-3.5" />
+                                                            </span>
+                                                        );
+                                                    }) : <span className="truncate text-[10px] font-semibold">Equipamiento estándar</span>}
+                                                </div>
+                                                <span className="flex-shrink-0 rounded-lg bg-muted/65 px-2 py-1 text-[9px] font-extrabold text-muted-foreground">{h.capacidad || 1} huésped{Number(h.capacidad || 1) === 1 ? '' : 'es'}</span>
+                                            </div>
+                                        </article>
                                     );
                                 })}
                             </div>
-                        </div>
+                        </section>
                     ))}
                 </div>
             )}
@@ -498,8 +488,8 @@ const Habitaciones = memo(function Habitaciones() {
                             </div>
                         </div>
                         <div className="flex gap-3 pt-4 mt-4 border-t border-border/40">
-                            <Button variant="outline" className="flex-1 h-9 rounded-md bg-transparent border-border hover:bg-secondary/10 hover:text-foreground font-semibold text-sm" onClick={() => setOpen(false)}>Cancelar</Button>
-                            <Button className="flex-1 h-9 rounded-md font-semibold text-sm shadow-sm" onClick={handleSave} disabled={save.isPending || !form.numero}>
+                            <Button variant="outline" className="flex-1 bg-transparent" onClick={() => setOpen(false)}>Cancelar</Button>
+                            <Button className="flex-1" onClick={handleSave} disabled={save.isPending || !form.numero}>
                                 {save.isPending ? 'Guardando...' : editId ? 'Actualizar' : 'Crear'}
                             </Button>
                         </div>

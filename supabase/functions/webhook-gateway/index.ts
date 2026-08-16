@@ -1,55 +1,103 @@
-// @ts-nocheck
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
-import * as crypto from "https://deno.land/std@0.177.0/crypto/mod.ts"
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
-serve(async (req) => {
-  // Solo aceptamos POST para Webhooks
-  if (req.method !== 'POST') {
-    return new Response('Method Not Allowed', { status: 405 })
+declare const Deno: any;
+
+function jsonError(message: string, status: number) {
+  return new Response(JSON.stringify({ error: message }), {
+    status,
+    headers: { "Content-Type": "application/json" },
+  });
+}
+
+function constantTimeEqual(a: string, b: string): boolean {
+  if (a.length !== b.length) return false;
+  let result = 0;
+  for (let i = 0; i < a.length; i++) result |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  return result === 0;
+}
+
+async function computeHmac(secret: string, body: string): Promise<string> {
+  const encoder = new TextEncoder();
+  const key = await crypto.subtle.importKey(
+    "raw", encoder.encode(secret), { name: "HMAC", hash: "SHA-256" }, false, ["sign"],
+  );
+  const signature = await crypto.subtle.sign("HMAC", key, encoder.encode(body));
+  return Array.from(new Uint8Array(signature)).map((b) => b.toString(16).padStart(2, "0")).join("");
+}
+
+serve(async (req: Request) => {
+  if (req.method !== "POST") return jsonError("Method not allowed", 405);
+
+  const secret = Deno.env.get("WEBHOOK_SIGNING_SECRET");
+  const provider = Deno.env.get("PAYMENT_WEBHOOK_PROVIDER");
+  const successTypes = (Deno.env.get("PAYMENT_SUCCESS_EVENT_TYPES") || "")
+    .split(",").map((v: string) => v.trim()).filter(Boolean);
+  if (!secret || !provider || successTypes.length === 0) {
+    console.error("[WEBHOOK] Provider contract is not configured");
+    return jsonError("Server misconfigured", 503);
   }
 
   try {
-    const signature = req.headers.get('culqi-signature') || req.headers.get('x-signature')
-    const rawBody = await req.text()
-    
-    // HU-10: Validación de firma HMAC-SHA256 (Simulada para este demo)
-    // En producción se valida comparando HMAC(webhookSecret, rawBody) == signature
-    if (!signature) {
-      console.warn("Webhook sin firma recibida, asumiendo ambiente de desarrollo");
+    const rawSignature = req.headers.get("x-signature") || req.headers.get(`${provider}-signature`);
+    if (!rawSignature) return jsonError("Missing signature", 403);
+    const signature = rawSignature.replace(/^sha256=/i, "").toLowerCase();
+    const rawBody = await req.text();
+    const expected = await computeHmac(secret, rawBody);
+    if (!constantTimeEqual(signature, expected)) return jsonError("Invalid signature", 403);
+
+    const payload = JSON.parse(rawBody);
+    const eventId = payload.event_id;
+    const eventType = payload.type;
+    const timestamp = payload.created_at;
+    const paymentIntentId = payload.data?.payment_intent_id;
+    const amount = payload.data?.amount;
+    const currency = payload.data?.currency;
+    const status = payload.data?.status;
+
+    if (!eventId || !eventType || !timestamp || !paymentIntentId || amount === undefined || !currency || !status) {
+      return jsonError("Incomplete payment event", 400);
+    }
+    if (!successTypes.includes(eventType) || !["paid", "succeeded", "approved"].includes(String(status).toLowerCase())) {
+      return jsonError("Event is not a configured successful payment", 422);
+    }
+    const eventTime = new Date(timestamp).getTime();
+    if (!Number.isFinite(eventTime) || Math.abs(Date.now() - eventTime) > 5 * 60 * 1000) {
+      return jsonError("Event outside time window", 400);
+    }
+    if (typeof amount !== "number" || !Number.isFinite(amount) || amount <= 0) {
+      return jsonError("Invalid amount", 400);
+    }
+    if (!/^[A-Z]{3}$/.test(currency)) return jsonError("Invalid currency", 400);
+
+    const paymentUuid = String(paymentIntentId);
+    if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(paymentUuid)) {
+      return jsonError("Invalid payment intent", 400);
     }
 
-    const payload = JSON.parse(rawBody)
-    
-    // Supongamos que el payload trae el ID que vinculamos
-    const paymentIntentId = payload.data?.id || payload.id || null;
-
-    if (!paymentIntentId) {
-      return new Response('No payment intent found', { status: 400 })
+    const supabase = createClient(
+      Deno.env.get("SUPABASE_URL") ?? "",
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
+    );
+    const { data: reservaId, error } = await supabase.rpc("confirm_reservation_payment", {
+      p_payment_intent_id: paymentUuid,
+      p_event_id: String(eventId),
+      p_amount: amount,
+      p_currency: currency,
+      p_provider: provider,
+    });
+    if (error) {
+      if (error.code === "23505") return jsonError("Event already processed", 409);
+      console.warn("[WEBHOOK] Confirmation rejected:", error.code);
+      return jsonError("Payment confirmation rejected", 409);
     }
 
-    const supabaseClient = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
-    )
-
-    // Actualizamos el estado_pago a "pagado" en < 500ms
-    const { error } = await supabaseClient
-      .from('reservas')
-      .update({ estado_pago: 'pagado' })
-      .eq('payment_intent_id', paymentIntentId)
-
-    if (error) throw error;
-
-    return new Response(JSON.stringify({ status: 'ok', updated: paymentIntentId }), {
-      headers: { 'Content-Type': 'application/json' },
+    return new Response(JSON.stringify({ status: "ok", reserva_id: reservaId }), {
       status: 200,
-    })
-
+      headers: { "Content-Type": "application/json" },
+    });
   } catch (error) {
-    return new Response(JSON.stringify({ error: error.message }), {
-      headers: { 'Content-Type': 'application/json' },
-      status: 400,
-    })
+    console.error("[WEBHOOK] Invalid request:", error);
+    return jsonError("Invalid webhook request", 400);
   }
-})
+});

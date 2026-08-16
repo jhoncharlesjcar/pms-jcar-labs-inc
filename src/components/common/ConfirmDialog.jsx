@@ -39,7 +39,7 @@ const ConfirmDialog = memo(function ConfirmDialog({
 }) {
     return (
         <AlertDialog open={open} onOpenChange={onOpenChange}>
-            <AlertDialogContent className="bg-card/95 backdrop-blur-xl border border-border/50 rounded-xl shadow-2xl max-w-md">
+            <AlertDialogContent className="w-[calc(100%-2rem)] bg-card/95 backdrop-blur-xl border border-border/50 rounded-xl shadow-2xl max-w-md">
                 <AlertDialogHeader>
                     <AlertDialogTitle className="text-lg font-bold text-foreground">
                         {title}
@@ -104,6 +104,10 @@ export function useConfirmDialog() {
 
     const confirmProps = {
         ...state,
+        onConfirm: () => {
+            state.onConfirm();
+            setState((s) => ({ ...s, open: false }));
+        },
         onOpenChange: (open) => setState((s) => ({ ...s, open })),
     };
 

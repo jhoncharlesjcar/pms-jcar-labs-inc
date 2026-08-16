@@ -1,5 +1,6 @@
 import { memo } from 'react';
 import { cn } from '@/lib/utils';
+import { Button } from '@/components/ui/button';
 
 /**
  * @param {{ icon?: any, title?: string, description?: string, action?: any, className?: string }} props
@@ -16,17 +17,17 @@ function EmptyStateInner({
     <div
       data-empty-state="true"
       className={cn(
-        'flex flex-col items-center justify-center py-24 px-6',
+        'flex flex-col items-center justify-center px-5 py-14 sm:px-8 sm:py-20',
         className
       )}
     >
       {/* Icon Container */}
-      <div className="relative mb-6 empty-enter">
-        <div className="w-20 h-20 enterprise-card rounded-2xl flex items-center justify-center shadow-sm">
+      <div className="relative mb-5 empty-enter">
+        <div className="enterprise-card flex h-16 w-16 items-center justify-center rounded-2xl shadow-sm sm:h-[72px] sm:w-[72px]">
           {Icon ? (
-            <Icon className="w-9 h-9 text-muted-foreground/40" />
+            <Icon className="h-7 w-7 text-muted-foreground/45 sm:h-8 sm:w-8" />
           ) : (
-            <div className="w-9 h-9 rounded-full bg-muted-foreground/10" />
+            <div className="h-8 w-8 rounded-full bg-muted-foreground/10" />
           )}
         </div>
         {/* Decorative ring */}
@@ -45,14 +46,13 @@ function EmptyStateInner({
 
       {/* Optional Action Button */}
       {action && (
-        <div className="mt-8 empty-enter-delay-2">
-          <button
+        <div className="mt-6 empty-enter-delay-2">
+          <Button
             onClick={action.onClick}
-            className="inline-flex items-center gap-2 px-5 py-2.5 bg-primary text-primary-foreground text-sm font-semibold rounded-xl hover:bg-primary/90 active:scale-[0.97] transition-all shadow-lg shadow-primary/10"
           >
             {action.icon && <action.icon className="w-4 h-4" />}
             {action.label}
-          </button>
+          </Button>
         </div>
       )}
     </div>

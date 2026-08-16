@@ -139,17 +139,19 @@ CREATE POLICY "codigos_dev_only" ON codigos_desbloqueo
   WITH CHECK ((SELECT role FROM usuarios WHERE id = auth.uid()) = 'developer');
 
 -- 7. Actualizar Trigger para perfiles de usuario
--- Asegura que el rol y el hotel_id se guarden al registrarse
+-- El alta publica nunca puede elegir tenant, rol privilegiado ni activarse sola.
+-- La asignacion al hotel se realiza exclusivamente mediante invite-user.
 CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS TRIGGER AS $$
 BEGIN
-    INSERT INTO public.usuarios (id, email, full_name, role, hotel_id)
+    INSERT INTO public.usuarios (id, email, full_name, role, hotel_id, activo)
     VALUES (
         NEW.id,
         NEW.email,
         COALESCE(NEW.raw_user_meta_data->>'full_name', ''),
-        COALESCE(NEW.raw_user_meta_data->>'role', 'recepcionista'),
-        (NEW.raw_user_meta_data->>'hotel_id')::uuid
+        'recepcionista',
+        NULL,
+        false
     );
     RETURN NEW;
 END;

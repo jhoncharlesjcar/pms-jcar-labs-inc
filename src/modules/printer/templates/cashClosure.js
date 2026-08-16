@@ -86,12 +86,25 @@ export const buildCashClosureTemplate = (data) => {
       <span>Total Egresos:</span>
       <span style="color: #000;">- ${formatCurrency(data.egresosTotal || 0)}</span>
     </div>
+
+    <div class="divider-dotted mt-2 mb-2"></div>
+    <div class="bold mb-1 uppercase">Medios de Pago</div>
+    ${Object.entries(data.metodos || {}).map(([metodo, total]) => `
+      <div class="flex-row">
+        <span>${metodo.charAt(0).toUpperCase() + metodo.slice(1)}:</span>
+        <span>${formatCurrency(total || 0)}</span>
+      </div>
+    `).join('')}
     
     <div class="divider-solid mt-2 mb-2"></div>
     
     <div class="flex-row bold" style="font-size: 14px;">
-      <span>SALDO FINAL CAJA:</span>
+      <span>SALDO NETO:</span>
       <span>${formatCurrency(data.saldoFinal || 0)}</span>
+    </div>
+    <div class="flex-row bold mt-1" style="font-size: 13px;">
+      <span>EFECTIVO ESPERADO:</span>
+      <span>${formatCurrency(data.efectivoEsperado || 0)}</span>
     </div>
     ` : ''}
     

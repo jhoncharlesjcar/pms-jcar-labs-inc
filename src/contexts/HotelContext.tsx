@@ -19,23 +19,7 @@ export const HotelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 export const useHotel = () => {
   const context = useContext(HotelContext);
   if (!context) {
-    // Fallback directo a useHotelData si se usa fuera del Provider
-    try {
-      const { hotelActual, hoteles, cambiarHotel, isLoading } = useHotelData();
-      return {
-        hotelActual,
-        hoteles,
-        loading: isLoading,
-        cambiarHotel
-      };
-    } catch {
-      return {
-        hotelActual: null,
-        hoteles: [],
-        loading: false,
-        cambiarHotel: () => {}
-      };
-    }
+    throw new Error('useHotel debe usarse dentro de HotelProvider');
   }
   return context;
 };

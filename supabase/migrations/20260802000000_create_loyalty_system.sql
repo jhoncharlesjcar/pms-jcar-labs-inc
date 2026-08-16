@@ -38,15 +38,10 @@ ALTER TABLE loyalty_accounts ENABLE ROW LEVEL SECURITY;
 ALTER TABLE loyalty_transactions ENABLE ROW LEVEL SECURITY;
 
 -- 5. Políticas RLS multi-tenant por hotel_id
-CREATE POLICY "Permitir acceso a loyalty_accounts por hotel" ON loyalty_accounts
-    FOR ALL
-    USING (true)
-    WITH CHECK (true);
-
-CREATE POLICY "Permitir acceso a loyalty_transactions por hotel" ON loyalty_transactions
-    FOR ALL
-    USING (true)
-    WITH CHECK (true);
+-- Fail closed until the tenant-aware policies and mutation RPCs are installed by
+-- 20260814000001_fix_loyalty_rls.sql.
+REVOKE ALL ON loyalty_accounts FROM anon, authenticated;
+REVOKE ALL ON loyalty_transactions FROM anon, authenticated;
 
 -- 6. Índices para acelerar búsquedas por documento y hotel
 CREATE INDEX IF NOT EXISTS idx_loyalty_accounts_doc 

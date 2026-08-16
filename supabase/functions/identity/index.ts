@@ -2,6 +2,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
+import { authenticateRequest, errorResponse, createAdminClient } from '../_shared/auth-middleware.ts';
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -95,21 +96,27 @@ serve(async (req: Request) => {
     return new Response("ok", { headers: corsHeaders });
   }
 
-  let hotel_id: string | undefined;
-  let usuario_id: string | undefined;
   let type: "DNI" | "RUC" = "DNI";
   let document_number = "";
   const startTime = Date.now();
   let source = "CACHE";
 
-  const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-  const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-  const supabase = createClient(supabaseUrl, supabaseKey); // Service Role for Cache operations
+  // Hallazgo #4: Validar JWT y resolver usuario/hotel desde BD
+  const authResult = await authenticateRequest(req);
+  if (authResult.error || !authResult.user) {
+    return errorResponse(authResult.error || 'Unauthorized', authResult.status);
+  }
+  if (!['recepcionista', 'admin', 'developer'].includes(authResult.user.role)) {
+    return errorResponse('Role not allowed to query identity data', 403);
+  }
+
+  const hotel_id = authResult.user.hotel_id;
+  const usuario_id = authResult.user.id;
+
+  const supabase = createAdminClient();
 
   try {
     const body = await req.json();
-    hotel_id = body.hotel_id;
-    usuario_id = body.usuario_id;
     type = body.document_type;
     document_number = body.document_number;
 

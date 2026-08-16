@@ -213,7 +213,7 @@ export function procesarCheckout(params: ProcesarCheckoutParams): ProcesarChecko
   return {
     success: true,
     reserva: { ...reserva, estado: 'finalizada' },
-    habitacion: { ...habitacion, estado: 'disponible' },
+    habitacion: { ...habitacion, estado: 'limpieza' },
     errors: [],
   };
 }

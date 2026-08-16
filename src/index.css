@@ -6,7 +6,7 @@
    100% responsivo: tipografía fluida, touch targets, hover-only
    ═══════════════════════════════════════════════════════════════ */
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Playfair+Display:wght@600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Playfair+Display:wght@600;700&display=swap');
 @import "tailwindcss/base";
 @import "tailwindcss/components";
 @import "tailwindcss/utilities";
@@ -14,32 +14,36 @@
 :root {
   --ease-in-out: cubic-bezier(0.2, 0.8, 0.2, 1);
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ui-page-gap: clamp(0.875rem, 0.75rem + 0.45vw, 1.25rem);
+  --ui-card-gap: clamp(0.625rem, 0.55rem + 0.35vw, 0.875rem);
+  --ui-card-padding: clamp(0.75rem, 0.65rem + 0.38vw, 1rem);
+  --ui-card-radius: 1.125rem;
 }
 
 @layer base {
   :root {
     /* ═══ LIGHT — Ivory cálido & Forest Green ═══ */
-    --background: 40 25% 98%;
-    --foreground: 160 15% 10%;
+    --background: 150 18% 97%;
+    --foreground: 160 28% 9%;
     --card: 0 0% 100%;
-    --card-foreground: 160 15% 10%;
+    --card-foreground: 160 28% 9%;
     --popover: 0 0% 100%;
-    --popover-foreground: 160 15% 10%;
-    --primary: 160 45% 28%;
+    --popover-foreground: 160 28% 9%;
+    --primary: 161 55% 22%;
     /* NUEVO: bosque, no esmeralda SaaS */
     --primary-foreground: 0 0% 100%;
-    --secondary: 42 55% 52%;
+    --secondary: 39 60% 56%;
     /* NUEVO: brass tenue */
-    --secondary-foreground: 160 15% 10%;
-    --muted: 40 15% 96%;
-    --muted-foreground: 160 10% 35%;
-    --accent: 160 45% 28%;
+    --secondary-foreground: 160 28% 9%;
+    --muted: 150 12% 94%;
+    --muted-foreground: 158 11% 38%;
+    --accent: 161 55% 22%;
     --accent-foreground: 0 0% 100%;
     --destructive: 0 65% 45%;
     --destructive-foreground: 0 0% 98%;
-    --border: 40 15% 90%;
-    --input: 40 15% 90%;
-    --ring: 160 45% 28%;
+    --border: 150 12% 87%;
+    --input: 150 12% 84%;
+    --ring: 161 55% 22%;
     --radius: 0.625rem;
     /* NUEVO: 10px iOS */
 
@@ -50,7 +54,7 @@
     --glass-border: rgba(0, 0, 0, 0.05);
     --glass-shadow: 0 4px 12px 0 rgba(0, 0, 0, 0.05);
 
-    --bg-base: #f2f4f1;
+    --bg-base: #f4f7f5;
     --blob-1: #dcefe6;
     /* NUEVO: blobs verdes/dorados */
     --blob-2: #f3e8d2;
@@ -61,9 +65,9 @@
     --state-disponible-fg: 160 50% 24%;
     --state-disponible-border: 160 35% 86%;
 
-    --state-ocupada-bg: 220 45% 96%;
-    --state-ocupada-fg: 220 50% 32%;
-    --state-ocupada-border: 220 35% 86%;
+    --state-ocupada-bg: 350 65% 96%;
+    --state-ocupada-fg: 350 60% 34%;
+    --state-ocupada-border: 350 45% 86%;
 
     --state-reservada-bg: 262 40% 97%;
     --state-reservada-fg: 262 45% 40%;
@@ -73,9 +77,9 @@
     --state-mantenimiento-fg: 42 60% 30%;
     --state-mantenimiento-border: 42 45% 84%;
 
-    --state-limpieza-bg: 199 60% 96%;
-    --state-limpieza-fg: 199 65% 30%;
-    --state-limpieza-border: 199 50% 86%;
+    --state-limpieza-bg: 265 55% 96%;
+    --state-limpieza-fg: 265 55% 36%;
+    --state-limpieza-border: 265 40% 86%;
   }
 
   .dark {
@@ -113,9 +117,9 @@
     --state-disponible-fg: 160 65% 75%;
     --state-disponible-border: 160 35% 22%;
 
-    --state-ocupada-bg: 220 45% 8%;
-    --state-ocupada-fg: 220 75% 82%;
-    --state-ocupada-border: 220 35% 24%;
+    --state-ocupada-bg: 350 45% 8%;
+    --state-ocupada-fg: 350 75% 82%;
+    --state-ocupada-border: 350 35% 24%;
 
     --state-reservada-bg: 262 40% 8%;
     --state-reservada-fg: 262 75% 82%;
@@ -125,9 +129,9 @@
     --state-mantenimiento-fg: 42 85% 75%;
     --state-mantenimiento-border: 42 45% 22%;
 
-    --state-limpieza-bg: 199 60% 8%;
-    --state-limpieza-fg: 199 80% 75%;
-    --state-limpieza-border: 199 50% 22%;
+    --state-limpieza-bg: 265 45% 8%;
+    --state-limpieza-fg: 265 75% 82%;
+    --state-limpieza-border: 265 35% 24%;
   }
 }
 
@@ -167,7 +171,11 @@
   body {
     background-color: hsl(var(--background));
     color: hsl(var(--foreground));
-    font-family: 'Inter', sans-serif;
+    font-family: 'Manrope', 'Inter', sans-serif;
+    background-image:
+      radial-gradient(circle at 92% 0%, hsl(var(--primary) / 0.055), transparent 28rem),
+      linear-gradient(180deg, hsl(var(--card) / 0.72), transparent 16rem);
+    background-attachment: fixed;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     overscroll-behavior: none;
@@ -188,7 +196,7 @@
 }
 
 .font-inter {
-  font-family: 'Inter', sans-serif;
+  font-family: 'Manrope', 'Inter', sans-serif;
 }
 
 .text-fluid-xl {
@@ -223,6 +231,232 @@
   padding-inline: clamp(1rem, 4vw, 2rem);
 }
 
+/* Escala estructural compartida: evita tarjetas sobredimensionadas o dispares. */
+.page-shell {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ui-page-gap);
+  padding-bottom: clamp(2rem, 4vw, 3rem);
+}
+
+.app-shell {
+  background:
+    radial-gradient(circle at 88% -8%, hsl(var(--primary) / 0.07), transparent 30rem),
+    hsl(var(--background));
+}
+
+.app-sidebar {
+  background: hsl(var(--card) / 0.94);
+  box-shadow: 12px 0 40px -34px hsl(var(--foreground) / 0.42);
+  backdrop-filter: blur(22px);
+  -webkit-backdrop-filter: blur(22px);
+}
+
+.app-main {
+  position: relative;
+}
+
+.app-main::before {
+  position: fixed;
+  z-index: -1;
+  inset: 0;
+  content: '';
+  pointer-events: none;
+  background-image: radial-gradient(hsl(var(--foreground) / 0.035) 0.7px, transparent 0.7px);
+  background-size: 18px 18px;
+  mask-image: linear-gradient(to bottom, black, transparent 65%);
+}
+
+.page-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.page-header h1 {
+  font-weight: 800;
+  letter-spacing: -0.045em;
+}
+
+.page-header > div > p {
+  text-wrap: balance;
+}
+
+.ui-card-grid {
+  display: grid;
+  gap: var(--ui-card-gap);
+}
+
+.ui-card-pad {
+  padding: var(--ui-card-padding);
+}
+
+.metric-card {
+  position: relative;
+  min-width: 0;
+  min-height: clamp(5.75rem, 5.5rem + 0.8vw, 6.5rem);
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 100% 0%, hsl(var(--primary) / 0.075), transparent 8rem),
+    linear-gradient(145deg, hsl(var(--card)), hsl(var(--card) / 0.94));
+}
+
+.section-card {
+  min-width: 0;
+  background:
+    linear-gradient(145deg, hsl(var(--card)), hsl(var(--card) / 0.965));
+}
+
+.operational-card {
+  min-width: 0;
+  min-height: clamp(7rem, 6.7rem + 1vw, 8rem);
+}
+
+.operational-card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(15.5rem, 1fr));
+  gap: var(--ui-card-gap);
+}
+
+.segmented-control {
+  display: flex;
+  gap: 0.25rem;
+  padding: 0.25rem;
+  overflow-x: auto;
+  border: 1px solid hsl(var(--border) / 0.7);
+  border-radius: 0.75rem;
+  background: hsl(var(--muted) / 0.45);
+  box-shadow: inset 0 1px 2px hsl(var(--foreground) / 0.03);
+}
+
+.config-tabs {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.25rem;
+  padding: 0.25rem;
+  border: 1px solid hsl(var(--border) / 0.7);
+  border-radius: 0.875rem;
+  background: hsl(var(--muted) / 0.45);
+  box-shadow: inset 0 1px 2px hsl(var(--foreground) / 0.03);
+}
+
+.config-tabs > button {
+  width: 100%;
+  min-width: 0;
+  gap: 0.375rem;
+  white-space: normal;
+  line-height: 1.15;
+}
+
+@media (min-width: 640px) {
+  .config-tabs {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1024px) {
+  .config-tabs {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+  }
+}
+
+.room-filter-bar {
+  display: flex;
+  gap: 0.375rem;
+  padding: 0.375rem;
+  overflow-x: auto;
+  border: 1px solid hsl(var(--border) / 0.78);
+  border-radius: 1rem;
+  background: hsl(var(--card) / 0.86);
+  box-shadow: 0 1px 2px hsl(var(--foreground) / 0.025), 0 12px 32px -28px hsl(var(--foreground) / 0.35);
+  backdrop-filter: blur(18px);
+}
+
+.room-card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(16.25rem, 1fr));
+  gap: 1rem;
+}
+
+.room-card {
+  --room-accent: var(--primary);
+  position: relative;
+  min-width: 0;
+  min-height: 12rem;
+  overflow: hidden;
+  padding: 1rem;
+  border: 1px solid hsl(var(--border) / 0.74);
+  border-radius: 1.125rem;
+  background:
+    linear-gradient(145deg, hsl(var(--card)), hsl(var(--card) / 0.92));
+  box-shadow:
+    0 1px 2px hsl(var(--foreground) / 0.035),
+    0 12px 30px -22px hsl(var(--foreground) / 0.34);
+  transition: transform 220ms var(--ease-out), border-color 220ms var(--ease-out), box-shadow 220ms var(--ease-out);
+}
+
+.room-card::before {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 3px;
+  content: '';
+  background: hsl(var(--room-accent));
+}
+
+.room-card[data-state='disponible'] { --room-accent: 160 52% 38%; }
+.room-card[data-state='ocupada'] { --room-accent: 350 66% 48%; }
+.room-card[data-state='reservada'] { --room-accent: 220 75% 55%; }
+.room-card[data-state='mantenimiento'] { --room-accent: 38 84% 48%; }
+.room-card[data-state='limpieza'] { --room-accent: 270 58% 56%; }
+
+.room-card-number {
+  font-size: clamp(1.75rem, 1.5rem + 0.55vw, 2.125rem);
+  line-height: 1;
+  letter-spacing: -0.055em;
+  font-variant-numeric: tabular-nums;
+}
+
+@media (hover: hover) {
+  .room-card:hover {
+    transform: translateY(-3px);
+    border-color: hsl(var(--room-accent) / 0.34);
+    box-shadow:
+      0 2px 4px hsl(var(--foreground) / 0.04),
+      0 20px 38px -24px hsl(var(--room-accent) / 0.38);
+  }
+}
+
+@media (max-width: 639px) {
+  .room-card-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .room-card {
+    min-height: 11.25rem;
+  }
+}
+
+@media (max-width: 639px) {
+  .page-header {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .page-header > :last-child,
+  .page-header > :last-child > button {
+    width: 100%;
+  }
+
+  .metric-card {
+    min-height: 5.75rem;
+  }
+
+  .operational-card-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
 /* Matriz de habitaciones: se adapta sola a cualquier pantalla */
 .rooms-grid {
   display: grid;
@@ -253,6 +487,11 @@
   button:not(.h-auto),
   [role="button"] {
     min-height: 44px;
+  }
+
+  button[aria-label],
+  a[aria-label] {
+    min-width: 44px;
   }
 }
 
@@ -408,14 +647,12 @@ button:active:not(:disabled),
 
 /* ═══ ENTERPRISE CARD (radio iOS) ═══ */
 .enterprise-card {
-  background-color: hsl(var(--card));
-  border: 1px solid hsl(var(--border) / 0.6);
-  border-radius: 0.875rem;
+  background: linear-gradient(145deg, hsl(var(--card)), hsl(var(--card) / 0.94));
+  border: 1px solid hsl(var(--border) / 0.72);
+  border-radius: var(--ui-card-radius);
   box-shadow:
-    0 0 0 1px hsl(var(--border) / 0.05),
-    0 1px 2px 0 rgba(0, 0, 0, 0.03),
-    0 4px 8px -2px rgba(0, 0, 0, 0.05),
-    0 12px 24px -4px rgba(0, 0, 0, 0.05);
+    0 1px 2px hsl(var(--foreground) / 0.025),
+    0 12px 32px -26px hsl(var(--foreground) / 0.34);
   transition: box-shadow 0.3s var(--ease-out),
     transform 0.3s var(--ease-out),
     border-color 0.3s var(--ease-out);
@@ -426,10 +663,8 @@ button:active:not(:disabled),
   .enterprise-card:hover {
     border-color: hsl(var(--border) / 0.9);
     box-shadow:
-      0 0 0 1px hsl(var(--border) / 0.1),
-      0 2px 4px 0 rgba(0, 0, 0, 0.04),
-      0 8px 16px -4px rgba(0, 0, 0, 0.08),
-      0 20px 40px -8px rgba(0, 0, 0, 0.08);
+      0 1px 3px hsl(var(--foreground) / 0.04),
+      0 18px 42px -28px hsl(var(--foreground) / 0.42);
   }
 }
 

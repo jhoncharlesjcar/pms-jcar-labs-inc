@@ -133,6 +133,7 @@ export async function getLoyaltyAccount(
       .from('loyalty_accounts')
       .select('*')
       .eq('hotel_id', hotelId)
+      .eq('guest_document_type', guestDocumentType)
       .eq('guest_document_number', guestDocumentNumber.trim())
       .maybeSingle();
 

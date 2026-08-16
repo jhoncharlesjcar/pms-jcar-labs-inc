@@ -19,7 +19,6 @@ import {
     validarReferenciaYapePlin,
     validarComprobante,
     validarPagoDuplicado,
-    calcularIGV,
     METODOS_CON_REFERENCIA,
 } from '@/services/checkout.service';
 import type { PagoExistente, TipoComprobante, MetodoPago } from '@/services/checkout.service';
@@ -216,24 +215,12 @@ export function useCheckout(params: UseCheckoutParams): UseCheckoutReturn {
 
             // ─── 4. Envío a SUNAT (si automático) ─────────────────────────
             if (config.modo_sunat === 'automatico' && formData.requiereComprobante) {
-                const igvCalc = calcularIGV(total, config.aplica_igv);
                 try {
-                    const compRes = await crearComprobante({
-                        hotel_id: hotelId,
-                        tipo: formData.tipoComprobante === 'factura' ? 'Factura' : 'Boleta',
-                        serie: formData.tipoComprobante === 'factura' ? 'F001' : 'B001',
-                        numero: `${formData.tipoComprobante === 'factura' ? 'F001' : 'B001'}-${Date.now()}`,
-                        cliente_tipo: formData.tipoComprobante === 'factura' ? '6' : '1',
-                        cliente_documento: formData.tipoComprobante === 'factura' ? formData.rucCliente : formData.dniCliente,
-                        cliente_nombre: formData.tipoComprobante === 'factura' ? formData.razonSocial : formData.nombreCliente,
-                        subtotal: igvCalc.base_imponible,
-                        igv: igvCalc.igv,
-                        total: igvCalc.total_final,
-                    });
+                    const compRes = await crearComprobante(venta.id, 'ventas');
 
                     const updatedVenta = await db.entities.Venta.update(venta.id, {
                         estado_comprobante: 'sunat_emitido',
-                        notes: `${venta.notas || ''} [SUNAT: ${compRes.estado || 'Emitido'}]`.trim(),
+                        notas: `${venta.notas || ''} [SUNAT: ${compRes.estado || 'Emitido'}]`.trim(),
                     });
                     ventaFinal = updatedVenta;
                 } catch (err: any) {
@@ -247,11 +234,11 @@ export function useCheckout(params: UseCheckoutParams): UseCheckoutReturn {
                 if (reserva.habitacion_id) {
                     await Promise.all([
                         db.entities.Reserva.update(reserva.id, { estado: 'finalizada' }),
-                        db.entities.Habitacion.update(reserva.habitacion_id, { estado: 'disponible' }),
+                        db.entities.Habitacion.update(reserva.habitacion_id, { estado: 'limpieza' }),
                     ]);
                 }
             } catch (err) {
-                logger.error('[Checkout] Error liberando habitación:', err);
+                logger.error('[Checkout] Error enviando habitación a limpieza:', err);
                 // No bloquear: la venta ya está registrada
             }
 

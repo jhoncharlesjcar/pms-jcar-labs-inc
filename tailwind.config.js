@@ -5,7 +5,7 @@ module.exports = {
     theme: {
         extend: {
             fontFamily: {
-                inter: ['Inter', 'sans-serif'],
+                inter: ['Manrope', 'Inter', 'sans-serif'],
                 display: ['Playfair Display', 'serif'],
             },
             borderRadius: {

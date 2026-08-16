@@ -38,16 +38,15 @@ const SkeletonBlock = memo(function SkeletonBlock(/** @type {any} */ { className
   // Card variant
   if (variant === 'card') {
     return (
-      <div className={cn(cardClasses, 'p-5 space-y-4', className)}>
+      <div className={cn(cardClasses, 'space-y-3 p-3', className)}>
         <div className="flex items-center gap-3">
-          <div className={cn(baseClasses, 'w-10 h-10 rounded-lg')} />
+          <div className={cn(baseClasses, 'h-8 w-8 rounded-lg')} />
           <div className="flex-1 space-y-2">
-            <div className={cn(baseClasses, 'h-4 w-2/3')} />
-            <div className={cn(baseClasses, 'h-3 w-1/3')} />
+            <div className={cn(baseClasses, 'h-3 w-2/3')} />
+            <div className={cn(baseClasses, 'h-2.5 w-1/3')} />
           </div>
         </div>
-        <div className={cn(baseClasses, 'h-3 w-full')} />
-        <div className={cn(baseClasses, 'h-3 w-5/6')} />
+        <div className={cn(baseClasses, 'h-5 w-1/2')} />
       </div>
     );
   }
@@ -55,7 +54,7 @@ const SkeletonBlock = memo(function SkeletonBlock(/** @type {any} */ { className
   // Line chart variant
   if (variant === 'chart') {
     return (
-      <div className={cn(cardClasses, 'p-6 space-y-4', className)}>
+      <div className={cn(cardClasses, 'space-y-4 p-4', className)}>
         <div className="flex justify-between items-start">
           <div className="space-y-2">
             <div className={cn(baseClasses, 'h-3 w-24')} />

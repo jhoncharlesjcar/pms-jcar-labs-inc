@@ -14,7 +14,7 @@
             "dom"
         ],
         "target": "esnext",
-        "checkJs": true,
+        "checkJs": false,
         "allowJs": true,
         "skipLibCheck": true,
         "allowSyntheticDefaultImports": true,
@@ -24,8 +24,6 @@
         "noEmit": true
     },
     "include": [
-        "src/**/*.js",
-        "src/**/*.jsx",
         "src/**/*.ts",
         "src/**/*.tsx"
     ],

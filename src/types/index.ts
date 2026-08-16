@@ -33,6 +33,7 @@ export interface Hotel {
   email?: string;
   logo_url?: string;
   mensaje_ticket?: string;
+  activo: boolean;
 
   // Configuración fiscal
   aplica_igv: boolean;

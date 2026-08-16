@@ -1,8 +1,9 @@
 import React, { useMemo, useState } from 'react';
-import { format, addDays, eachDayOfInterval, isSameDay } from 'date-fns';
+import { format, addDays, eachDayOfInterval, isSameDay, parseISO } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { StatusBadge } from '@/components/ui/StatusBadge';
 
 const avatarColors = {
     activa: 'from-primary to-primary/70',
@@ -23,7 +24,7 @@ const RecepcionTimeline = ({ reservas, habitaciones }) => {
 
     // Agrupar habitaciones por piso para el timeline
     const habitacionesAgrupadas = useMemo(() => {
-        const habsFiltradas = habitaciones.sort((a, b) => {
+        const habsFiltradas = [...habitaciones].sort((a, b) => {
             const numA = parseInt(a.numero, 10);
             const numB = parseInt(b.numero, 10);
             if (!isNaN(numA) && !isNaN(numB)) return numA - numB;
@@ -42,8 +43,8 @@ const RecepcionTimeline = ({ reservas, habitaciones }) => {
         return reservas.find(r => {
             if (r.habitacion_id !== habId) return false;
             if (r.estado === 'cancelada') return false;
-            const start = new Date(r.fecha_entrada);
-            const end = new Date(r.fecha_salida);
+            const start = typeof r.fecha_entrada === 'string' ? parseISO(r.fecha_entrada) : new Date(r.fecha_entrada);
+            const end = typeof r.fecha_salida === 'string' ? parseISO(r.fecha_salida) : new Date(r.fecha_salida);
             // La reserva ocupa este día si el día es >= start y < end (salida)
             // Si entra y sale el mismo día, cuenta para ese día
             if (isSameDay(start, end)) return isSameDay(day, start);
@@ -63,20 +64,20 @@ const RecepcionTimeline = ({ reservas, habitaciones }) => {
     return (
         <div className="bg-card border border-border/50 rounded-xl overflow-hidden shadow-sm flex flex-col animate-in fade-in duration-300">
             {/* Toolbar */}
-            <div className="p-4 border-b border-border/50 flex items-center justify-between bg-muted/20">
+            <div className="p-3 sm:p-4 border-b border-border/50 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between bg-muted/20">
                 <div className="flex items-center gap-2">
-                    <button onClick={() => setBaseDate(addDays(baseDate, -7))} className="w-8 h-8 rounded-md bg-background border border-border flex items-center justify-center hover:bg-muted transition-colors">
+                    <button type="button" aria-label="Ver semana anterior" onClick={() => setBaseDate(addDays(baseDate, -7))} className="w-9 h-9 rounded-md bg-background border border-border flex items-center justify-center hover:bg-muted transition-colors sm:h-8 sm:w-8">
                         <ChevronLeft className="w-4 h-4" />
                     </button>
-                    <button onClick={() => setBaseDate(new Date())} className="px-3 h-8 rounded-md bg-background border border-border text-xs font-semibold hover:bg-muted transition-colors">
+                    <button type="button" onClick={() => setBaseDate(new Date())} className="px-3 h-9 rounded-md bg-background border border-border text-xs font-semibold hover:bg-muted transition-colors sm:h-8">
                         Hoy
                     </button>
-                    <button onClick={() => setBaseDate(addDays(baseDate, 7))} className="w-8 h-8 rounded-md bg-background border border-border flex items-center justify-center hover:bg-muted transition-colors">
+                    <button type="button" aria-label="Ver semana siguiente" onClick={() => setBaseDate(addDays(baseDate, 7))} className="w-9 h-9 rounded-md bg-background border border-border flex items-center justify-center hover:bg-muted transition-colors sm:h-8 sm:w-8">
                         <ChevronRight className="w-4 h-4" />
                     </button>
                 </div>
-                <div className="text-sm font-semibold capitalize">
-                    {format(days[0], "MMMM yyyy", { locale: es })}
+                <div className="text-sm font-semibold capitalize sm:text-right">
+                    {format(days[0], "d MMM", { locale: es })} — {format(days[days.length - 1], "d MMM yyyy", { locale: es })}
                 </div>
             </div>
 
@@ -85,7 +86,7 @@ const RecepcionTimeline = ({ reservas, habitaciones }) => {
                 <div className="min-w-[800px] lg:min-w-full inline-block align-middle pb-4">
                     {/* Header Row (Days) */}
                     <div className="flex border-b border-border/50 sticky top-0 bg-card z-10">
-                        <div className="w-32 flex-shrink-0 p-3 border-r border-border/50 bg-muted/10 flex items-center">
+                        <div className="w-40 flex-shrink-0 p-3 border-r border-border/50 bg-muted/10 flex items-center">
                             <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Hab.</span>
                         </div>
                         <div className="flex-1 flex">
@@ -116,8 +117,12 @@ const RecepcionTimeline = ({ reservas, habitaciones }) => {
                                 {/* Habitaciones del Piso */}
                                 {habitacionesAgrupadas[piso].map(hab => (
                                     <div key={hab.id} className="flex border-b border-border/30 group hover:bg-muted/10 transition-colors h-12">
-                                        <div className="w-32 flex-shrink-0 p-3 border-r border-border/50 flex flex-col justify-center bg-card group-hover:bg-transparent transition-colors">
-                                            <span className="text-sm font-bold">{hab.numero}</span>
+                                        <div className="w-40 flex-shrink-0 px-3 py-2 border-r border-border/50 flex items-center justify-between gap-2 bg-card group-hover:bg-transparent transition-colors">
+                                            <div className="min-w-0">
+                                                <span className="text-sm font-bold">{hab.numero}</span>
+                                                <p className="truncate text-[9px] font-medium uppercase text-muted-foreground">{hab.tipo}</p>
+                                            </div>
+                                            <StatusBadge status={hab.estado} showIcon={false} className="max-w-20 truncate px-1.5 py-0.5 text-[8px]" />
                                         </div>
                                         <div className="flex-1 flex relative">
                                             {days.map((day, i) => {
@@ -129,8 +134,8 @@ const RecepcionTimeline = ({ reservas, habitaciones }) => {
                                                 let renderBlock = false;
 
                                                 if (reserva) {
-                                                    const rStart = new Date(reserva.fecha_entrada);
-                                                    const rEnd = new Date(reserva.fecha_salida);
+                                                    const rStart = typeof reserva.fecha_entrada === 'string' ? parseISO(reserva.fecha_entrada) : new Date(reserva.fecha_entrada);
+                                                    const rEnd = typeof reserva.fecha_salida === 'string' ? parseISO(reserva.fecha_salida) : new Date(reserva.fecha_salida);
                                                     isStart = isSameDay(day, rStart);
                                                     isEnd = isSameDay(addDays(day, 1), rEnd) || isSameDay(day, rEnd); // if next day is end, or same day is end (1 night)
                                                     
@@ -147,7 +152,7 @@ const RecepcionTimeline = ({ reservas, habitaciones }) => {
                                                             <div 
                                                                 title={`${reserva.huesped_nombre} (${reserva.estado})`}
                                                                 className={cn(
-                                                                    "absolute top-1.5 bottom-1.5 left-0 right-0 z-0 bg-gradient-to-r opacity-90 shadow-sm flex items-center overflow-hidden cursor-pointer hover:opacity-100",
+                                                                    "absolute top-1.5 bottom-1.5 left-0 right-0 z-0 bg-gradient-to-r opacity-90 shadow-sm flex items-center overflow-hidden hover:opacity-100",
                                                                     avatarColors[reserva.estado] || 'from-gray-500 to-gray-600',
                                                                     isStart ? "rounded-l-md ml-1" : "-ml-[1px]", // overlap border
                                                                     isEnd ? "rounded-r-md mr-1" : "-mr-[1px]"

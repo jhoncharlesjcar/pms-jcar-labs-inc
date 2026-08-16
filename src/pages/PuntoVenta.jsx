@@ -57,7 +57,7 @@ const PuntoVenta = memo(function PuntoVenta() {
     };
 
     return (
-        <div className="flex flex-col lg:flex-row -m-4 lg:-m-8 min-h-screen bg-background">
+        <div className="-m-4 flex min-h-[calc(100dvh-4rem)] flex-col bg-background sm:-m-5 lg:-m-7 lg:min-h-screen lg:flex-row xl:-m-8">
             <div ref={pageRef} className="flex flex-1 flex-col lg:flex-row">
 
             {/* ===== PANEL IZQUIERDO: CATÁLOGO ===== */}
@@ -74,7 +74,7 @@ const PuntoVenta = memo(function PuntoVenta() {
                         </div>
                     </div>
                     {items.length > 0 && (
-                        <Button variant="ghost" size="sm" onClick={limpiarCarrito} className="text-muted-foreground hover:text-destructive hover:bg-destructive/10 gap-1.5 text-[9px] px-2.5 uppercase font-bold tracking-widest rounded-md h-7">
+                        <Button variant="ghost" size="sm" onClick={limpiarCarrito} className="gap-1.5 px-2.5 text-[9px] font-bold uppercase tracking-widest text-muted-foreground hover:bg-destructive/10 hover:text-destructive">
                             <RotateCcw className="w-3 h-3" /> Limpiar
                         </Button>
                     )}
@@ -125,7 +125,7 @@ const PuntoVenta = memo(function PuntoVenta() {
                         </div>
                     )}
                     <Button
-                        className="w-full h-9 text-xs gap-1.5 font-bold rounded-md shadow-md transition-all active:scale-95"
+                        className="w-full gap-1.5 text-xs"
                         disabled={items.length === 0}
                         onClick={() => setPagoOpen(true)}
                     >
@@ -136,7 +136,7 @@ const PuntoVenta = memo(function PuntoVenta() {
             </div>
 
             {/* ===== BARRA INFERIOR MÓVIL ===== */}
-            <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-card/95 backdrop-blur-2xl border-t border-border/60 flex items-center justify-around z-30 safe-bottom p-1.5 shadow-lg">
+            <nav aria-label="Acciones del punto de venta" className="lg:hidden fixed bottom-0 left-0 right-0 bg-card/95 backdrop-blur-2xl border-t border-border/60 flex items-center justify-around z-50 safe-bottom p-1.5 shadow-lg">
                 <button
                     onClick={() => setVistaMovil('catalogo')}
                     className={`flex-1 min-h-[40px] flex flex-col items-center justify-center text-[10px] font-bold transition-all rounded-lg ${vistaMovil === 'catalogo' ? 'text-primary bg-primary/10' : 'text-muted-foreground'}`}
@@ -165,7 +165,7 @@ const PuntoVenta = memo(function PuntoVenta() {
                         <span>S/ {totalGeneral.toFixed(2)}</span>
                     </button>
                 )}
-            </div>
+            </nav>
 
             {/* Espacio para barra inferior en móvil */}
             <div className="lg:hidden h-16" />

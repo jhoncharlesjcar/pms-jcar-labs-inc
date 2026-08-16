@@ -1,4 +1,11 @@
-name: Build and Deploy
+name: Production Quality Gate
+
+permissions:
+  contents: read
+
+concurrency:
+  group: quality-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 on:
   push:
@@ -18,21 +25,26 @@ jobs:
       - name: Setup pnpm
         uses: pnpm/action-setup@v3
         with:
-          version: 9
+          version: 9.15.9
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '24'
+          node-version: '22'
           cache: 'pnpm'
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Lint and Typecheck
-        run: |
-          pnpm run lint
-          # pnpm run typecheck # Uncomment if TS is strictly enforced
+      # ── Quality Gates (Hallazgo #11 de auditoría) ──────────────────
+      - name: Lint
+        run: pnpm run lint
+
+      - name: Type Check
+        run: pnpm run typecheck
+
+      - name: Dependency Audit
+        run: pnpm audit --audit-level=high
 
       - name: Build
         # Estas variables son requeridas por Vite para compilar los assets.
@@ -47,10 +59,3 @@ jobs:
         with:
           name: dist
           path: dist
-
-  # deployment: # Example for Vercel or Netlify
-  #   needs: build
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - name: Deploy to Vercel
-  #       run: npx vercel --token ${{ secrets.VERCEL_TOKEN }} --prod

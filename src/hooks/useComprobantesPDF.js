@@ -7,7 +7,7 @@ import logger from '@/lib/logger';
  * compliant with SUNAT standards.
  */
 export function useComprobantesPDF() {
-  const generarPDF = async (ventaPos, hotel, tipoComprobanteForce) => {
+  const generarPDF = async (ventaPos, hotel, requestedType) => {
     try {
       const [{ default: jsPDF }, { default: autoTable }, { default: QRCode }] = await Promise.all([
         import('jspdf'),
@@ -19,6 +19,12 @@ export function useComprobantesPDF() {
         unit: 'mm',
         format: 'a4',
       });
+      const tipoComprobante = requestedType === 'factura' || ventaPos.tipo_comprobante === 'factura' ? 'factura' : 'boleta';
+      const isSunatEmitted = ventaPos.estado_comprobante === 'sunat_emitido';
+      const isSunatPending = ventaPos.estado_comprobante === 'sunat_pendiente';
+      const documentLabel = isSunatEmitted
+        ? (tipoComprobante === 'factura' ? 'FACTURA ELECTRÓNICA' : 'BOLETA DE VENTA ELECTRÓNICA')
+        : (isSunatPending ? 'BORRADOR PENDIENTE SUNAT' : 'CONSTANCIA INTERNA DE PAGO');
       const rucEmisor = hotel.ruc || '20000000000';
       const tipoComp = tipoComprobante === 'factura' ? '01' : '03';
 
@@ -26,6 +32,7 @@ export function useComprobantesPDF() {
       const serie = tipoComprobante === 'factura' ? 'F001' : 'B001';
       const numeroTicket = parts[1] || parts[0]?.replace(/\D/g, '') || '1';
       const numero = String(numeroTicket).padStart(8, '0');
+      const displayNumber = isSunatEmitted ? `${serie}-${numero}` : `TICKET #${ventaPos.numero_ticket || numero}`;
 
       const aplicaIgv = hotel.aplica_igv !== false;
       const totalVal = Number(ventaPos.total || 0);
@@ -70,12 +77,12 @@ export function useComprobantesPDF() {
       doc.text(`R.U.C. ${rucEmisor}`, 136, 21);
 
       doc.setFontSize(9.5);
-      doc.text(tipoComprobante === 'factura' ? 'FACTURA ELECTRÓNICA' : 'BOLETA DE VENTA', 136, 27);
-      doc.text('ELECTRÓNICA', 136, 32);
+      const titleLines = doc.splitTextToSize(documentLabel, 56);
+      doc.text(titleLines, 136, 27);
 
       doc.setFontSize(12);
       doc.setTextColor(147, 51, 234); // Morado primario
-      doc.text(`${serie}-${numero}`, 136, 40);
+      doc.text(displayNumber, 136, 40);
 
       // ── Datos del Adquiriente ─────────────────────────────────────────────
       doc.setTextColor(0, 0, 0);
@@ -89,7 +96,7 @@ export function useComprobantesPDF() {
       doc.setFont('Helvetica', 'normal');
       doc.text(`Señor(es): ${nombreCliente}`, 14, 63);
       doc.text(`${tipoComprobante === 'factura' ? 'R.U.C.' : 'DNI / Documento'}: ${docAdq}`, 14, 68);
-      doc.text(`Fecha Emisión: ${fechaStr}`, 14, 73);
+      doc.text(`${isSunatEmitted ? 'Fecha Emisión' : 'Fecha de venta'}: ${fechaStr}`, 14, 73);
       doc.text(`Moneda: SOLES (PEN)`, 14, 78);
       doc.text(`Forma de Pago: Contado | Método: ${(ventaPos.metodo_pago || 'efectivo').toUpperCase()}`, 14, 83);
 
@@ -166,38 +173,51 @@ export function useComprobantesPDF() {
       doc.text('IMPORTE TOTAL:', 130, totY);
       doc.text(`S/ ${totalVal.toFixed(2)}`, rightX, totY, { align: 'right' });
 
-      // ── Código QR Regulatorio SUNAT ───────────────────────────────────────
-      const qrString = `${rucEmisor}|${tipoComp}|${serie}|${numero}|${igvVal.toFixed(2)}|${totalVal.toFixed(2)}|${fechaStr}|${tipoDocAdq}|${docAdq}|`;
-      const qrDataUrl = await QRCode.toDataURL(qrString, { margin: 1 });
-
       const qrY = totY + 8;
-      if (qrY + 30 < 287) {
-        doc.addImage(qrDataUrl, 'PNG', 14, qrY, 28, 28);
-        doc.setFont('Helvetica', 'normal');
-        doc.setFontSize(7.5);
-        doc.setTextColor(120, 120, 120);
-        doc.text('Representación impresa del Comprobante de Pago Electrónico.', 45, qrY + 10);
-        doc.text('Puede verificar este comprobante en el portal de consulta de la SUNAT.', 45, qrY + 14);
-        if (hotel.mensaje_ticket) {
-          doc.text(hotel.mensaje_ticket, 45, qrY + 18);
+      if (isSunatEmitted) {
+        // El QR regulatorio solo aparece después de una aceptación real de SUNAT.
+        const qrString = `${rucEmisor}|${tipoComp}|${serie}|${numero}|${igvVal.toFixed(2)}|${totalVal.toFixed(2)}|${fechaStr}|${tipoDocAdq}|${docAdq}|`;
+        const qrDataUrl = await QRCode.toDataURL(qrString, { margin: 1 });
+        if (qrY + 30 < 287) {
+          doc.addImage(qrDataUrl, 'PNG', 14, qrY, 28, 28);
+          doc.setFont('Helvetica', 'normal');
+          doc.setFontSize(7.5);
+          doc.setTextColor(120, 120, 120);
+          doc.text('Representación impresa del Comprobante de Pago Electrónico.', 45, qrY + 10);
+          doc.text('Puede verificar este comprobante en el portal de consulta de la SUNAT.', 45, qrY + 14);
+          if (hotel.mensaje_ticket) {
+            doc.text(hotel.mensaje_ticket, 45, qrY + 18);
+          }
+        } else {
+          doc.addPage();
+          doc.addImage(qrDataUrl, 'PNG', 14, 20, 28, 28);
+          doc.setFont('Helvetica', 'normal');
+          doc.setFontSize(7.5);
+          doc.setTextColor(120, 120, 120);
+          doc.text('Representación impresa del Comprobante de Pago Electrónico.', 45, 30);
+          doc.text('Puede verificar este comprobante en el portal de consulta de la SUNAT.', 45, 34);
+          if (hotel.mensaje_ticket) {
+            doc.text(hotel.mensaje_ticket, 45, 38);
+          }
         }
       } else {
-        doc.addPage();
-        doc.addImage(qrDataUrl, 'PNG', 14, 20, 28, 28);
         doc.setFont('Helvetica', 'normal');
-        doc.setFontSize(7.5);
-        doc.setTextColor(120, 120, 120);
-        doc.text('Representación impresa del Comprobante de Pago Electrónico.', 45, 30);
-        doc.text('Puede verificar este comprobante en el portal de consulta de la SUNAT.', 45, 34);
+        doc.setFontSize(8.5);
+        doc.setTextColor(146, 64, 14);
+        doc.text(isSunatPending ? 'PENDIENTE DE EMISIÓN SUNAT' : 'CONSTANCIA INTERNA DE PAGO', 14, qrY + 8);
+        doc.setFont('Helvetica', 'bold');
+        doc.text('Este documento no es un comprobante tributario.', 14, qrY + 13);
         if (hotel.mensaje_ticket) {
-          doc.text(hotel.mensaje_ticket, 45, 38);
+          doc.setFont('Helvetica', 'normal');
+          doc.setTextColor(120, 120, 120);
+          doc.text(hotel.mensaje_ticket, 14, qrY + 18);
         }
       }
 
       // Guardar PDF
-      const filename = `${tipoComprobante}_${serie}_${numero}.pdf`;
+      const filename = `${isSunatEmitted ? `${tipoComprobante}_${serie}_${numero}` : `constancia_${numero}`}.pdf`;
       doc.save(filename);
-      toast.success(`${tipoComprobante.toUpperCase()} descargada con éxito`);
+      toast.success(`${isSunatEmitted ? tipoComprobante.toUpperCase() : 'Constancia'} descargada con éxito`);
       return filename;
     } catch (err) {
       logger.error('Error generando PDF:', err);

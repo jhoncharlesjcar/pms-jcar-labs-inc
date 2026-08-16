@@ -83,20 +83,19 @@ graph TD
 ### RN-REC-001: Estados de Habitación
 
 ```
-Estados válidos: 'libre', 'ocupada', 'reservada', 'mantenimiento', 'limpieza'
+Estados válidos: 'disponible', 'ocupada', 'reservada', 'mantenimiento', 'limpieza'
 
 > Nota: El estado de habitación disponible se representa con el valor `'disponible'` en todos los niveles (BD, service, schema, UI). La label visual es "Disponible".
 
 Transiciones permitidas:
-  libre       → ocupada        (check-in exitoso)
-  libre       → reservada      (reserva futura asignada)
-  libre       → mantenimiento  (por admin)
-  ocupada     → libre          (check-out exitoso)
-  ocupada     → limpieza       (check-out + limpieza requerida)
+  disponible    → ocupada        (check-in exitoso)
+  disponible    → reservada      (reserva futura asignada)
+  disponible    → mantenimiento  (por admin)
+  ocupada       → limpieza       (check-out o anulación de estancia activa)
   reservada   → ocupada        (check-in de reserva futura)
-  reservada   → libre          (cancelación de reserva)
-  limpieza    → libre          (limpieza completada)
-  mantenimiento → libre        (mantenimiento completado)
+  reservada   → disponible     (cancelación de reserva pendiente)
+  limpieza    → disponible     (limpieza completada)
+  mantenimiento → disponible   (mantenimiento completado)
 ```
 
 - Cada transición debe ser atómica: si falla la actualización de la reserva, la habitación NO cambia de estado.
@@ -495,7 +494,7 @@ Campos obligatorios del Anexo N° 4:
 - [ ] `REC-008`: Mínimo 1 adulto en la reserva
 - [ ] `REC-009`: Detalle de menores obligatorio si tiene_menores = true
 - [ ] `REC-010`: Cambiar habitación a 'ocupada' solo al confirmar check-in exitoso
-- [x] `REC-011`: Liberar habitación a 'disponible' solo al completar check-out
+- [x] `REC-011`: Enviar habitación a 'limpieza' al completar check-out; Housekeeping la libera a 'disponible'
 - [ ] `REC-012`: Reserva online llega con estado 'pendiente'
 - [ ] `REC-013`: Verificar disponibilidad cruzando fechas con reservas existentes
 - [ ] `REC-014`: Aplicar tarifa dinámica de temporada sobre tarifa base
@@ -517,6 +516,10 @@ Campos obligatorios del Anexo N° 4:
 8. ✅ La disponibilidad se verifica en tiempo real contra reservas existentes
 9. ✅ Los menores de edad obligan a documentar datos en observaciones
 10. ✅ Cada acción de check-in/check-out genera un audit_log inmutable
+11. ✅ Recepción abre con una cola de atención que prioriza salidas y llegadas vencidas o del día
+12. ✅ El resumen operativo muestra estancias activas, reservas pendientes y habitaciones disponibles sin alterar sus estados
+13. ✅ La línea de tiempo incluye todo el inventario de habitaciones y conserva visible su estado operativo
+14. ✅ Los filtros y acciones principales son utilizables sin desplazamiento horizontal en viewport móvil
 
 ---
 
