@@ -1,9 +1,9 @@
 # Spec: Hotel — Configuración, Multi-Tenant y Datos del Establecimiento
 
-**Dominio:** Hotel  
-**Prioridad:** P0  
-**Versión:** 3.0 Enterprise  
-**Última actualización:** Agosto 2026  
+**Dominio:** Hotel
+**Prioridad:** P0
+**Versión:** 3.0 Enterprise
+**Última actualización:** Agosto 2026
 **Dependencias:** `specs/architecture.md`, `specs/domain-auth.md`
 
 ---
@@ -59,14 +59,14 @@ graph TD
     C --> G[Sección 4: Horarios (check-in, check-out)]
     C --> H[Sección 5: Personal (invitar/editar usuarios)]
     C --> I[Sección 6: Enlaces públicos (QR booking, check-in)]
-    
+
     D --> J[Actualizar vía HotelService.updateConfiguracion]
     E --> J
     F --> J
     G --> J
     H --> K[Invitar usuario por email]
     I --> L[Generar QR / enlaces públicos]
-    
+
     J --> M[Invalidar caché de hotel]
     M --> N[Mostrar toast de éxito]
 ```
@@ -119,19 +119,19 @@ interface Hotel {
   logo_url?: string;             // URL del logo en Supabase Storage
   mensaje_ticket?: string;       // Pie de página del ticket (default "¡Gracias por su preferencia!")
   activo: boolean;               // Default true; desactivación lógica del tenant
-  
+
   // Configuración fiscal
   aplica_igv: boolean;           // true → IGV 18%, false → exención (Amazonía Ley 27037)
   modo_sunat: string;            // 'manual' | 'automatico' | 'desactivado'
   sunat_usuario_sol?: string;    // Usuario SOL SUNAT
   sunat_clave_sol?: string;      // Clave SOL SUNAT (encriptada)
-  
+
   // Configuración operativa
   hora_checkin: string;          // Default "14:00"
   hora_checkout: string;         // Default "12:00"
   numero_yape?: string;          // Número Yape/Plin para cobros digitales
   tipo_cambio: number;           // Default 3.80 (USD → PEN)
-  
+
   // Auditoría
   created_date?: string;         // Fecha de creación
 }
@@ -170,7 +170,7 @@ type ModoSunat = 'manual' | 'automatico' | 'desactivado';
 El tipo de cambio se usa para:
   - Conversión USD → PEN en reservas y ventas
   - Mostrar montos en ambas monedas cuando aplica
-  
+
 Default: 3.80 soles por dólar
 Actualizable por el admin en Configuración → Datos del Hotel
 ```
@@ -202,33 +202,31 @@ Roles disponibles dentro del hotel:
   - developer: Diagnóstico (solo usuarios especiales)
 
 Restricciones:
-  - Un admin no puede cambiar su propio rol a uno inferior
-  - Solo un developer puede crear/eliminar otros developers
-  - No se puede eliminar el último admin del hotel
-  
-  > **Nota de implementación:** La funcionalidad de "desactivar" un usuario (soft-delete)
-  > es una meta planeada. Actualmente los usuarios se gestionan insertando o actualizando
-  > registros directamente en la tabla `usuarios`. No existe columna `activo`/`inactivo` en la BD.
+  - La invitación se ejecuta mediante la Edge Function `invite-user`.
+  - Un admin solo puede invitar dentro de su propio hotel.
+  - Los roles invitables son admin, recepcionista y limpieza.
+  - La creación de developers no está disponible en este contrato.
+  - La columna `usuarios.activo` implementa la desactivación lógica.
+  - Un perfil inactivo pierde acceso en la siguiente validación de sesión.
 ```
 
 ### RN-HOTEL-008: Enlaces Públicos
 
 ```
 El hotel puede generar:
-  1. QR / URL de pre-check-in (checkin.publico): 
-     /public-checkin/{hotelId}
-  2. QR / URL de booking online:
+  1. URL de booking online:
      /booking/{hotelId}
+  2. URL individual de pre-check-in:
+     /public-checkin/{token}
 
-Los enlaces se generan dinámicamente basados en hotelId.
-Se muestran en Configuración → Enlaces Públicos con QR imprimible.
+El booking se identifica por hotel. El pre-check-in requiere un token individual
+ligado a una reserva; un `hotelId` nunca funciona como credencial pública.
 ```
 
 ### RN-HOTEL-009: Caché de Configuración (React Query)
 
 ```
-Query key: ['hotel', 'config', hotelId]
-Stale time: 1 hora (1000 * 60 * 60)
+Query key: ['hotel-config', hotelId]
 Invalida al actualizar configuración del hotel.
 
 Query key: ['hoteles']
@@ -257,11 +255,11 @@ Acceso: Solo para usuarios con rol `developer`.
 Ruta: /dev
 
 Funciones principales:
-  1. Tenant Switcher Inmersivo: Permite a un developer cambiar de hotel instantáneamente 
+  1. Tenant Switcher Inmersivo: Permite a un developer cambiar de hotel instantáneamente
      (inyectando un nuevo `hotelId` en Zustand) sin recargar la app para diagnósticos.
-  2. Live Stats: Muestra estadísticas de performance de React Query, tiempos de carga y 
+  2. Live Stats: Muestra estadísticas de performance de React Query, tiempos de carga y
      tamaño de caché.
-  3. Feature Flags & Logs: Permite activar forzadamente errores o ver logs extendidos 
+  3. Feature Flags & Logs: Permite activar forzadamente errores o ver logs extendidos
      de las Edge Functions de SUNAT/DIRCETUR.
 ```
 ```
@@ -282,13 +280,13 @@ interface HotelRequest {
   email?: string;                 // Opcional
   logo_url?: string;              // Opcional
   mensaje_ticket?: string;        // Opcional, default "¡Gracias por su preferencia!"
-  
+
   // Fiscal
   aplica_igv: boolean;            // Default true
   modo_sunat: string;             // Default 'manual'
   sunat_usuario_sol?: string;     // Opcional
   sunat_clave_sol?: string;       // Opcional (se encripta)
-  
+
   // Operativo
   hora_checkin?: string;          // Default "14:00"
   hora_checkout?: string;         // Default "12:00"
@@ -349,7 +347,7 @@ graph LR
     D --> B
     B -->|Admin cambia personal| E[Personal Actualizado]
     E --> B
-    
+
     style A fill:#f59e0b,color:white
     style B fill:#10b981,color:white
     style C fill:#3b82f6,color:white
@@ -399,13 +397,17 @@ Los tickets usan:
 ### 6.4 Páginas Públicas (Booking / Pre-check-in)
 
 ```
-Las URLs públicas se generan con hotelId:
-  - /public-checkin/{hotelId}
+Contratos públicos:
   - /booking/{hotelId}
+  - /public-checkin/{token}
+  - /portal/{token}
 
 El BookingPublico usa:
   - hotel.aplica_igv → mostrar precios con/sin IGV
   - hotel.tipo_cambio → convertir precios a USD
+
+Pre-check-in y portal requieren tokens limitados y nunca exponen tablas
+sensibles mediante consultas anónimas directas.
   - hotel.hora_checkin / hotel.hora_checkout → en resumen de reserva
   - hotel.telefono → enlace WhatsApp
 ```
@@ -431,7 +433,10 @@ El Layout usa hotelActual para:
 
 ---
 
-## 7. Tests de Contrato
+## 7. Matriz de validación funcional
+
+Los siguientes escenarios son contratos de aceptación y no implican que el
+repositorio productivo incluya una suite automatizada.
 
 - [ ] `HOTEL-001`: Listar hoteles del tenant actual ordenados por nombre
 - [ ] `HOTEL-002`: Obtener hotel por ID existente → retorna datos completos

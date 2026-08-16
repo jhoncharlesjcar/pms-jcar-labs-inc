@@ -1,10 +1,10 @@
 # Spec: Check-out / Liquidación de Estadía
 
-**Dominio:** Recepción  
-**Prioridad:** P1  
-**Versión:** 3.0 Enterprise  
-**Última actualización:** Agosto 2026  
-**Dependencias:** `specs/architecture.md`, `specs/domain-checkin.md`
+**Dominio:** Recepción
+**Prioridad:** P1
+**Versión:** 3.0 Enterprise
+**Última actualización:** Agosto 2026
+**Dependencias:** `specs/architecture.md`, `specs/domain-recepcion.md`, `specs/domain-ventas.md`
 
 ---
 
@@ -21,36 +21,36 @@ graph TD
     A[Seleccionar reserva ACTIVA en Recepción] --> B{¿Ya tiene pago registrado?}
     B -->|Sí| C[Mostrar toast de alerta]
     B -->|No| D[Abrir RegistrarVentaModal]
-    
+
     D --> E[Revisar resumen: estadía + consumos + impuestos]
     E --> F[Ingresar descuento opcional]
     F --> G[Elegir método de pago visible]
     G --> H{¿Método digital?}
     H -->|Yape/Plin| I[Solicitar código de operación/referencia]
     H -->|Efectivo/Tarjeta/Transferencia| J[Continuar]
-    
+
     I --> J
-    
+
     J --> K{¿Cliente requiere comprobante SUNAT?}
     K -->|No| L[Emitir ticket interno]
     K -->|Sí| M[Seleccionar tipo: Boleta o Factura]
-    
+
     M --> N{¿Es Factura?}
     N -->|Sí| O[Ingresar RUC + Razón Social]
     N -->|No| P[Ingresar DNI + Nombre]
-    
+
     O --> Q[Registrar venta en BD]
     P --> Q
     L --> Q
-    
+
     Q --> R{modo_sunat === 'automatico'?}
     R -->|Sí| S[Enviar XML firma ZIP SOAP a SUNAT]
     S --> T[Guardar CDR y actualizar estado]
     R -->|No| U[Estado: 'sunat_pendiente']
-    
+
     T --> V[Enviar habitación → 'limpieza']
     U --> V
-    
+
     V --> W[Imprimir ticket térmico]
     W --> X[Mostrar resumen final con opciones]
 ```
@@ -122,7 +122,7 @@ SI requiere_comprobante = true →
         'boleta' →
             dni_cliente: obligatorio, formato: 8 dígitos (DNI) o CE/Pasaporte
             nombre_cliente: obligatorio, min 3 caracteres
-        
+
         'factura' →
             ruc_cliente:   obligatorio, regex: /^\d{11}$/
             razon_social:  obligatorio, min 3 caracteres
@@ -232,7 +232,7 @@ graph LR
     B --> C[sunat_emitido]
     B --> D[sunat_rechazado]
     D --> B
-    
+
     style A fill:#6b7280,color:white
     style B fill:#f59e0b,color:white
     style C fill:#10b981,color:white
@@ -263,7 +263,7 @@ Response: {
 }
 ```
 
-Ver spec completo en `specs/domain-sunat.md`.
+El contrato fiscal y sus estados se documentan en `specs/domain-ventas.md`.
 
 ### 6.2 Impresión Térmica (RawBT/ESC/POS)
 
@@ -289,7 +289,10 @@ descripcion: `Check-out: Hab. {numero} - {nombre} - S/ {total}`
 
 ---
 
-## 7. Tests de Contrato
+## 7. Matriz de validación funcional
+
+Los escenarios siguientes son contratos de aceptación; no implican que el
+repositorio productivo incluya una suite automatizada.
 
 - [ ] `CHECKOUT-001`: Calcular total correctamente con precio_noche × noches + consumos - descuento
 - [ ] `CHECKOUT-002`: Calcular IGV (18%) correctamente cuando hotel.aplica_igv = true

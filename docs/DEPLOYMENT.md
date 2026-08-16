@@ -1,14 +1,39 @@
 # Despliegue a producción
 
-## 1. Requisitos
+**Última revisión:** 16 de agosto de 2026
+**Frontend:** SPA/PWA en Vercel
+**Backend:** Supabase PostgreSQL, Auth y Edge Functions
+
+## 1. Responsabilidades del pipeline
+
+El workflow `.github/workflows/deploy.yml`, llamado **Production Quality Gate**, se ejecuta en pushes y pull requests hacia `main` o `master`.
+
+Valida:
+
+1. instalación con lockfile;
+2. ESLint;
+3. TypeScript;
+4. dependencias con vulnerabilidades de nivel alto;
+5. build de Vite;
+6. carga del artefacto `dist`.
+
+El workflow no publica automáticamente en Vercel ni aplica cambios en Supabase. La promoción a producción sigue siendo una acción controlada.
+
+Variables requeridas en GitHub Actions:
+
+- `VITE_SUPABASE_URL`;
+- `VITE_SUPABASE_ANON_KEY`.
+
+## 2. Requisitos
 
 - Node.js 22 y pnpm 9.
-- Supabase CLI autenticado para el entorno objetivo.
-- Proyecto de staging separado de producción.
-- Backup verificado antes de modificar el esquema productivo.
-- Variables de Vercel `VITE_SUPABASE_URL` y `VITE_SUPABASE_ANON_KEY`.
+- Supabase CLI autenticado.
+- Proyectos Supabase separados para staging y producción.
+- Acceso al proyecto Vercel.
+- Backup reciente y restauración verificada antes de cambios de esquema.
+- Secretos de Edge Functions disponibles fuera del repositorio.
 
-## 2. Validación local
+## 3. Validación local
 
 ```bash
 pnpm install --frozen-lockfile
@@ -17,11 +42,11 @@ pnpm typecheck
 pnpm build
 ```
 
-El contenido publicable es exclusivamente `dist/`.
+El único directorio publicable del frontend es `dist/`. Los reportes de bundle y archivos `.env` permanecen locales.
 
-## 3. Base de datos
+## 4. Base de datos
 
-El repositorio contiene 13 migraciones ordenadas cronológicamente. No se debe ejecutar SQL manual que no quede versionado.
+`supabase/migrations/` contiene 13 migraciones ordenadas cronológicamente a la fecha de esta revisión. Esa carpeta es la fuente de verdad del esquema y de RLS.
 
 ```bash
 supabase link --project-ref <staging-ref>
@@ -29,16 +54,27 @@ supabase db push --dry-run
 supabase db push
 ```
 
-Validar después del push:
+Procedimiento:
 
-- la columna `usuarios.activo`;
-- la columna `hoteles.activo`;
-- políticas RLS de hoteles, usuarios, reservas, ventas y caja;
-- acceso cruzado entre dos hoteles;
-- contratos públicos de reserva, check-in y portal;
-- esquema privado de secretos.
+1. Ejecutar primero contra staging.
+2. Revisar el plan y cualquier operación destructiva.
+3. Validar las rutas y roles descritos en el smoke check.
+4. Crear un backup de producción.
+5. Cambiar el vínculo al proyecto productivo y repetir el dry run.
+6. Aplicar las migraciones en orden.
 
-## 4. Edge Functions
+Controles mínimos:
+
+- `usuarios.activo` y `hoteles.activo`;
+- aislamiento RLS de hoteles, habitaciones, reservas, ventas y caja;
+- acceso administrativo limitado al tenant correspondiente;
+- funciones públicas sin exposición directa de tablas sensibles;
+- esquema privado para credenciales por hotel;
+- transiciones de habitación y reserva.
+
+Nunca ejecutar `supabase db reset --linked` en producción ni modificar una migración ya aplicada.
+
+## 5. Edge Functions
 
 Funciones disponibles:
 
@@ -58,46 +94,101 @@ validate-gateway
 webhook-gateway
 ```
 
-Desplegar únicamente las funciones utilizadas en el entorno. Configurar secretos con `supabase secrets set`; nunca usar variables `VITE_*` para certificados, claves SOL, service role o secretos de pasarela.
+Desplegar solamente las funciones utilizadas en el entorno. Las operaciones autenticadas comparten `supabase/functions/_shared/auth-middleware.ts`.
 
-Los módulos de pagos automáticos y OTA deben permanecer deshabilitados mientras no exista un proveedor real configurado.
+Configurar con `supabase secrets set`, según los módulos habilitados:
 
-## 5. Vercel
+- URL de redirección de invitaciones;
+- credenciales de identidad;
+- claves y certificados de facturación;
+- credenciales de pagos;
+- credenciales OTA;
+- secretos para validar webhooks.
 
-`vercel.json` ya redirige las rutas de la SPA a `/`.
+Las claves privadas, `service_role`, contraseñas SOL y certificados nunca deben ser variables `VITE_*`. Pagos y OTA deben permanecer deshabilitados si no existe un proveedor real configurado.
 
-Configuración recomendada:
+## 6. Frontend en Vercel
 
-- Build command: `pnpm build`.
-- Output directory: `dist`.
-- Node.js: 22.
-- Install command: `pnpm install --frozen-lockfile`.
+`vercel.json` reescribe todas las rutas hacia `/` para que React Router resuelva la SPA.
 
-La rama productiva debe superar el workflow `Production Quality Gate`.
+| Ajuste | Valor |
+| --- | --- |
+| Framework | Vite |
+| Node.js | 22 |
+| Install command | `pnpm install --frozen-lockfile` |
+| Build command | `pnpm build` |
+| Output directory | `dist` |
 
-## 6. Smoke check posterior
+Variables de Vercel:
 
-- Inicio de sesión y cierre de sesión.
-- Selección de hotel y aislamiento multi-tenant.
-- Dashboard sin errores de consola.
-- Crear, editar y cambiar estado de una habitación.
+- `VITE_SUPABASE_URL`;
+- `VITE_SUPABASE_ANON_KEY`.
+
+La URL de Supabase debe corresponder al mismo entorno cuyas migraciones y funciones se desplegaron.
+
+## 7. Orden de promoción
+
+1. Quality gate local.
+2. Migraciones en staging.
+3. Edge Functions y secretos en staging.
+4. Smoke check de staging.
+5. Backup de producción.
+6. Migraciones de producción.
+7. Edge Functions y secretos de producción.
+8. Publicación de `dist/`.
+9. Smoke check productivo.
+10. Monitoreo reforzado después del despliegue.
+
+## 8. Smoke check
+
+### Identidad y permisos
+
+- Login y logout con limpieza de caché.
+- Usuario inactivo sin acceso.
+- Redirección inicial de admin, recepcionista y limpieza.
+- Bloqueo de rutas no autorizadas.
+
+### Multi-tenant
+
+- Cambio de propiedad para developer o usuario multi-hotel.
+- Ausencia de datos cruzados entre dos hoteles.
+- Alta, edición, activación y desactivación de hotel.
+- Invitación de personal al hotel correcto.
+
+### Operación
+
+- Crear y editar una habitación.
 - Crear reserva y completar check-in.
-- Registrar venta y movimiento de caja.
-- Checkout y transición de habitación a limpieza.
-- Generar ticket interno.
-- Rutas públicas con token válido, vencido e inválido.
-- Instalación y actualización de la PWA.
+- Registrar una venta y un movimiento de caja.
+- Ejecutar checkout y confirmar transición a limpieza.
+- Completar limpieza y liberar la habitación.
+- Generar ticket interno y comprobar el estado fiscal.
 
-## 7. Observabilidad y reversión
+### Rutas públicas y PWA
 
-Monitorear errores de Edge Functions, respuestas PostgREST, rechazos RLS y comprobantes SUNAT.
+- Booking público para un hotel activo.
+- Pre-check-in y portal con token válido, vencido e inválido.
+- Navegación directa a una ruta interna.
+- Instalación, recarga y actualización de la PWA.
+- Confirmación de que respuestas autenticadas de Supabase no quedan en el Service Worker.
+
+## 9. Observabilidad y reversión
+
+Monitorear:
+
+- errores de Edge Functions;
+- respuestas 401/403 y rechazos RLS;
+- errores PostgREST;
+- colas offline y dead letters;
+- comprobantes pendientes o rechazados;
+- fallos de Realtime;
+- errores del navegador.
 
 Ante un incidente:
 
-1. Deshabilitar el flujo público o integración afectada.
-2. Revocar tokens comprometidos y rotar secretos.
-3. Restaurar la versión anterior del frontend o Edge Function.
-4. Corregir el esquema mediante una migración nueva.
-5. Restaurar backup sólo con aprobación y evidencia del alcance.
-
-Nunca usar `db reset --linked` en producción.
+1. detener la integración o ruta pública afectada;
+2. rotar secretos o revocar tokens si existe riesgo de exposición;
+3. restaurar el frontend o la Edge Function anterior;
+4. corregir el esquema mediante una migración nueva;
+5. restaurar un backup solamente cuando la reversión lógica no sea suficiente y el alcance esté aprobado;
+6. documentar causa, impacto y validación posterior.

@@ -1,9 +1,9 @@
 # Spec: Fidelización por Puntos — Programa de Lealtad de Huéspedes
 
-**Dominio:** Fidelización / Lealtad  
-**Prioridad:** P1  
-**Versión:** 3.0 Enterprise  
-**Última actualización:** Agosto 2026  
+**Dominio:** Fidelización / Lealtad
+**Prioridad:** P1
+**Versión:** 3.0 Enterprise
+**Última actualización:** Agosto 2026
 **Dependencias:** `specs/domain-recepcion.md`, `specs/domain-checkout.md`, `specs/architecture.md`
 
 ---
@@ -101,7 +101,17 @@ CREATE TABLE loyalty_transactions (
 
 ---
 
-## 5. Pruebas y Validación
+## 5. Matriz de validación funcional
 
-- Pruebas unitarias de dominio en `src/services/__tests__/loyalty.service.test.ts`.
-- Pruebas de integración con React Query hooks en `src/hooks/useLoyalty.ts`.
+Estos escenarios son contratos de aceptación. El repositorio productivo no
+incluye la suite histórica de pruebas.
+
+- [ ] Acumular puntos al completar un checkout elegible.
+- [ ] No acumular puntos si el programa está deshabilitado para el hotel.
+- [ ] Rechazar una redención superior al saldo disponible.
+- [ ] Revertir los movimientos asociados a una operación anulada.
+- [ ] Expirar únicamente puntos vencidos y conservar trazabilidad.
+- [ ] Impedir acceso cruzado a cuentas de fidelización de otro hotel.
+
+La integración de interfaz se implementa mediante `src/hooks/useLoyalty.ts`;
+las reglas reutilizables viven en `src/services/loyalty.service.ts`.

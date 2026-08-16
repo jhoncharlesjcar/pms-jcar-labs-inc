@@ -1,100 +1,163 @@
 # Arquitectura del PMS JCAR LABS
 
+**Versión:** 1.0.0
+**Última revisión:** 16 de agosto de 2026
+
 ## Objetivo
 
-El sistema es una SPA multi-tenant para operación hotelera. El frontend nunca sustituye la autorización del backend: Supabase Auth identifica al usuario y PostgreSQL RLS limita cada operación al hotel autorizado.
+El sistema es una SPA/PWA multi-tenant para operación hotelera. El frontend organiza la experiencia y limita rutas por rol, pero la autorización efectiva se aplica en PostgreSQL RLS y en las Edge Functions.
 
-## Componentes
+## Vista general
 
 ```mermaid
 flowchart LR
-    UI["React SPA / PWA"] --> QUERY["TanStack Query"]
-    QUERY --> API["Supabase API"]
+    UI["React SPA / PWA"] --> ROUTER["React Router"]
+    ROUTER --> PROVIDERS["AuthProvider + HotelProvider"]
+    PROVIDERS --> STORE["Zustand: sesión y hotel activo"]
+    PROVIDERS --> QUERY["TanStack Query + IndexedDB"]
+    QUERY --> DB["db.js y servicios de dominio"]
+    DB --> API["Supabase API"]
     API --> AUTH["Supabase Auth"]
-    API --> RLS["PostgreSQL + RLS"]
+    API --> PG["PostgreSQL + RLS"]
     UI --> EDGE["Edge Functions"]
-    EDGE --> RLS
-    EDGE --> EXT["SUNAT y proveedores externos"]
+    EDGE --> PG
+    EDGE --> EXT["SUNAT, identidad, pagos y OTA"]
 ```
 
 ## Frontend
 
-- `src/App.jsx`: rutas públicas y protegidas.
-- `src/components/Layout.jsx`: navegación y shell operativo.
-- `src/pages/`: módulos cargados de forma diferida.
-- `src/api/db.js`: acceso CRUD y ámbito del hotel.
-- `src/contexts/`: autenticación y selección del hotel.
-- `src/services/`: lógica de negocio compartida que participa en producción.
-- `src/modules/printer/`: impresión térmica y plantillas.
-
-Las rutas privadas son:
-
-| Ruta | Módulo |
+| Ruta o directorio | Responsabilidad |
 | --- | --- |
-| `/` | Dashboard |
-| `/habitaciones` | Habitaciones |
-| `/recepcion` | Recepción |
-| `/huespedes` | Huéspedes |
-| `/ventas` | Ventas |
-| `/caja` | Caja |
-| `/reportes` | Reportes |
-| `/revenue` | Revenue |
-| `/configuracion` | Configuración |
-| `/pos` | Punto de venta |
-| `/limpieza` | Housekeeping |
-| `/insumos` | Inventario |
-| `/dev` | Administración multi-tenant |
+| `src/App.jsx` | Providers, lazy loading y rutas |
+| `src/components/Layout.jsx` | Shell, sidebar, navegación móvil y sesión |
+| `src/router/ProtectedRoute.jsx` | Autenticación y control de acceso por ruta |
+| `src/constants/permissions.ts` | Matriz compartida de permisos |
+| `src/constants/roomStatus.ts` | Estados y transiciones de habitación |
+| `src/contexts/AuthContext.tsx` | Sesión, perfil, conectividad y logout seguro |
+| `src/contexts/HotelContext.tsx` | Propiedad activa y selector multi-hotel |
+| `src/store/auth.store.ts` | Estado de sesión y `hotelId` |
+| `src/lib/query-client.js` | Caché React Query persistida |
+| `src/api/db.js` | Entidades y proxy con ámbito de hotel |
+| `src/services/` | Lógica de negocio reutilizable |
+| `src/pages/` | Módulos de la aplicación |
 
-Las rutas `/booking/:hotelId`, `/public-checkin/:token` y `/portal/:token` son públicas, pero sus datos se entregan mediante contratos restringidos y tokens.
+Las páginas privadas se cargan mediante `React.lazy`. `ErrorBoundary`, los skeletons y el toaster se montan a nivel de aplicación.
 
-## Persistencia y sincronización
+## Rutas y permisos
 
-- React Query administra caché, revalidación e invalidaciones.
-- La caché persistente usa IndexedDB.
-- Realtime invalida datos operativos cuando cambian en Supabase.
-- La cola offline almacena mutaciones pendientes y las reintenta con el contexto del hotel.
+### Rutas públicas
+
+| Ruta | Propósito |
+| --- | --- |
+| `/login` | Inicio de sesión por email y contraseña |
+| `/booking/:hotelId` | Motor público de reservas |
+| `/public-checkin/:token` | Pre-check-in mediante token |
+| `/portal/:token` | Portal del huésped |
+
+### Rutas privadas
+
+| Ruta | Roles |
+| --- | --- |
+| `/` | admin, developer |
+| `/dev` | developer |
+| `/configuracion` | admin, developer |
+| `/revenue`, `/insumos` | admin, developer |
+| `/caja`, `/reportes`, `/ventas` | admin, developer, recepcionista |
+| `/recepcion`, `/huespedes`, `/pos` | admin, developer, recepcionista |
+| `/habitaciones`, `/limpieza` | admin, developer, recepcionista, limpieza |
+
+`ProtectedRoute` redirige a limpieza hacia `/limpieza` y a recepción hacia `/recepcion`. Esta matriz debe mantenerse sincronizada con `src/constants/permissions.ts`.
+
+## Contexto multi-tenant
+
+1. Supabase Auth recupera o crea la sesión.
+2. `AuthContext` carga el perfil desde `usuarios` y valida `activo` y `role`.
+3. `useHotelData` obtiene las propiedades autorizadas.
+4. `auth.store` conserva el `hotelId` activo y lo refleja en `localStorage`.
+5. `db.forHotel(hotelId)` añade el ámbito esperado a las operaciones del cliente.
+6. RLS vuelve a validar identidad, rol y hotel en el servidor.
+
+El filtro del cliente no es un control de seguridad. Una operación sigue siendo inválida si RLS no la autoriza.
+
+## Datos y sincronización
+
+- TanStack Query administra consultas, mutaciones e invalidaciones.
+- La caché seleccionada persiste en IndexedDB.
+- Realtime invalida información operativa al recibir cambios de Supabase.
+- `sync-queue.js` particiona mutaciones offline por usuario y hotel.
+- `OfflineSyncManager` procesa la cola al recuperar conectividad.
+- El logout intenta sincronizar cambios pendientes y se bloquea si quedan pendientes o dead letters.
+- Al cerrar sesión se purgan la caché persistida y las colas de esa identidad.
 - El Service Worker no almacena respuestas autenticadas de Supabase.
 
 ## Backend
 
-`supabase/migrations/` es la fuente de verdad del esquema y RLS. Las Edge Functions aíslan credenciales y operaciones privilegiadas:
+`supabase/migrations/` es la única fuente versionada del esquema, funciones SQL y políticas RLS.
 
-- facturación SUNAT e identidad;
-- reservas, check-in y portal públicos;
-- invitaciones;
-- configuración segura por hotel;
-- webhooks, pagos y OTA.
+Las Edge Functions cubren:
 
-Las integraciones sin adaptador real deben fallar de forma explícita; no deben simular éxito.
+- configuración de secretos por hotel;
+- facturación e identidad;
+- invitación de usuarios;
+- booking, check-in y portal públicos;
+- pagos, webhooks y conectividad OTA;
+- expiración de puntos.
 
-## Seguridad multi-tenant
+Las funciones autenticadas reutilizan `supabase/functions/_shared/auth-middleware.ts`. Las integraciones sin proveedor real deben devolver un error explícito y permanecer deshabilitadas.
+
+## Seguridad
 
 1. Cada entidad operativa incluye `hotel_id`.
-2. RLS valida usuario activo, rol y hotel.
-3. El cliente añade ámbito de hotel para ergonomía, pero RLS es la defensa efectiva.
-4. Las credenciales sensibles viven en esquemas privados o secretos de Edge Functions.
-5. La clave `service_role` nunca llega al navegador.
-6. Los endpoints públicos aplican tokens, expiración, rate limiting y selección mínima de columnas.
+2. Los perfiles y hoteles inactivos no pueden operar.
+3. La clave `service_role` nunca se entrega al navegador.
+4. Los secretos fiscales y de pago se escriben mediante una Edge Function y se almacenan fuera de columnas públicas.
+5. Las rutas públicas reciben datos mínimos mediante contratos controlados.
+6. Las invitaciones validan rol, hotel y autoridad del solicitante.
+7. Las acciones destructivas se confirman en la UI y siguen protegidas por RLS.
+8. Una migración aplicada nunca se reescribe.
+
+## PWA y rendimiento
+
+- Vite divide los proveedores principales en chunks.
+- Las páginas usan lazy loading.
+- Workbox precachea activos estáticos y aplica actualización automática.
+- No existe runtime caching de respuestas Supabase.
+- `ANALYZE=true pnpm build` genera un reporte local del bundle.
+
+## Quality gate
+
+`.github/workflows/deploy.yml` ejecuta:
+
+1. `pnpm install --frozen-lockfile`;
+2. `pnpm lint`;
+3. `pnpm typecheck`;
+4. `pnpm audit --audit-level=high`;
+5. `pnpm build`;
+6. publicación del artefacto `dist`.
+
+Los escenarios contractuales de cada spec funcionan como matriz de aceptación. El repositorio productivo no incluye las suites de pruebas históricas eliminadas durante la limpieza.
 
 ## Dependencias de dominio
 
-Los contratos funcionales se mantienen en:
+```mermaid
+flowchart TD
+    AUTH["Auth y roles"] --> HOTEL["Hotel y multi-tenant"]
+    HOTEL --> ROOMS["Habitaciones"]
+    ROOMS --> RECEPTION["Recepción y reservas"]
+    RECEPTION --> CHECKOUT["Checkout"]
+    CHECKOUT --> SALES["Ventas y comprobantes"]
+    SALES --> CASH["Caja"]
+    ROOMS --> CLEANING["Limpieza"]
+    CLEANING --> SUPPLIES["Insumos"]
+    CHECKOUT --> LOYALTY["Fidelización"]
+```
 
-- `domain-auth.md`
-- `domain-hotel.md`
-- `domain-habitaciones.md`
-- `domain-recepcion.md`
-- `domain-checkout.md`
-- `domain-ventas.md`
-- `domain-caja.md`
-- `domain-limpieza.md`
-- `domain-insumos.md`
-- `domain-fidelidad.md`
+Los contratos detallados se encuentran en `specs/domain-*.md`.
 
 ## Reglas de evolución
 
+- Actualizar código y documentación en el mismo cambio.
 - Crear migraciones aditivas y reversibles cuando sea posible.
-- No editar migraciones ya aplicadas.
-- Mantener los estados de habitación y reserva centralizados.
-- Reutilizar componentes compartidos para confirmaciones, estados y acciones.
-- Todo cambio debe superar lint, typecheck y build antes del despliegue.
+- Centralizar permisos y estados; no duplicar strings de dominio.
+- Reutilizar componentes visuales y contratos de datos.
+- Ejecutar el quality gate y el smoke check antes de promover a producción.

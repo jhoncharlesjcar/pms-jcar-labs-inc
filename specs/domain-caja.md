@@ -1,9 +1,9 @@
 # Spec: Caja — Arqueo, Egresos y Cierre de Turno
 
-**Dominio:** Caja  
-**Prioridad:** P1  
-**Versión:** 3.0 Enterprise  
-**Última actualización:** Agosto 2026  
+**Dominio:** Caja
+**Prioridad:** P1
+**Versión:** 3.0 Enterprise
+**Última actualización:** Agosto 2026
 **Dependencias:** `specs/domain-ventas.md`, `specs/domain-limpieza.md`
 
 ---
@@ -128,7 +128,7 @@ REQUISITOS:
   - Monto > 0
   - Concepto ≥ 3 caracteres
   - Categoría válida (enumerate)
-  
+
 VALIDACIÓN CONDICIONAL:
   SI categoria = 'insumos':
     - insumo_id obligatorio
@@ -178,7 +178,7 @@ const CATEGORIAS_EGRESO = [
 Formatos soportados:
   - PDF: jsPDF + autoTable (formato estructurado con encabezado, tabla, firmas)
   - Excel: XLSX (SheetJS) con columnas: Fecha, Ticket, Cliente, Tipo, Pago, Total
-  
+
 Contenido del reporte:
   - Resumen de ingresos (Hotel + POS)
   - Desglose por método de pago
@@ -259,7 +259,7 @@ Ver `specs/domain-ventas.md` — Sección 4.2. Para fines de caja, se usan los c
 graph LR
     A[Abierto] -->|Ingresos y egresos| B[Operando]
     B -->|Cierre de turno| C[Cerrado]
-    
+
     style A fill:#10b981,color:white
     style B fill:#3b82f6,color:white
     style C fill:#6b7280,color:white
@@ -303,7 +303,10 @@ El Dashboard muestra:
 
 ---
 
-## 7. Tests de Contrato
+## 7. Matriz de validación funcional
+
+Los escenarios siguientes son contratos de aceptación; no implican que el
+repositorio productivo incluya una suite automatizada.
 
 - [ ] `CAJ-001`: Calcular estadísticas de caja (ingresos, egresos, balance)
 - [ ] `CAJ-002`: Desglose por método de pago (5 métodos)

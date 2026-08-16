@@ -1,9 +1,9 @@
 # Spec: Habitaciones — CRUD, Estados y Grid
 
-**Dominio:** Habitaciones  
-**Prioridad:** P1  
-**Versión:** 3.0 Enterprise  
-**Última actualización:** Agosto 2026  
+**Dominio:** Habitaciones
+**Prioridad:** P1
+**Versión:** 3.0 Enterprise
+**Última actualización:** Agosto 2026
 **Dependencias:** `specs/domain-recepcion.md`
 
 ---
@@ -25,17 +25,17 @@ graph TD
     C -->|Crear| D[Abrir HabitacionFormModal]
     C -->|Editar| E[Abrir HabitacionFormModal con datos]
     C -->|Eliminar| F[Confirmar eliminación]
-    
+
     D --> G[Completar formulario]
     E --> G
-    
+
     G --> H[Validar datos]
     H -->|Válido| I[INSERT/UPDATE en BD]
     H -->|Inválido| J[Mostrar errores]
-    
+
     I --> K[Invalidar caché React Query]
     K --> L[Actualizar grid]
-    
+
     F --> M[DELETE en BD]
     M --> K
 ```
@@ -50,12 +50,12 @@ graph TD
     C -->|ocupada + check-out| E[→ libre / limpieza]
     C -->|limpieza completada| F[→ libre]
     C -->|admin + mantenimiento| G[→ mantenimiento]
-    
+
     D --> H[UPDATE habitación]
     E --> H
     F --> H
     G --> H
-    
+
     H --> I[Invalidar caché]
     I --> J[Grid se actualiza en tiempo real]
 ```
@@ -197,7 +197,7 @@ graph LR
     D -->|cancelación| A
     A -->|mantenimiento| E[mantenimiento]
     E -->|completado| A
-    
+
     style A fill:#10b981,color:white
     style B fill:#ef4444,color:white
     style C fill:#a855f7,color:white
@@ -245,7 +245,10 @@ El sidebar muestra un indicador de ocupación:
 
 ---
 
-## 7. Tests de Contrato
+## 7. Matriz de validación funcional
+
+Los escenarios siguientes son contratos de aceptación; no implican que el
+repositorio productivo incluya una suite automatizada.
 
 - [ ] `HAB-001`: Crear habitación con todos los campos obligatorios → habitación creada con estado 'libre'
 - [ ] `HAB-002`: Rechazar habitación sin número

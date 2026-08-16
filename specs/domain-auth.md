@@ -1,446 +1,176 @@
-# Spec: Autenticación y Autorización — Auth, Roles y Sesiones
+# Spec: autenticación y autorización
 
-**Dominio:** Autenticación / Auth  
-**Prioridad:** P0  
-**Versión:** 3.0 Enterprise  
-**Última actualización:** Agosto 2026  
-**Dependencias:** `specs/architecture.md`, `specs/domain-hotel.md`
-
----
+**Dominio:** identidad, sesión y permisos
+**Prioridad:** P0
+**Versión:** 4.0
+**Última actualización:** 16 de agosto de 2026
 
 ## 1. Propósito
 
-Gestiona el ciclo de vida completo de autenticación y autorización del sistema: inicio de sesión (login), cierre de sesión (logout), persistencia de sesión, carga del perfil de usuario, asignación de roles y control de acceso a rutas y funcionalidades. El módulo de Auth es la puerta de entrada al sistema y define qué puede hacer cada usuario dentro del PMS.
+Supabase Auth identifica al usuario. La tabla `usuarios` extiende esa identidad con nombre, rol, hotel y estado activo. El frontend restringe rutas para orientar la experiencia; RLS y las Edge Functions aplican la autorización definitiva.
 
-El sistema utiliza **Supabase Auth** como proveedor de identidad, complementado con una tabla `usuarios` que extiende el perfil con datos de negocio: hotel asignado, rol y nombre completo.
+Fuentes ejecutables:
 
----
+- `src/pages/Login.jsx`;
+- `src/contexts/AuthContext.tsx`;
+- `src/store/auth.store.ts`;
+- `src/router/ProtectedRoute.jsx`;
+- `src/constants/permissions.ts`;
+- `supabase/functions/invite-user/index.ts`.
 
-## 2. Flujo Canónico
-
-### 2.1 Inicio de Sesión (Login)
-
-```mermaid
-graph TD
-    A[Usuario accede a /login] --> B[Ingresar email + contraseña]
-    B --> C[Validar formato de email]
-    C -->|Inválido| D[Mostrar error: "Email inválido"]
-    C -->|Válido| E[Llamar a supabase.auth.signInWithPassword]
-    E --> F{¿Credenciales correctas?}
-    F -->|No| G[Mostrar error: "Credenciales inválidas"]
-    F -->|Sí| H[Recibir sesión JWT]
-    H --> I[Cargar perfil desde tabla 'usuarios']
-    I --> J{¿Existe perfil?}
-    J -->|Sí| K[Cargar datos del hotel asignado]
-    J -->|No| L[Crear perfil demo automático]
-    L --> K
-    K --> M[Redirigir a página de inicio según rol]
-    M --> N[Mostrar toast de bienvenida]
-```
-
-### 2.2 Carga de Aplicación (App Initializer)
+## 2. Inicio de sesión
 
 ```mermaid
-graph TD
-    A[App monta en browser] --> B[PersistQueryClientProvider hidrata caché IndexedDB]
-    B --> C[AuthProvider monta]
-    C --> D[Verificar sesión existente via getSession]
-    D --> E{¿Sesión activa?}
-    E -->|Sí| F[Cargar perfil de usuario loadUserProfile]
-    E -->|No| G[Mostrar LoginScreen]
-    F --> H{¿Perfil válido?}
-    H -->|Sí| I[Cargar hoteles]
-    H -->|No| J[Crear perfil demo si es posible]
-    J --> I
-    I --> K[HotelProvider monta]
-    K --> L[App autenticada lista]
-    L --> M[RoleGuard verifica acceso a ruta]
+flowchart TD
+    A["Abrir /login"] --> B["Email y contraseña"]
+    B --> C["supabase.auth.signInWithPassword"]
+    C -->|Error| D["Mostrar mensaje y conservar formulario"]
+    C -->|Éxito| E["AuthContext recibe la sesión"]
+    E --> F["Consultar perfil en usuarios"]
+    F --> G{"Perfil válido y activo"}
+    G -->|No existe| H["Error user_not_registered"]
+    G -->|Inactivo| I["Cerrar sesión y denegar acceso"]
+    G -->|Rol inválido| J["Denegar acceso"]
+    G -->|Sí| K["Cargar HotelProvider"]
+    K --> L["ProtectedRoute valida la ruta"]
 ```
 
-### 2.3 Cierre de Sesión (Logout)
+Reglas:
+
+- El login acepta email válido y contraseña de al menos seis caracteres en la interfaz.
+- No se crea un perfil demo automáticamente.
+- Un usuario autenticado sin registro en `usuarios` recibe `user_not_registered`.
+- Solamente se aceptan los roles `admin`, `developer`, `recepcionista` y `limpieza`.
+- `usuarios.activo = false` fuerza el cierre de sesión.
+
+## 3. Persistencia y carga
+
+1. Supabase conserva y renueva la sesión.
+2. `PersistQueryClientProvider` hidrata la caché permitida.
+3. `AuthContext` recupera la sesión y carga el perfil.
+4. `auth.store` refleja usuario, sesión, conectividad y hotel activo.
+5. `HotelProvider` carga las propiedades autorizadas.
+6. La aplicación privada se renderiza cuando identidad y hotel terminaron de validarse.
+
+El estado `isAuthenticated` requiere simultáneamente sesión y perfil.
+
+## 4. Roles y rutas
+
+| Ruta | developer | admin | recepcionista | limpieza |
+| --- | :---: | :---: | :---: | :---: |
+| `/` | Sí | Sí | Redirige | Redirige |
+| `/dev` | Sí | No | No | No |
+| `/configuracion` | Sí | Sí | No | No |
+| `/revenue`, `/insumos` | Sí | Sí | No | No |
+| `/caja`, `/reportes`, `/ventas` | Sí | Sí | Sí | No |
+| `/recepcion`, `/huespedes`, `/pos` | Sí | Sí | Sí | No |
+| `/habitaciones`, `/limpieza` | Sí | Sí | Sí | Sí |
+
+Redirecciones:
+
+- usuario sin perfil válido: `/login`;
+- recepcionista que abre `/`: `/recepcion`;
+- limpieza que abre `/`: `/limpieza`;
+- ruta no permitida: pantalla de acceso restringido con retorno al inicio del rol.
+
+La matriz debe cambiarse en `src/constants/permissions.ts`, no duplicarse dentro de componentes.
+
+## 5. Hotel activo
+
+- `hotelId` forma parte del store de autenticación.
+- `localStorage['hotel_activo_id']` permite recuperar la última propiedad autorizada.
+- Si el valor persistido no pertenece a la lista actual, se selecciona la primera propiedad válida.
+- Cambiar de hotel actualiza el store y obliga a las consultas a usar el nuevo contexto.
+- RLS vuelve a comprobar que el usuario pueda operar sobre ese hotel.
+
+## 6. Invitación de usuarios
+
+`db.users.inviteUser(email, role, hotelId)` invoca la Edge Function `invite-user`.
+
+La función:
+
+1. autentica al solicitante;
+2. exige rol admin o developer;
+3. valida email, UUID y rol de destino;
+4. impide que un admin invite usuarios a otro hotel;
+5. usa `INVITE_REDIRECT_URL`;
+6. envía la invitación con Supabase Admin;
+7. crea o actualiza el perfil `usuarios` con `activo = true`;
+8. elimina la identidad recién creada si falla el perfil.
+
+Roles invitables: `admin`, `recepcionista` y `limpieza`. La creación de developers no se permite desde este contrato.
+
+## 7. Logout seguro
 
 ```mermaid
-graph TD
-    A[Usuario hace clic en Cerrar Sesión] --> B[Confirmar acción]
-    B --> C[Llamar a supabase.auth.signOut]
-    C --> D[Limpiar Zustand store (auth.store)]
-    D --> E[Limpiar localStorage: claves sb-*]
-    E --> F[Limpiar sessionStorage]
-    F --> G[Redirigir a /login]
-    G --> H[Recargar aplicación]
+flowchart TD
+    A["Solicitar logout"] --> B["Contar mutaciones pendientes"]
+    B --> C{"Hay pendientes y existe conexión"}
+    C -->|Sí| D["Procesar cola"]
+    C -->|No| E["Revisar resultado"]
+    D --> E
+    E --> F{"Quedan pendientes o dead letters"}
+    F -->|Sí| G["Bloquear logout y pedir revisión"]
+    F -->|No| H["supabase.auth.signOut"]
+    H --> I["Limpiar auth.store"]
+    I --> J["Purgar caché y cola de la identidad"]
+    J --> K["Eliminar claves sb-* y sessionStorage"]
+    K --> L["Recargar origen"]
 ```
 
----
+El logout no elimina preferencias independientes como el tema. No se permite cerrar sesión silenciosamente si eso dejaría cambios operativos sin revisar.
 
-## 3. Reglas de Negocio
+## 8. Conectividad
 
-### RN-AUTH-001: Roles del Sistema
+- Los eventos `online` y `offline` actualizan Context y store.
+- La interfaz muestra un banner sin conexión.
+- Una sesión almacenada no sustituye la validación del perfil.
+- Al reconectar, el gestor offline intenta procesar la cola.
+- Cada entrada de la cola se particiona por usuario y hotel.
 
-El sistema define exactamente 4 roles, cada uno con un conjunto específico de permisos:
-
-```typescript
-type UserRole = 'admin' | 'recepcionista' | 'limpieza' | 'developer';
-```
-
-| Rol | Acceso | Descripción |
-|:---|:---|:---|
-| `admin` | Todas las rutas excepto `/dev` | Gestión completa del hotel: configuración, personal, reportes, datos financieros |
-| `recepcionista` | `/recepcion`, `/pos`, `/ventas`, `/caja`, `/huespedes`, `/habitaciones` | Operaciones diarias: check-in, check-out, cobros, POS, caja chica |
-| `limpieza` | `/limpieza`, `/habitaciones` | Housekeeping: ver habitaciones sucias, marcar limpieza completada, registrar insumos |
-| `developer` | Todas las rutas incluido `/dev` | Depuración, tests, auditoría, herramientas de sistema |
-
-**Reglas de jerarquía:**
-- `developer` tiene acceso total (diagnóstico y reparación).
-- `admin` ve todo excepto herramientas de desarrollo.
-- `recepcionista` no puede borrar transacciones ni ver credenciales SOL de SUNAT.
-- `limpieza` solo ve su módulo específico.
-
-### RN-AUTH-002: Estados de Autenticación
-
-```mermaid
-graph LR
-    A[No Autenticado] -->|Login exitoso| B[Autenticado - Sesión Activa]
-    B -->|Session expira| A
-    B -->|Logout| A
-    B -->|Error de red| C[Autenticado - Offline]
-    C -->|Reconexión exitosa| B
-    C -->|Logout| A
-    
-    style A fill:#ef4444,color:white
-    style B fill:#10b981,color:white
-    style C fill:#f59e0b,color:white
-```
-
-- **No Autenticado:** Usuario no ha iniciado sesión o sesión expiró. Solo ve `/login`.
-- **Autenticado - Sesión Activa:** Usuario con JWT válido y perfil cargado. Acceso completo según rol.
-- **Autenticado - Offline:** Sesión JWT aún vigente pero sin conexión a Supabase. La UI funciona con datos cacheados.
-
-### RN-AUTH-003: Persistencia de Sesión
-
-```
-La sesión JWT se almacena en localStorage por Supabase Auth.
-Tiene un TTL configurable (default: 1 hora de acceso, 7 días de refresh).
-Al recargar la página:
-  1. supabase.auth.getSession() recupera la sesión desde localStorage
-  2. Si el token expiró, supabase.auth.refreshSession() intenta renovarlo
-  3. Si falla el refresh → sesión inválida → mostrar LoginScreen
-```
-
-- El refresh token se maneja automáticamente por Supabase Auth.
-- No se requiere lógica manual de refresh.
-
-### RN-AUTH-004: Carga de Perfil (loadUserProfile)
-
-```typescript
-async function loadUserProfile(userId: string): Promise<UserProfile> {
-  1. SELECT * FROM usuarios WHERE id = userId
-  2. SI no existe (PGRST116) → createDemoProfile(userId)
-  3. SI existe → retornar perfil con role normalizado
-  4. SI role = 'administrador' → normalizar a 'admin'
-  5. SI email = 'almanacenromeroj@gmail.com' → forzar role = 'developer'
-}
-```
-
-- El perfil se carga **antes** de que cualquier componente intente acceder a datos.
-- La tabla `usuarios` es una extensión de `auth.users` (FK por defecto).
-- El mapeo `auth.users.id → usuarios.id` es responsabilidad de la app al registrarse.
-
-### RN-AUTH-005: Creación de Perfil Demo (createDemoProfile)
-
-```
-CUANDO el usuario autenticado NO tiene registro en 'usuarios':
-  1. Obtener datos de auth.getUser()
-  2. SI user.email = developer → role = 'developer'
-     SINO → role = 'admin'
-  3. INSERT en usuarios:
-     id, email, full_name, role, hotel_id (default UUID)
-  4. Retornar perfil creado
-```
-
-- Este mecanismo **solo opera en entorno demo** (no hay registro formal).
-- Para producción, un admin debe invitar al usuario manualmente desde la Configuración.
-
-  > **Nota de implementación:** `db.users.inviteUser()` es una función planeada para invitar
-  > usuarios por email con asignación automática de rol y hotel. Actualmente no está implementada.
-  > La invitación se realiza insertando directamente en la tabla `usuarios`.
-
-### RN-AUTH-006: Control de Acceso por Ruta (Guards)
-
-```typescript
-const ROUTE_ROLE_MAP = {
-  '/':              ['admin', 'developer'],
-  '/dev':          ['developer'],
-  '/configuracion': ['admin', 'developer'],
-  '/caja':          ['admin', 'developer', 'caja'],
-  '/reportes':      ['admin', 'developer', 'caja'],
-  '/ventas':        ['admin', 'developer', 'recepcionista', 'caja'],
-  '/recepcion':     ['admin', 'developer', 'recepcionista'],
-  '/huespedes':     ['admin', 'developer', 'recepcionista'],
-  '/pos':           ['admin', 'developer', 'recepcionista', 'caja'],
-  '/habitaciones':  ['admin', 'developer', 'recepcionista', 'limpieza'],
-  '/limpieza':      ['admin', 'developer', 'recepcionista', 'limpieza'],
-};
-```
-
-**Reglas de redirección:**
-- Si el usuario no autenticado → redirigir a `/login` (guardar ruta original en `state.from`).
-- Si el usuario autenticado no tiene rol para la ruta → redirigir a su página de inicio según rol:
-  - `limpieza` → `/limpieza`
-  - `recepcionista` → `/recepcion`
-  - `caja` → `/caja`
-  - otros → `/`
-- Si el usuario autenticado visita `/` → redirigir según rol a su página predeterminada.
-
-### RN-AUTH-007: Registro de Auditoría (Audit Logs)
-
-```typescript
-interface AuditLogPayload {
-  hotel_id: string;          // UUID del hotel
-  usuario_id: string;        // UUID del usuario que realizó la acción
-  usuario_nombre: string;    // Nombre del usuario (redundancia para histórico)
-  usuario_role: string;      // Rol del usuario
-  accion: string;            // Acción en mayúsculas (ej. "CHECK-IN", "CHECK-OUT")
-  descripcion: string;       // Descripción legible de la acción
-  modulo: ModuloSistema;     // Módulo: recepcion, ventas, caja, pos, limpieza, configuracion, dev
-}
-```
-
-**Mecanismo de registro:**
-1. Intentar INSERT en `audit_logs` via Supabase.
-2. SI falla Supabase → almacenar en `localStorage['audit_logs_fallback']` (máximo 100 registros).
-3. La acción se convierte automáticamente a mayúsculas.
-4. Los audit_logs son **inmutables** (RLS solo permite INSERT, no UPDATE/DELETE).
-
-### RN-AUTH-008: Seguridad de Sesión
-
-```
-- JWT almacenado en localStorage con prefijo 'sb-'
-- Al hacer logout:
-  1. supabase.auth.signOut()
-  2. Limpiar store Zustand (auth.store)
-  3. Eliminar todas las claves localStorage que empiecen con 'sb-'
-  4. sessionStorage.clear()
-  5. window.location.reload() → reinicia app limpia
-  
-- No se borran configuraciones de tema, PWA ni preferencias de usuario.
-- El logout es total: no hay sesión persistente entre recargas.
-```
-
-### RN-AUTH-009: Manejo de Errores de Autenticación
-
-| Error | Causa | Mensaje | Acción |
-|:---|---|:---|---|
-| `Invalid login credentials` | Email o contraseña incorrectos | "Credenciales inválidas. Verifica tu email y contraseña." | Mostrar en UI del formulario |
-| `Email not confirmed` | Email no verificado | "Debes confirmar tu email antes de iniciar sesión." | Reenviar confirmación |
-| `User not found` | Usuario eliminado o no existe | "Usuario no encontrado." | Redirigir a login |
-| `PGRST116` (profile no existe) | Usuario autenticado sin perfil | Auto-crear perfil demo | Flujo automático |
-| Network error | Sin conexión a Supabase | "Error de conexión. Verifica tu internet." | Toast + reintento automático |
-
----
-
-## 4. Schemas de Datos
-
-### 4.1 UserProfile (Perfil de Usuario)
+## 9. Datos mínimos
 
 ```typescript
 interface UserProfile {
-  id: string;                    // UUID, PK, REFERENCES auth.users(id)
-  email?: string;                // Correo electrónico (único)
-  full_name: string;             // Nombre completo del colaborador
-  role: 'admin' | 'recepcionista' | 'limpieza' | 'developer';  // Rol del sistema
-  hotel_id?: string;             // UUID, FK → hoteles(id) — hotel asignado
-  created_date?: string;         // Fecha de creación del perfil (TIMESTAMPTZ)
+  id: string;
+  email?: string;
+  full_name: string;
+  role: 'admin' | 'developer' | 'recepcionista' | 'limpieza';
+  hotel_id?: string;
+  activo?: boolean;
 }
-```
 
-### 4.2 AuthState (Estado de Autenticación — Zustand Store)
-
-```typescript
 interface AuthState {
-  // Estado
-  user: UserProfile | null;       // Perfil del usuario autenticado
-  session: Session | null;        // Sesión JWT de Supabase
-  hotelId: string | null;         // ID del hotel activo
-  isAuthenticated: boolean;       // Flag de autenticación
-
-  // Acciones
-  setSession: (session: Session | null) => void;
-  setUser: (user: UserProfile | null) => void;
-  setHotelId: (hotelId: string | null) => void;
-  clearAuth: () => void;
+  user: UserProfile | null;
+  session: unknown | null;
+  hotelId: string | null;
+  isAuthenticated: boolean;
+  isOffline: boolean;
 }
 ```
 
-### 4.3 AuditLogPayload (Payload de Auditoría)
+## 10. Matriz de validación funcional
 
-```typescript
-interface AuditLogPayload {
-  hotel_id: string;              // UUID del hotel
-  usuario_id: string;            // UUID del usuario
-  usuario_nombre: string;        // Nombre del colaborador
-  usuario_role: string;          // Rol del colaborador
-  accion: string;                // Acción (se almacena en mayúsculas)
-  descripcion: string;           // Descripción legible
-  modulo: 'recepcion' | 'ventas' | 'caja' | 'pos' | 'limpieza' | 'configuracion' | 'dev';
-}
-```
+Estos escenarios son contratos de aceptación; no afirman la existencia de una suite automatizada en el repositorio productivo.
 
-### 4.4 Tabla `usuarios` — Estructura Completa
+- [ ] Credenciales válidas cargan sesión y perfil.
+- [ ] Credenciales inválidas muestran error sin autenticar.
+- [ ] Perfil inexistente produce `user_not_registered`.
+- [ ] Perfil inactivo cierra la sesión.
+- [ ] Rol desconocido no obtiene acceso.
+- [ ] Cada rol ve únicamente las rutas permitidas.
+- [ ] Admin no puede invitar personal a otro hotel.
+- [ ] Invitación fallida no deja un perfil huérfano.
+- [ ] Cambio de hotel no conserva datos operativos del tenant anterior.
+- [ ] Logout limpia sesión, caché persistida y cola de la identidad.
+- [ ] Logout se bloquea si existen pendientes o dead letters.
+- [ ] Reconexión procesa la cola correspondiente al usuario y hotel.
 
-| Campo | Tipo | Restricción | Descripción |
-|:---|:---|:---|:---|
-| `id` | UUID | PK, REFERENCES auth.users(id) ON DELETE CASCADE | ID sincronizado con Supabase Auth |
-| `email` | TEXT | UNIQUE, NOT NULL | Correo de inicio de sesión |
-| `full_name` | TEXT | NOT NULL | Nombre completo |
-| `role` | TEXT | NOT NULL, DEFAULT 'recepcionista' | admin, recepcionista, limpieza, developer |
-| `hotel_id` | UUID | REFERENCES hoteles(id) ON DELETE SET NULL | Hotel asignado (tenant isolation) |
-| `created_date` | TIMESTAMPTZ | DEFAULT now() | Fecha de creación |
+## 11. Criterios de aceptación
 
-**Política RLS:**
-```sql
--- Los usuarios pueden ver solo su propio perfil
-CREATE POLICY "ver_propio_perfil" ON usuarios
-  FOR SELECT TO authenticated
-  USING (id = auth.uid());
-
--- El admin del hotel puede ver todos los usuarios de su hotel
-CREATE POLICY "admin_ver_usuarios_hotel" ON usuarios
-  FOR SELECT TO authenticated
-  USING (
-    hotel_id = get_my_hotel_id()
-    AND EXISTS (SELECT 1 FROM usuarios WHERE id = auth.uid() AND role IN ('admin', 'developer'))
-  );
-```
-
-### 4.5 Tabla `audit_logs` — Estructura
-
-| Campo | Tipo | Descripción |
-|:---|:---|:---|
-| `id` | UUID | PK |
-| `hotel_id` | UUID | FK → hoteles |
-| `usuario_id` | UUID | FK → usuarios |
-| `usuario_nombre` | TEXT | Nombre del usuario |
-| `usuario_role` | TEXT | Rol del usuario |
-| `accion` | TEXT | Acción registrada |
-| `descripcion` | TEXT | Descripción legible |
-| `modulo` | TEXT | Módulo del sistema |
-| `created_date` | TIMESTAMPTZ | Fecha de creación |
-
----
-
-## 5. Diagrama de Estado de Sesión
-
-```mermaid
-graph TD
-    A[Desconocido] -->|Verificar sesión| B{¿JWT en localStorage?}
-    B -->|No| C[No Autenticado]
-    B -->|Sí| D[Verificar validez del token]
-    D -->|Válido| E[Cargar perfil]
-    D -->|Expirado| F[Intentar refresh]
-    F -->|Éxito| E
-    F -->|Fallo| C
-    E -->|Perfil existe| G[Autenticado]
-    E -->|Perfil no existe| H[Crear perfil demo]
-    H --> G
-    G -->|Logout| C
-    G -->|Error de red| I[Autenticado - Offline]
-    I -->|Reconexión| G
-    
-    style A fill:#6b7280,color:white
-    style C fill:#ef4444,color:white
-    style G fill:#10b981,color:white
-    style I fill:#f59e0b,color:white
-```
-
----
-
-## 6. Integraciones
-
-### 6.1 Hotel Provider
-
-```
-El AuthProvider debe montarse ANTES que el HotelProvider:
-1. AuthProvider verifica sesión y carga perfil
-2. HotelProvider usa user.hotel_id para cargar datos del hotel asignado
-
-Flujo de dependencia:
-  AuthProvider → HotelProvider → Páginas
-```
-
-### 6.2 API db.js (Capa de Datos)
-
-```
-El objeto db.auth.logout() es el método unificado de cierre de sesión:
-  - Llama a supabase.auth.signOut()
-  - Dispara clearAuth() del store
-  - Limpia localStorage/sessionStorage
-  - Recarga la aplicación
-```
-
-### 6.3 Guards de Ruta (Route Guards)
-
-```
-Los guards de ruta se implementan en dos capas:
-
-AuthGuard: Verifica que el usuario tenga sesión activa.
-  - Si no autenticado → redirigir a /login
-  - Guarda la ruta original en location.state para redirección post-login
-
-RoleGuard: Verifica que el rol del usuario tenga acceso a la ruta.
-  - Consulta ROUTE_ROLE_MAP con la ruta actual
-  - Si no tiene permiso → redirigir a página de inicio del rol
-```
-
-### 6.4 ErrorBoundary
-
-```
-El ErrorBoundary global captura errores de autenticación no manejados.
-Si el error es de autenticación (código 401/403):
-  - Forzar logout
-  - Mostrar pantalla de error con opción "Reintentar"
-```
-
----
-
-## 7. Tests de Contrato
-
-- [ ] `AUTH-001`: Obtener sesión activa con usuario autenticado → retorna sesión JWT
-- [ ] `AUTH-002`: Obtener sesión sin usuario autenticado → retorna null
-- [ ] `AUTH-003`: Cargar perfil de usuario existente → retorna UserProfile completo
-- [ ] `AUTH-004`: Cargar perfil de usuario inexistente → crea perfil demo automáticamente
-- [ ] `AUTH-005`: Crear perfil demo para email de developer → role = 'developer'
-- [ ] `AUTH-006`: Crear perfil demo para email normal → role = 'admin'
-- [ ] `AUTH-007`: Normalizar role 'administrador' a 'admin'
-- [ ] `AUTH-008`: Forzar role 'developer' para email del dueño
-- [ ] `AUTH-009`: Registrar audit log exitosamente en Supabase
-- [ ] `AUTH-010`: Registrar audit log con fallback a localStorage cuando Supabase falla
-- [ ] `AUTH-011`: Audit log convierte accion a mayúsculas
-- [ ] `AUTH-012`: AuthGuard redirige a /login si no hay sesión
-- [ ] `AUTH-013`: RoleGuard permite acceso a ruta permitida
-- [ ] `AUTH-014`: RoleGuard redirige a página por defecto según rol si no tiene permiso
-- [ ] `AUTH-015`: RoleGuard redirige a página específica al visitar `/` según rol
-- [ ] `AUTH-016`: Logout limpia correctamente sessionStorage y localStorage
-- [ ] `AUTH-017`: clearAuth resetea el store Zustand a estado inicial
-
----
-
-## 8. Criterios de Aceptación
-
-1. ✅ Un usuario con credenciales válidas puede iniciar sesión y es redirigido a su página según rol
-2. ✅ Un usuario sin credenciales ve la pantalla de login
-3. ✅ El perfil de usuario se carga automáticamente con los datos de la tabla `usuarios`
-4. ✅ Los roles se aplican correctamente en todas las rutas protegidas
-5. ✅ Cada acción crítica genera un audit_log inmutable
-6. ✅ Si Supabase no está disponible, los audit_logs se almacenan en localStorage como fallback
-7. ✅ El logout limpia completamente la sesión sin afectar configuraciones de tema/PWA
-8. ✅ La sesión persiste al recargar la página (JWT en localStorage)
-9. ✅ El refresh de token es automático y transparente para el usuario
-10. ✅ El ErrorBoundary captura errores de autenticación y ofrece opción de reintento
-
----
-
-## 9. Historial de Cambios
-
-| Versión | Fecha | Cambio | Autor |
-|:---|:---|:---|:---|
-| 1.0 | Julio 2026 | Versión inicial del spec | Buffy (Freebuff) |
+1. La aplicación privada nunca se monta con perfil inválido.
+2. Las rutas y la navegación comparten una única matriz de permisos.
+3. El frontend no contiene credenciales administrativas.
+4. Las invitaciones se realizan exclusivamente mediante la Edge Function.
+5. El aislamiento entre hoteles se mantiene aunque se manipule el cliente.
+6. El cambio de identidad purga datos persistidos de la sesión anterior.

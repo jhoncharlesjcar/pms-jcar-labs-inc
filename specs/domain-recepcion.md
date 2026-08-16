@@ -1,9 +1,9 @@
 # Spec: Recepción — Check-in, Mapa de Habitaciones y Reservas
 
-**Dominio:** Recepción  
-**Prioridad:** P0  
-**Versión:** 3.0 Enterprise  
-**Última actualización:** Agosto 2026  
+**Dominio:** Recepción
+**Prioridad:** P0
+**Versión:** 3.0 Enterprise
+**Última actualización:** Agosto 2026
 **Dependencias:** `specs/domain-checkout.md`
 
 ---
@@ -23,9 +23,9 @@ graph TD
     A[Recepcionista selecciona habitación DISPONIBLE] --> B{¿Existe pre-check-in?}
     B -->|Sí| C[Cargar datos del check-in público]
     B -->|No| D[Abrir RecepcionFormModal]
-    
+
     C --> D
-    
+
     D --> E[Seleccionar habitación en MatrizHabitaciones]
     E --> F[Ingresar datos del huésped]
     F --> G[Seleccionar fechas de entrada/salida]
@@ -35,7 +35,7 @@ graph TD
     J -->|Sí| K[Obligatorio: detalle en observaciones]
     J -->|No| L[Guardar reserva]
     K --> L
-    
+
     L --> M[INSERT reserva → estado 'activa']
     M --> N[UPDATE habitación → estado 'ocupada']
     N --> O[Registrar audit_log → 'CHECK-IN']
@@ -201,7 +201,7 @@ Disponibilidad:
   1. Cargar todas las habitaciones del hotel
   2. Cargar reservas con estado IN ('pendiente', 'activa')
   3. Para cada habitación, verificar que NO choque con ninguna reserva existente
-  4. Choque = (fecha_entrada_nueva < fecha_salida_existente) 
+  4. Choque = (fecha_entrada_nueva < fecha_salida_existente)
               Y (fecha_salida_nueva > fecha_entrada_existente)
 
 Reserva creada:
@@ -397,7 +397,7 @@ graph LR
     B -->|check-out| A
     A -->|mantenimiento| E[mantenimiento]
     E -->|completado| A
-    
+
     style A fill:#10b981,color:white
     style B fill:#ef4444,color:white
     style C fill:#a855f7,color:white
@@ -482,7 +482,10 @@ Campos obligatorios del Anexo N° 4:
 
 ---
 
-## 7. Tests de Contrato
+## 7. Matriz de validación funcional
+
+Los escenarios siguientes son contratos de aceptación; no implican que el
+repositorio productivo incluya una suite automatizada.
 
 - [ ] `REC-001`: Crear reserva con todos los campos obligatorios → reserva creada y habitación en 'ocupada'
 - [ ] `REC-002`: Rechazar reserva sin nombre de huésped

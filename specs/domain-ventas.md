@@ -1,9 +1,9 @@
 # Spec: Ventas — Ventas, Tickets y POS (Minimarket)
 
-**Dominio:** Ventas y Punto de Venta  
-**Prioridad:** P1  
-**Versión:** 3.0 Enterprise  
-**Última actualización:** Agosto 2026  
+**Dominio:** Ventas y Punto de Venta
+**Prioridad:** P1
+**Versión:** 3.0 Enterprise
+**Última actualización:** Agosto 2026
 **Dependencias:** `specs/domain-checkout.md`, `specs/domain-caja.md`
 
 ---
@@ -234,7 +234,7 @@ graph LR
     B -->|SUNAT acepta| C[sunat_emitido]
     B -->|SUNAT rechaza| D[sunat_rechazado]
     D -->|Reintentar| B
-    
+
     style A fill:#6b7280,color:white
     style B fill:#f59e0b,color:white
     style C fill:#10b981,color:white
@@ -280,7 +280,10 @@ Todas las ventas alimentan las estadísticas del módulo de Caja:
 
 ---
 
-## 7. Tests de Contrato
+## 7. Matriz de validación funcional
+
+Los escenarios siguientes son contratos de aceptación; no implican que el
+repositorio productivo incluya una suite automatizada.
 
 - [ ] `VEN-001`: Ventas hotel y POS se consolidan en una sola vista
 - [ ] `VEN-002`: Filtros de búsqueda funcionan correctamente
