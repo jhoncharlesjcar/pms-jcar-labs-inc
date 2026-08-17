@@ -87,6 +87,11 @@ export interface Reserva {
   huesped_telefono?: string;
   huesped_procedencia?: string;
   nacionalidad?: string;
+  tipo_documento?: string;
+  huesped_fecha_nacimiento?: string;
+  huesped_profesion?: string;
+  huesped_estado_civil?: string;
+  huesped_destino?: string;
   motivo_viaje?: string;
   fecha_entrada: string;
   fecha_salida: string;

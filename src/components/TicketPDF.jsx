@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { useRef, memo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Printer, Share2 } from 'lucide-react';
@@ -24,7 +25,7 @@ const TicketPDF = memo(function TicketPDF({ venta, config }) {
     const documentTitle = isSunatEmitted
         ? (venta.tipo_comprobante === 'factura' ? 'FACTURA ELECTRÓNICA' : 'BOLETA DE VENTA ELECTRÓNICA')
         : 'TICKET INTERNO';
-    
+
     const qrString = `${rucEmisor}|${tipoComp}|${serie}|${numero}|${Number(igvVal).toFixed(2)}|${Number(totalVal).toFixed(2)}|${fechaStr}|${tipoDocAdq}|${docAdq}|`;
     const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=110x110&data=${encodeURIComponent(qrString)}`;
 
@@ -66,7 +67,7 @@ const TicketPDF = memo(function TicketPDF({ venta, config }) {
 
     const handleCompartir = async () => {
         const contenido = ticketRef.current.innerHTML;
-        
+
         // Data estructurada para generar texto plano perfecto
         const rawData = {
             hotelName: config.nombre || 'PMS JCAR LABS',
@@ -122,9 +123,9 @@ const TicketPDF = memo(function TicketPDF({ venta, config }) {
                     <div className="line"></div>
                     <div className="total-row"><span>TOTAL:</span><span>S/ {totalVal.toFixed(2)}</span></div>
                     <div className="row"><span>Método de pago:</span><span className="tag">{venta.metodo_pago?.toUpperCase()}</span></div>
-                    
+
                     <div className="line"></div>
-                    
+
                     {isSunatEmitted ? (
                         <div className="center" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', margin: '10px 0' }}>
                             <img src={qrUrl} alt="QR SUNAT" style={{ width: '90px', height: '90px', margin: '0 auto' }} />
@@ -137,9 +138,9 @@ const TicketPDF = memo(function TicketPDF({ venta, config }) {
                             NO ES COMPROBANTE TRIBUTARIO
                         </div>
                     )}
-                    
+
                     <div className="line"></div>
-                    
+
                     <div className="center small">
                         {config.mensaje_ticket || '¡Gracias por su preferencia!'}
                     </div>
@@ -168,7 +169,7 @@ const TicketPDF = memo(function TicketPDF({ venta, config }) {
                 <div className="flex justify-between font-bold text-sm"><span>TOTAL</span><span>S/ {totalVal.toFixed(2)}</span></div>
                 <div className="flex justify-between"><span>Pago:</span><span className="capitalize">{venta.metodo_pago}</span></div>
                 <div className="border-t border-dashed my-2" />
-                
+
                 {isSunatEmitted ? (
                     <div className="flex flex-col items-center justify-center py-2">
                         <img src={qrUrl} alt="QR SUNAT" className="mx-auto h-20 w-20" />
@@ -179,7 +180,7 @@ const TicketPDF = memo(function TicketPDF({ venta, config }) {
                         {isSunatPending ? 'Pendiente de emisión SUNAT' : 'Constancia interna de pago'} · No es comprobante tributario
                     </p>
                 )}
-                
+
                 <div className="border-t border-dashed my-2" />
                 <p className="text-gray-400 text-[10px]">{config.mensaje_ticket || '¡Gracias por su preferencia!'}</p>
             </div>

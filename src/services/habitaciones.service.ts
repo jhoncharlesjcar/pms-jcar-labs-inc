@@ -42,7 +42,7 @@ export const HabitacionesService = {
       .from('habitaciones')
       .update({ estado: nuevoEstado })
       .eq('id', habitacionId)
-      .select('id, estado')
+      .select('id, hotel_id, numero, piso, tipo, estado, precio_noche, precio, capacidad, descripcion, amenities')
       .single();
 
     if (error) throw error;
