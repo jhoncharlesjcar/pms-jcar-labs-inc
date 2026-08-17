@@ -1,5 +1,5 @@
 import React from 'react';
-import { CalendarDays, CheckCircle2, FileText, LogIn, MessageSquare, XCircle } from 'lucide-react';
+import { CalendarDays, CheckCircle2, FileText, LogIn, XCircle } from 'lucide-react';
 import { format, parseISO } from 'date-fns';
 import { Button } from '@/components/ui/button';
 import { StatusBadge } from '@/components/ui/StatusBadge';
