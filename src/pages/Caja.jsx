@@ -3,7 +3,7 @@ import { Wallet, Plus, ArrowRightLeft, Calendar } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 // Context
-import { useHotel } from '@/lib/HotelContext';
+import { useHotel } from '@/contexts/HotelContext';
 import { useAuth } from '@/contexts/AuthContext';
 
 // Hooks

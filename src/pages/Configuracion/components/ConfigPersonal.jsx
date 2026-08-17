@@ -3,7 +3,7 @@ import { Users, UserPlus, Trash2 } from 'lucide-react';
 import { gsap } from 'gsap';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import logger from '@/lib/logger';
-import { supabase } from '@/lib/supabaseClient';
+import { supabase } from '@/config/supabase';
 import { db } from '@/api/db';
 import { toast } from 'sonner';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';

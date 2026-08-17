@@ -1,7 +1,7 @@
 import React, { useState, memo } from 'react';
 import { AlertTriangle, Trash2 } from 'lucide-react';
 import { format, startOfDay, endOfDay, startOfMonth, endOfMonth, startOfYear, endOfYear } from 'date-fns';
-import { supabase } from '@/lib/supabaseClient';
+import { supabase } from '@/config/supabase';
 import { useQueryClient } from '@tanstack/react-query';
 import logger from '@/lib/logger';
 import { Label } from '@/components/ui/label';

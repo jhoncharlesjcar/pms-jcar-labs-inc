@@ -1,4 +1,4 @@
-import { supabase } from '@/lib/supabaseClient';
+import { supabase } from '@/config/supabase';
 
 export type FacturacionSource = 'ventas' | 'ventas_pos';
 

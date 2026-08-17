@@ -207,7 +207,7 @@ const ComprobanteModal = memo(function ComprobanteModal(/** @type {any} */ { isO
   useEffect(() => {
     const fetchHash = async () => {
       try {
-        const { supabase } = await import('@/lib/supabaseClient');
+        const { supabase } = await import('@/config/supabase');
         const serie = tipoComprobante === 'factura' ? 'F001' : 'B001';
         const parts = (ventaPos?.numero_ticket || '1').split('-');
         const numeroTicket = parts[1] || parts[0]?.replace(/\D/g, '') || '1';

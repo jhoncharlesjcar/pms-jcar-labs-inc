@@ -1,3 +1,15 @@
+/**
+ * recepcionCockpit.js — Motor de estado operativo de reservas.
+ *
+ * Determina la prioridad operativa de cada reserva basándose en las
+ * fechas de entrada/salida y el estado actual. Usado por el componente
+ * RecepcionCockpit y la página de Recepción para ordenar y filtrar reservas.
+ *
+ * @see src/components/recepcion/RecepcionCockpit.jsx
+ * @see src/pages/Recepcion.jsx
+ */
+
+/** Prioridad numérica de cada estado operativo (menor = más urgente). */
 const OPERATIONAL_PRIORITY = {
     departure_overdue: 0,
     arrival_overdue: 1,
@@ -8,6 +20,7 @@ const OPERATIONAL_PRIORITY = {
     history: 6,
 };
 
+/** Configuración visual de cada estado operativo (etiqueta + tono). */
 export const OPERATIONAL_STATE_CONFIG = {
     departure_overdue: { label: 'Salida vencida', tone: 'destructive' },
     arrival_overdue: { label: 'Llegada vencida', tone: 'destructive' },
@@ -18,6 +31,11 @@ export const OPERATIONAL_STATE_CONFIG = {
     history: { label: 'Historial', tone: 'neutral' },
 };
 
+/**
+ * Convierte un valor de fecha a un objeto Date con solo la parte de día
+ * (sin horas), interpretando siempre como fecha local para evitar
+ * desplazamientos por zona horaria.
+ */
 function toLocalDay(value) {
     if (!value) return null;
     if (value instanceof Date) {
@@ -34,6 +52,8 @@ function toLocalDay(value) {
     if (Number.isNaN(parsed.getTime())) return null;
     return new Date(parsed.getFullYear(), parsed.getMonth(), parsed.getDate());
 }
+
+/** Compara dos fechas a nivel de día: retorna -1, 0 o 1. */
 function compareDays(value, today) {
     const day = toLocalDay(value);
     const currentDay = toLocalDay(today);
@@ -41,6 +61,14 @@ function compareDays(value, today) {
     return Math.sign(day.getTime() - currentDay.getTime());
 }
 
+/**
+ * Determina el estado operativo de una reserva según su estado
+ * y fechas de entrada/salida comparadas con la fecha actual.
+ *
+ * @param {object} reserva - Reserva con estado, fecha_entrada y fecha_salida
+ * @param {Date} today - Fecha de referencia (por defecto: hoy)
+ * @returns {'departure_overdue'|'arrival_overdue'|'departure_today'|'arrival_today'|'in_house'|'future_arrival'|'history'}
+ */
 export function getReservationOperationalState(reserva, today = new Date()) {
     if (reserva?.estado === 'pendiente') {
         const arrivalComparison = compareDays(reserva.fecha_entrada, today);
@@ -59,11 +87,26 @@ export function getReservationOperationalState(reserva, today = new Date()) {
     return 'history';
 }
 
+/**
+ * Determina si una reserva requiere atención inmediata (salida/llegada vencida o del día).
+ *
+ * @param {object} reserva - Reserva a evaluar
+ * @param {Date} today - Fecha de referencia
+ * @returns {boolean}
+ */
 export function isAttentionReservation(reserva, today = new Date()) {
     return ['departure_overdue', 'arrival_overdue', 'departure_today', 'arrival_today']
         .includes(getReservationOperationalState(reserva, today));
 }
 
+/**
+ * Evalúa si una reserva coincide con el filtro de la recepción.
+ *
+ * @param {object} reserva - Reserva a evaluar
+ * @param {'atencion'|'activa'|'pendiente'|'historial'|'todas'} filter - Filtro seleccionado
+ * @param {Date} today - Fecha de referencia
+ * @returns {boolean}
+ */
 export function matchesReceptionFilter(reserva, filter, today = new Date()) {
     switch (filter) {
         case 'atencion':
@@ -80,6 +123,14 @@ export function matchesReceptionFilter(reserva, filter, today = new Date()) {
     }
 }
 
+/**
+ * Ordena reservas por prioridad operativa (urgentes primero).
+ * En caso de empate, ordena por fecha de salida/entrada más próxima.
+ *
+ * @param {object[]} reservas - Lista de reservas a ordenar
+ * @param {Date} today - Fecha de referencia
+ * @returns {object[]} Reservas ordenadas (nueva referencia)
+ */
 export function sortReservationsByOperationalPriority(reservas, today = new Date()) {
     return [...reservas].sort((a, b) => {
         const priorityDiff = OPERATIONAL_PRIORITY[getReservationOperationalState(a, today)]
@@ -92,6 +143,15 @@ export function sortReservationsByOperationalPriority(reservas, today = new Date
     });
 }
 
+/**
+ * Construye un resumen operativo de la recepción a partir de las
+ * reservas y habitaciones actuales del hotel.
+ *
+ * @param {object[]} reservas - Lista de reservas
+ * @param {object[]} habitaciones - Lista de habitaciones
+ * @param {Date} today - Fecha de referencia
+ * @returns {{ attention, active, pending, history, total, arrivalsToday, departuresToday, availableRooms, cleaningRooms, totalRooms }}
+ */
 export function buildReceptionSummary(reservas = [], habitaciones = [], today = new Date()) {
     const attention = reservas.filter(reserva => isAttentionReservation(reserva, today)).length;
     const active = reservas.filter(reserva => reserva.estado === 'activa').length;

@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { supabase } from '@/lib/supabaseClient';
+import { supabase } from '@/config/supabase';
 import { useQueryClient } from '@tanstack/react-query';
 import { useHotel } from '@/contexts/HotelContext';
 import logger from '@/lib/logger';

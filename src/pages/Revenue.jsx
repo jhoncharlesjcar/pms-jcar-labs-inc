@@ -8,7 +8,7 @@ import {
     Activity, Download, CheckCircle2, AlertTriangle
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { useHotelData } from '@/hooks/use-hotel-data';
+import { useHotelData } from '@/hooks/useHotelData';
 import { format, addDays, isWithinInterval, startOfMonth, endOfMonth, differenceInDays, subMonths } from 'date-fns';
 import { es } from 'date-fns/locale';
 

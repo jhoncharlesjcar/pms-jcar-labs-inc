@@ -11,12 +11,7 @@
  *   limpieza   → Púrpura  (purple)
  */
 
-export type RoomStatus =
-  | 'disponible'
-  | 'ocupada'
-  | 'reservada'
-  | 'mantenimiento'
-  | 'limpieza';
+import type { RoomStatus } from './roomStatus';
 
 export interface StatusColorSet {
   /** Sombra interna de la tarjeta (glow de color) */

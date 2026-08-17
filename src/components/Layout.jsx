@@ -18,7 +18,7 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import PageTransition from '@/components/PageTransition';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/config/supabase';
-import { useHotelData } from '@/hooks/use-hotel-data';
+import { useHotelData } from '@/hooks/useHotelData';
 import { useRealtimeSync } from '@/hooks/useRealtimeSync';
 import OfflineSyncManager from '@/components/OfflineSyncManager';
 import { canAccessPath } from '@/constants/permissions';

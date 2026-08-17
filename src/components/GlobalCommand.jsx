@@ -11,7 +11,7 @@ import {
   LogOut,
 } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
-import { useHotelData } from '@/hooks/use-hotel-data';
+import { useHotelData } from '@/hooks/useHotelData';
 
 import {
   CommandDialog,

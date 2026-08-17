@@ -1,7 +1,7 @@
 import React, { useState, useRef, memo } from 'react';
 import { FileSpreadsheet, Upload, CheckCircle2, AlertTriangle, Download, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { useHotelData } from '@/hooks/use-hotel-data';
+import { useHotelData } from '@/hooks/useHotelData';
 import { useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { formatearHabitacionParaBD } from '@/services/habitaciones.service';

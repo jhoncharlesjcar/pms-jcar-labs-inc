@@ -5,8 +5,8 @@ import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
-import { supabase } from '@/lib/supabaseClient';
-import { useHotelData } from '@/hooks/use-hotel-data';
+import { supabase } from '@/config/supabase';
+import { useHotelData } from '@/hooks/useHotelData';
 
 export function ConfigYield() {
     const { hotelId } = useHotelData();

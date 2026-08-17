@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, memo } from 'react';
-import { supabase } from '@/lib/supabaseClient';
+import { supabase } from '@/config/supabase';
 import { Mail, Lock, Eye, EyeOff, ShieldCheck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { gsap } from 'gsap';

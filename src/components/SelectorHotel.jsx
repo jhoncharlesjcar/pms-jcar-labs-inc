@@ -1,5 +1,5 @@
 import { useState, memo } from 'react';
-import { useHotel } from '@/lib/HotelContext';
+import { useHotel } from '@/contexts/HotelContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { Building2, ChevronDown, Check } from 'lucide-react';
 import { cn } from '@/lib/utils';

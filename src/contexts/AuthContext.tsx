@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import { supabase } from '@/lib/supabaseClient';
+import { supabase } from '@/config/supabase';
 import logger from '@/lib/logger';
 import { useAuthStore } from '@/store/auth.store';
 import { getDeadLetterCount, getPendingCount, processQueue, purgeQueuesForIdentity } from '@/lib/sync-queue';

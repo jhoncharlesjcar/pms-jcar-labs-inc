@@ -1,8 +1,8 @@
 /**
- * PageTransition — GSAP-powered premium page transitions
- * 
- * Wraps page content with smooth fade/slide/scale transitions.
- * Uses GSAP for professional-grade animation control.
+ * PageTransition — Transiciones de página premium con GSAP.
+ *
+ * Envuelve el contenido de la página con transiciones suaves de
+ * desvanecimiento y deslizamiento usando GSAP.
  */
 
 import { useRef, useEffect, memo } from 'react';
@@ -16,18 +16,18 @@ const PageTransition = memo(function PageTransition(/** @type {any} */ { childre
     const el = containerRef.current;
     if (!el) return;
 
-    // Kill any existing animation
+    // Cancelar animación existente
     if (animRef.current) {
       animRef.current.kill();
     }
 
-    // Set initial state (hidden, slightly below)
+    // Estado inicial (oculto, ligeramente desplazado hacia abajo)
     gsap.set(el, { 
       opacity: 0, 
       y: 8,
     });
 
-    // Animate in
+    // Animar entrada
     animRef.current = gsap.to(el, {
       opacity: 1,
       y: 0,

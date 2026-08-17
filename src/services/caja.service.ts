@@ -15,9 +15,9 @@
 // Tipos
 // ---------------------------------------------------------------------------
 
-export type MetodoPago = 'efectivo' | 'yape' | 'plin' | 'transferencia' | 'tarjeta';
+export type { MetodoPago } from '@/constants/paymentMethods';
+export type { EstadoComprobante } from '@/constants/comprobantes';
 export type CategoriaEgreso = 'operativo' | 'servicios' | 'insumos' | 'mantenimiento' | 'personal' | 'otros';
-export type EstadoComprobante = 'ticket_interno' | 'sunat_pendiente' | 'sunat_emitido' | 'sunat_rechazado';
 export type PeriodoFiltro = 'hoy' | 'semana' | 'todo';
 
 export interface VentaRegistro {
@@ -81,9 +81,7 @@ export interface CajaStats {
 // Constantes
 // ---------------------------------------------------------------------------
 
-export const METODOS_PAGO: MetodoPago[] = [
-  'efectivo', 'yape', 'plin', 'transferencia', 'tarjeta',
-];
+export { METODOS_PAGO } from '@/constants/paymentMethods';
 
 export const CATEGORIAS_EGRESO: CategoriaEgreso[] = [
   'operativo', 'servicios', 'insumos', 'mantenimiento', 'personal', 'otros',

@@ -5,7 +5,7 @@ import { queryClientInstance, idbPersister } from '@/lib/query-client'
 import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
 import PageNotFound from './lib/PageNotFound';
 import { AuthProvider, useAuth } from '@/contexts/AuthContext';
-import { HotelProvider, useHotel } from '@/lib/HotelContext';
+import { HotelProvider, useHotel } from '@/contexts/HotelContext';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 import Login from '@/pages/Login';
 import Layout from '@/components/Layout';

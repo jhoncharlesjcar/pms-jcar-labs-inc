@@ -107,14 +107,7 @@ export const TIPOS_HABITACION: TipoHabitacion[] = [
   'simple', 'doble simple', 'matrimonial', 'doble matrimonial', 'mixta', 'queen',
 ];
 
-/** Colores de estado para el grid (alineado con statusColors.ts) */
-export const COLORES_ESTADO: Record<EstadoHabitacion, { label: string; colorClass: string }> = {
-  disponible:   { label: 'Disponible',   colorClass: 'bg-green-500/10 text-green-500 border-green-500/25' },
-  ocupada:      { label: 'Ocupada',      colorClass: 'bg-red-500/10 text-red-500 border-red-500/25' },
-  reservada:    { label: 'Reservada',    colorClass: 'bg-blue-500/10 text-blue-500 border-blue-500/25' },
-  mantenimiento: { label: 'Mantenimiento', colorClass: 'bg-amber-500/10 text-amber-500 border-amber-500/25' },
-  limpieza:     { label: 'Limpieza',     colorClass: 'bg-purple-500/10 text-purple-500 border-purple-500/25' },
-};
+
 
 // ---------------------------------------------------------------------------
 // RN-HAB-002: Validación de Habitación

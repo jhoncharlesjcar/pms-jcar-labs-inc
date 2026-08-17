@@ -10,8 +10,8 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { cn } from '@/lib/utils';
-import { supabase } from '@/lib/supabaseClient';
-import { useHotelData } from '@/hooks/use-hotel-data';
+import { supabase } from '@/config/supabase';
+import { useHotelData } from '@/hooks/useHotelData';
 import { useGsapStaggerList } from '@/hooks/useGsapStaggerList';
 import { TIPOS_HABITACION, filtrarPorEstado, formatearHabitacionParaBD, validarHabitacion, puedeEliminarHabitacion } from '@/services/habitaciones.service';
 import {

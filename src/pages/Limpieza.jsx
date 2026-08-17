@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
-import { useHotelData } from '@/hooks/use-hotel-data';
+import { useHotelData } from '@/hooks/useHotelData';
 import { cn } from '@/lib/utils';
 import { useGsapStaggerList } from '@/hooks/useGsapStaggerList';
 import { toast } from 'sonner';

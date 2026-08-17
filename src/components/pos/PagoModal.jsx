@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { CheckCircle, ExternalLink } from 'lucide-react';
 import TicketPOSPDF from '@/components/pos/TicketPOSPDF';
-import { useHotelData } from '@/hooks/use-hotel-data';
+import { useHotelData } from '@/hooks/useHotelData';
 import { YapeIcon, PlinIcon, EfectivoIcon, TarjetaIcon } from '@/components/PaymentIcons';
 import { toast } from 'sonner';
 import { crearComprobante } from '@/api/facturacion';

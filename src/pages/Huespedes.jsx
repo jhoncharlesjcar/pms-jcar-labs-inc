@@ -10,7 +10,7 @@ import {
 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { useHotelData } from '@/hooks/use-hotel-data';
+import { useHotelData } from '@/hooks/useHotelData';
 import { downloadCsv } from '@/lib/csv';
 import { useGsapStaggerList } from '@/hooks/useGsapStaggerList';
 import { cn } from '@/lib/utils';

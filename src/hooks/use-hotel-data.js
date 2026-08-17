@@ -1,1 +1,0 @@
-export { useHotelData } from './useHotelData';

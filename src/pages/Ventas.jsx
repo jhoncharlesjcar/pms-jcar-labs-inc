@@ -9,7 +9,7 @@ import TicketPDF from '@/components/TicketPDF';
 import TicketPOSPDF from '@/components/pos/TicketPOSPDF';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useHotelData } from '@/hooks/use-hotel-data';
+import { useHotelData } from '@/hooks/useHotelData';
 import { YapeIcon, PlinIcon, EfectivoIcon, TarjetaIcon } from '@/components/PaymentIcons';
 
 import EmptyState from '@/components/common/EmptyState';

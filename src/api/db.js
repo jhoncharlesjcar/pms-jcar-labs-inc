@@ -1,4 +1,4 @@
-import { supabase } from '@/lib/supabaseClient';
+import { supabase } from '@/config/supabase';
 import logger from '@/lib/logger';
 import { enqueueMutation } from '@/lib/sync-queue';
 import { generateUUID } from '@/lib/utils';

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { useHotelData } from '@/hooks/use-hotel-data';
+import { useHotelData } from '@/hooks/useHotelData';
 import { useQuery } from '@tanstack/react-query';
 import logger from '@/lib/logger';
 
@@ -21,24 +21,10 @@ import BroomIcon from '@/components/ui/icons/BroomIcon';
 import { DailyAuditSummary } from '@/components/dashboard/DailyAuditSummary';
 import { calcularDesgloseMetodosPago, calcularDesgloseSunat } from '@/services/caja.service';
 
-/** @param {{from?: number, to: number}} props */
-function Counter({ to }) {
-    return <span>{to}</span>;
-}
-
-/** @param {{from?: number, to: number}} props */
-function MoneyCounter({ to }) {
-    return <span>{to.toFixed(2)}</span>;
-}
-
-/** ─── KPI Card con hover micro-interactions ─── */
-const THEME_GLOWS = {
-    blue: 'hsla(224, 71%, 50%, 0.18)',
-    green: 'hsla(158, 95%, 36%, 0.18)',
-    orange: 'hsla(42, 78%, 50%, 0.18)',
-    purple: 'hsla(262, 83%, 55%, 0.18)',
-    emerald: 'hsla(158, 95%, 36%, 0.18)',
-};
+import { KpiCard, Counter, MoneyCounter } from './Dashboard/components/KpiCard';
+import { WeeklyAnalysisChart } from './Dashboard/components/WeeklyAnalysisChart';
+import { InventoryStatus } from './Dashboard/components/InventoryStatus';
+import { RecentActivity } from './Dashboard/components/RecentActivity';
 
 /** Helper: saludo según hora del día */
 function getGreeting() {
@@ -48,14 +34,6 @@ function getGreeting() {
     return 'Buenas noches';
 }
 
-/** Helper: generar color determinístico de avatar por nombre */
-function getAvatarColor(name) {
-    const colors = ['from-emerald-500 to-teal-600', 'from-blue-500 to-indigo-600', 'from-purple-500 to-violet-600', 'from-amber-500 to-orange-600', 'from-rose-500 to-pink-600', 'from-cyan-500 to-sky-600'];
-    let hash = 0;
-    for (let i = 0; i < (name || '').length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash);
-    return colors[Math.abs(hash) % colors.length];
-}
-
 /** Donut chart colors */
 const DONUT_COLORS = {
     libres: 'hsl(158, 95%, 36%)',
@@ -63,65 +41,6 @@ const DONUT_COLORS = {
     limpieza: 'hsl(262, 83%, 55%)',
     mantenimiento: 'hsl(42, 78%, 50%)',
 };
-
-/** @param {{kpi: any}} props */
-function KpiCard({ kpi }) {
-    const ref = useRef(null);
-    const Icon = kpi.icon;
-    const variation = kpi.variation;
-    const isPositive = variation > 0;
-    const isNegative = variation < 0;
-    const hasVariation = variation !== null && variation !== undefined && !isNaN(variation);
-
-    useGsapCardHover(ref, {
-        scale: 1.02,
-        glowColor: THEME_GLOWS[kpi.theme] || 'hsla(var(--primary), 0.15)',
-        glowSize: 28,
-        duration: 0.3,
-    });
-
-    return (
-        <div
-            ref={ref}
-            className={cn(
-                'enterprise-card metric-card ui-card-pad relative overflow-hidden flex flex-col justify-between group transition-all duration-300 ease-out hover:-translate-y-1',
-                kpi.border
-            )}
-        >
-            <div className="flex items-center justify-between mb-2">
-                <div className="flex items-center gap-2">
-                    <div className={cn('w-7 h-7 rounded-lg flex items-center justify-center shadow-sm transition-transform group-hover:scale-110 flex-shrink-0', kpi.bgIcon)}>
-                        <Icon className="w-3.5 h-3.5" />
-                    </div>
-                    <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider leading-none">{kpi.label}</p>
-                </div>
-                {hasVariation && (
-                    <span className={cn(
-                        'text-[9px] font-bold px-1.5 py-0.5 rounded-md flex items-center gap-0.5 shadow-xs',
-                        isPositive ? 'text-emerald-600 dark:text-emerald-400 bg-emerald-500/10' :
-                            isNegative ? 'text-red-500 dark:text-red-400 bg-red-500/10' :
-                                'text-muted-foreground bg-muted/50'
-                    )}>
-                        {isPositive ? '↑' : isNegative ? '↓' : '—'} {Math.abs(variation).toFixed(0)}%
-                    </span>
-                )}
-            </div>
-
-            <div className="flex items-baseline gap-0.5 mt-1">
-                {kpi.isMoney && <span className="text-sm font-bold text-muted-foreground/80 mr-0.5">S/</span>}
-                <p className="font-bold tracking-tight text-foreground text-2xl tabular-nums leading-none">
-                    {kpi.isMoney ? <MoneyCounter to={kpi.value} /> : <Counter to={kpi.value} />}
-                </p>
-                {!kpi.isMoney && kpi.unit && <span className="text-xs font-bold text-muted-foreground/80 ml-0.5">{kpi.unit}</span>}
-            </div>
-
-            <p className="text-[9px] text-muted-foreground/60 font-medium mt-2">{kpi.subtitle || 'vs. ayer'}</p>
-
-            <div className={cn('absolute bottom-0 left-4 right-4 h-0.5 rounded-t-sm opacity-70 group-hover:opacity-100 transition-opacity', kpi.barColor)} />
-        </div>
-    );
-}
-KpiCard.displayName = 'KpiCard';
 
 /** ─── Glow colors for bento cards ─── */
 const BENTO_GLOWS = {
@@ -470,40 +389,43 @@ export default function Dashboard() {
                 />
 
                 {/* 2. Análisis Semanal Chart (Toma 3 columnas) */}
-                <div ref={chartCardRef} className="enterprise-card section-card ui-card-pad col-span-2 flex flex-col justify-between overflow-hidden transition-all duration-300 ease-out hover:shadow-md lg:col-span-3">
-                    <div className="mb-2 flex justify-between items-start">
-                        <div>
-                            <span className="text-xs text-muted-foreground font-medium mb-1 inline-block">Análisis Semanal</span>
-                            <h3 className="text-base font-bold text-foreground tracking-tight">Evolución de Ingresos</h3>
-                        </div>
-                    </div>
-                    <div className="flex-1 w-full min-h-[230px] pb-1">
-                        <ResponsiveContainer width="100%" height="100%">
-                            <AreaChart data={chartData} margin={{ top: 15, right: 10, left: -20, bottom: 25 }}>
-                                <defs>
-                                    <linearGradient id="colorHospedaje" x1="0" y1="0" x2="0" y2="1">
-                                        <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.4} />
-                                        <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0} />
-                                    </linearGradient>
-                                    <linearGradient id="colorMinimarket" x1="0" y1="0" x2="0" y2="1">
-                                        <stop offset="5%" stopColor="hsl(var(--amber-500))" stopOpacity={0.4} />
-                                        <stop offset="95%" stopColor="hsl(var(--amber-500))" stopOpacity={0} />
-                                    </linearGradient>
-                                </defs>
-                                <XAxis dataKey="name" stroke="currentColor" className="text-muted-foreground text-[10px] font-medium" tickLine={false} axisLine={false} dy={6} />
-                                <YAxis stroke="currentColor" className="text-muted-foreground text-[10px] font-medium" tickLine={false} axisLine={false} tickFormatter={r => `S/${r}`} domain={[0, dataMax => Math.max(dataMax || 0, 1000)]} allowDecimals={false} />
-                                <Tooltip cursor={{ fill: "rgba(var(--foreground), 0.03)" }} contentStyle={{ background: "hsl(var(--card))", backdropFilter: "blur(16px)", border: "1px solid hsl(var(--border))", borderRadius: "1rem", color: "hsl(var(--foreground))", fontSize: "12px", fontWeight: "bold" }} />
-                                <Area type="monotone" dataKey="Hospedaje" stackId="a" fill="url(#colorHospedaje)" stroke="hsl(var(--primary))" strokeWidth={3} activeDot={{ r: 6, strokeWidth: 4, stroke: 'hsl(var(--background))' }} />
-                                <Area type="monotone" dataKey="Minimarket" stackId="a" fill="url(#colorMinimarket)" stroke="hsl(var(--amber-500))" strokeWidth={3} activeDot={{ r: 6, strokeWidth: 4, stroke: 'hsl(var(--background))' }} />
-                                <Area type="monotone" dataKey="Proyeccion" stroke="hsl(var(--primary))" strokeDasharray="5 5" fill="none" strokeWidth={2} activeDot={{ r: 5, stroke: 'hsl(var(--primary))' }} />
-                                <ReferenceLine x={format(new Date(), 'dd/MM')} stroke="hsl(var(--primary)/0.6)" strokeDasharray="4 4" label={{ value: 'HOY', fill: 'hsl(var(--primary))', fontSize: 9, position: 'top', fontWeight: '900' }} />
-                            </AreaChart>
-                        </ResponsiveContainer>
-                    </div>
-                </div>
+                <WeeklyAnalysisChart chartData={chartData} cardRef={chartCardRef} />
 
                 {/* 3. Ingresos Diarios Card (Toma 1 columna, al lado del chart) */}
                 <div ref={incomeCardRef} className="enterprise-card section-card ui-card-pad col-span-2 flex flex-col justify-between transition-all duration-300 ease-out hover:shadow-md lg:col-span-1">
+                    <div className="flex items-center gap-2 mb-3">
+                        <div className="w-6 h-6 rounded-md bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shadow-sm flex-shrink-0">
+                            <TrendingUp className="w-3.5 h-3.5" />
+                        </div>
+                        <h3 className="text-sm font-bold text-foreground tracking-tight leading-tight">Ingresos Hoy</h3>
+                    </div>
+
+                    <div className="space-y-4 flex-1 justify-center flex flex-col">
+                        <div className="space-y-1">
+                            <div className="flex justify-between items-center">
+                                <span className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">Hospedaje</span>
+                                <span className="text-sm font-medium text-foreground tabular-nums">S/ {ingresosHospedajeHoy.toFixed(2)}</span>
+                            </div>
+                            <div className="w-full h-1.5 bg-muted rounded-full overflow-hidden">
+                                <div className="h-full bg-primary rounded-full" style={{ width: ingresosHoy > 0 ? `${(ingresosHospedajeHoy / ingresosHoy) * 100}%` : '0%' }} />
+                            </div>
+                        </div>
+
+                        <div className="space-y-1">
+                            <div className="flex justify-between items-center">
+                                <span className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">Tienda (POS)</span>
+                                <span className="text-sm font-medium text-foreground tabular-nums">S/ {ingresosPosHoy.toFixed(2)}</span>
+                            </div>
+                            <div className="w-full h-1.5 bg-muted rounded-full overflow-hidden">
+                                <div className="h-full bg-amber-500 rounded-full" style={{ width: ingresosHoy > 0 ? `${(ingresosPosHoy / ingresosHoy) * 100}%` : '0%' }} />
+                            </div>
+                        </div>
+
+                        {/* KPIs Gerenciales: ADR & RevPAR */}
+                        <div className="grid grid-cols-2 gap-3 pt-3 border-t border-border/50">
+                            <div className="bg-muted/30 p-3 rounded-lg flex flex-col justify-between">
+                                <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">ADR</p>
+                                <p className="text-base font-bold text-foreground mt-1 tabular-nums">S/ {metrics.adr ? metrics.adr.toFixed(2) : '0.00'}</p>
                     <div className="flex items-center gap-2 mb-3">
                         <div className="w-6 h-6 rounded-md bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shadow-sm flex-shrink-0">
                             <TrendingUp className="w-3.5 h-3.5" />
@@ -555,126 +477,20 @@ export default function Dashboard() {
                 </div>
 
                 {/* 4. Estado del Inventario — Donut Chart (Toma 2 columnas) */}
-                <div ref={occupationCardRef} className="enterprise-card section-card ui-card-pad col-span-2 flex flex-col justify-between transition-all duration-300 ease-out lg:col-span-2">
-                    <div className="flex items-center justify-between mb-3">
-                        <div className="flex items-center gap-2">
-                            <div className="w-7 h-7 rounded-lg bg-blue-500/10 text-blue-600 dark:text-blue-400 flex items-center justify-center shadow-sm flex-shrink-0">
-                                <BedDouble className="w-3.5 h-3.5" />
-                            </div>
-                            <h3 className="text-sm font-bold text-foreground tracking-tight leading-tight">Estado del Inventario</h3>
-                        </div>
-                        <Link to="/habitaciones">
-                            <span className="text-[10px] font-medium text-primary hover:text-primary/80 transition-colors flex items-center gap-1">Ver todas <ArrowUpRight className="w-3 h-3" /></span>
-                        </Link>
-                    </div>
-
-                    <div className="flex items-center gap-6">
-                        {/* Donut Chart */}
-                        <div className="relative flex-shrink-0">
-                            <ResponsiveContainer width={140} height={140}>
-                                <PieChart>
-                                    <Pie
-                                        data={donutData.length > 0 ? donutData : [{ name: 'Vacío', value: 1, fill: 'hsl(var(--muted))' }]}
-                                        innerRadius={45}
-                                        outerRadius={65}
-                                        paddingAngle={3}
-                                        dataKey="value"
-                                        strokeWidth={0}
-                                        animationBegin={200}
-                                        animationDuration={1000}
-                                    >
-                                        {(donutData.length > 0 ? donutData : [{ fill: 'hsl(var(--muted))' }]).map((entry, index) => (
-                                            <Cell key={`cell-${index}`} fill={entry.fill} />
-                                        ))}
-                                    </Pie>
-                                </PieChart>
-                            </ResponsiveContainer>
-                            {/* Center label */}
-                            <div className="absolute inset-0 flex flex-col items-center justify-center">
-                                <span className="text-2xl font-bold tabular-nums text-foreground leading-none">{totalHabitaciones}</span>
-                                <span className="text-[9px] font-medium text-muted-foreground mt-0.5">Total</span>
-                            </div>
-                        </div>
-
-                        {/* Legend + Progress */}
-                        <div className="flex-1 space-y-2.5">
-                            {[
-                                { label: "Libres", val: libres, color: "bg-emerald-500", textColor: "text-emerald-500" },
-                                { label: "Ocupadas", val: ocupadas, color: "bg-rose-500", textColor: "text-rose-500" },
-                                { label: "Limpieza", val: limpieza, color: "bg-purple-500", textColor: "text-purple-500" },
-                                { label: "Mantenimiento", val: mantenimiento, color: "bg-amber-500", textColor: "text-amber-500" }
-                            ].map(r => (
-                                <div key={r.label} className="flex items-center gap-2.5">
-                                    <div className={cn("w-2 h-2 rounded-full flex-shrink-0", r.color)} />
-                                    <span className="text-xs font-medium text-muted-foreground flex-1">{r.label}</span>
-                                    <span className={cn("text-sm font-bold tabular-nums", r.textColor)}>{r.val}</span>
-                                </div>
-                            ))}
-
-                            {/* Occupancy bar */}
-                            <div className="pt-2 border-t border-border/50">
-                                <div className="flex justify-between items-center mb-1">
-                                    <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Ocupación</span>
-                                    <span className="text-sm font-bold text-blue-500 tabular-nums">{ocupacionPct}%</span>
-                                </div>
-                                <div className="w-full h-1.5 bg-muted rounded-full overflow-hidden">
-                                    <div ref={progressBarRef} className="h-full rounded-full bg-blue-500 gsap-progress" />
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+                <InventoryStatus 
+                    cardRef={occupationCardRef}
+                    donutData={donutData}
+                    totalHabitaciones={totalHabitaciones}
+                    libres={libres}
+                    ocupadas={ocupadas}
+                    limpieza={limpieza}
+                    mantenimiento={mantenimiento}
+                    ocupacionPct={ocupacionPct}
+                    progressBarRef={progressBarRef}
+                />
 
                 {/* 5. Actividad Reciente Premium (Toma 2 columnas) */}
-                <div ref={activityCardRef} className="enterprise-card section-card ui-card-pad col-span-2 flex flex-col transition-all duration-300 ease-out lg:col-span-2">
-                    <div className="flex items-center justify-between mb-4">
-                        <div className="flex items-center gap-2">
-                            <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                            <h3 className="text-sm font-bold text-foreground tracking-tight">Actividad Reciente</h3>
-                        </div>
-                        <Link to="/ventas">
-                            <span className="text-[10px] font-medium text-primary hover:text-primary/80 transition-colors flex items-center gap-1">Ver Historial <ArrowUpRight className="w-3 h-3" /></span>
-                        </Link>
-                    </div>
-                    <div className="space-y-2 flex-1 overflow-y-auto pr-2 custom-scrollbar">
-                        {[...todasLasVentas].sort((r, s) => new Date(s.fecha_pago || s.created_date).getTime() - new Date(r.fecha_pago || r.created_date).getTime()).slice(0, 5).map((r) => {
-                            const nombre = r.huesped_nombre || 'Cliente Final';
-                            const initials = nombre.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
-                            const fecha = r.fecha_pago || r.created_date;
-                            const timeAgo = fecha ? formatDistanceToNow(new Date(fecha), { addSuffix: true, locale: es }) : '';
-
-                            return (
-                                <div key={`${r._tipo}-${r.id}`} className="flex items-center justify-between p-3 bg-muted/20 rounded-xl hover:bg-muted/40 transition-colors group/item">
-                                    <div className="flex items-center gap-2.5">
-                                        <div className={cn("w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 text-white text-[10px] font-bold bg-gradient-to-br shadow-sm", getAvatarColor(nombre))}>
-                                            {initials}
-                                        </div>
-                                        <div>
-                                            <p className="text-xs font-semibold text-foreground leading-tight">{nombre}</p>
-                                            <div className="flex items-center gap-1.5 mt-0.5">
-                                                <span className="text-[10px] text-muted-foreground">
-                                                    {r._tipo === "pos" ? "Tienda (POS)" : (r.habitacion_numero ? `Hab. ${r.habitacion_numero}` : "Recepción")}
-                                                </span>
-                                                <span className="text-muted-foreground/30">•</span>
-                                                <span className="text-[10px] text-muted-foreground/70">{timeAgo}</span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div className="text-right">
-                                        <p className="text-xs font-bold tabular-nums text-foreground tracking-tight">S/ {Number(r.total || 0).toFixed(2)}</p>
-                                        <p className="text-[9px] text-muted-foreground uppercase tracking-wider mt-0.5">{r.metodo_pago}</p>
-                                    </div>
-                                </div>
-                            );
-                        })}
-                        {todasLasVentas.length === 0 && (
-                            <div className="p-6 text-center text-muted-foreground">
-                                <Receipt className="w-8 h-8 mx-auto mb-2 opacity-30" />
-                                <p className="text-xs">No hay actividad reciente</p>
-                            </div>
-                        )}
-                    </div>
-                </div>
+                <RecentActivity cardRef={activityCardRef} todasLasVentas={todasLasVentas} />
 
                 {/* 6. Quick Actions (Toma 2 columnas) */}
                 <div className="enterprise-card section-card ui-card-pad col-span-2 flex flex-col transition-all duration-300 ease-out lg:col-span-2">

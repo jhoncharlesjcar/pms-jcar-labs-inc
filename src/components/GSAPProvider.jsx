@@ -1,10 +1,8 @@
 /**
- * GSAPProvider — Mantiene ScrollTrigger sincronizado con cambios de ruta
+ * GSAPProvider — Mantiene ScrollTrigger sincronizado con cambios de ruta.
  *
- * Anteriormente inicializaba Lenis Smooth Scroll. Eliminado porque
- * en una app de gestión hotelera el smooth scroll ralentiza la UX.
- * ScrollTrigger.refresh() sigue siendo necesario para animaciones
- * que dependen del layout (como el parallax del Dashboard).
+ * ScrollTrigger.refresh() es necesario para animaciones que dependen
+ * del layout (como el parallax del Dashboard).
  */
 
 import React, { useEffect, memo } from 'react';
@@ -14,7 +12,7 @@ import { refreshScrollTriggers } from '@/lib/gsap';
 const GSAPProvider = memo(function GSAPProvider({ children }) {
   const location = useLocation();
 
-  // ─── Refresh ScrollTrigger on route change ────────────────────────────
+  // ─── Refrescar ScrollTrigger en cada cambio de ruta ───────────────────
   useEffect(() => {
     const timer = setTimeout(() => {
       refreshScrollTriggers();

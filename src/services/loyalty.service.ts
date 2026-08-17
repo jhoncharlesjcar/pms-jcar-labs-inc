@@ -5,7 +5,7 @@
  * reversión y expiración de puntos para huéspedes recurrentes por hotel.
  */
 
-import { supabase } from '@/lib/supabaseClient';
+import { supabase } from '@/config/supabase';
 import logger from '@/lib/logger';
 
 // ---------------------------------------------------------------------------

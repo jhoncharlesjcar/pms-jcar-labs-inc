@@ -1,5 +1,5 @@
 import { get, set, del, keys } from 'idb-keyval';
-import { supabase } from '@/lib/supabaseClient';
+import { supabase } from '@/config/supabase';
 import logger from '@/lib/logger';
 import { toast } from 'sonner';
 

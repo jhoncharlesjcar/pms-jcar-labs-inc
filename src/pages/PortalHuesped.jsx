@@ -1,7 +1,7 @@
 import { useParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { Clock, MessageCircle, ShieldAlert } from 'lucide-react';
-import { supabase } from '@/lib/supabaseClient';
+import { supabase } from '@/config/supabase';
 import { Button } from '@/components/ui/button';
 
 async function loadPortal(token) {

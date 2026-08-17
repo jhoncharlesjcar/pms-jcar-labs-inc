@@ -85,11 +85,8 @@ export interface CarritoItem {
   stock: number;
 }
 
-export type MetodoPago = 'efectivo' | 'yape' | 'plin' | 'transferencia' | 'tarjeta';
-
-export type TipoComprobante = 'boleta' | 'factura' | 'ninguno';
-
-export type EstadoComprobante = 'ticket_interno' | 'sunat_pendiente' | 'sunat_emitido' | 'sunat_rechazado';
+export type { MetodoPago } from '@/constants/paymentMethods';
+export type { TipoComprobante, EstadoComprobante } from '@/constants/comprobantes';
 
 export type TipoFiltro = 'hotel' | 'pos' | 'todos';
 
@@ -114,28 +111,8 @@ export interface EstadoComprobanteInfo {
 // Constantes
 // ---------------------------------------------------------------------------
 
-/** Métodos de pago soportados por el sistema (RN-VEN-001) */
-export const METODOS_PAGO: MetodoPago[] = [
-  'efectivo',
-  'yape',
-  'plin',
-  'transferencia',
-  'tarjeta',
-];
-
-/** Métodos de pago digital que requieren código de operación */
-export const METODOS_CON_REFERENCIA: MetodoPago[] = ['yape', 'plin'];
-
-/** Tipos de comprobante SUNAT soportados */
-export const TIPOS_COMPROBANTE: TipoComprobante[] = ['boleta', 'factura', 'ninguno'];
-
-/** Estados del comprobante SUNAT (RN-VEN-003) */
-export const ESTADOS_COMPROBANTE: EstadoComprobante[] = [
-  'ticket_interno',
-  'sunat_pendiente',
-  'sunat_emitido',
-  'sunat_rechazado',
-];
+export { METODOS_PAGO, METODOS_CON_REFERENCIA } from '@/constants/paymentMethods';
+export { TIPOS_COMPROBANTE, ESTADOS_COMPROBANTE } from '@/constants/comprobantes';
 
 /** Mapa de información visual de cada estado de comprobante */
 export const ESTADO_COMPROBANTE_MAP: Record<string, EstadoComprobanteInfo> = {

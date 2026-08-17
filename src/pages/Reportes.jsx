@@ -12,7 +12,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useHotelData } from '@/hooks/use-hotel-data';
+import { useHotelData } from '@/hooks/useHotelData';
 import { downloadCsv } from '@/lib/csv';
 import { cn } from '@/lib/utils';
 import { useGsapStaggerList } from '@/hooks/useGsapStaggerList';
