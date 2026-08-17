@@ -21,7 +21,7 @@ import {
     validarReferenciaYapePlin,
 } from '@/services/checkout.service';
 import { useLoyaltyAccount } from '@/hooks/useLoyalty';
-import { isSimpleRoomType, canRedeemSimpleDiscount, calculateSimpleRoomDiscount, calculateEarnedPoints } from '@/services/loyalty.service';
+import { canRedeemSimpleDiscount, calculateSimpleRoomDiscount } from '@/services/loyalty.service';
 
 // ─── Subcomponentes extraídos ───────────────────────────────────────────────
 import { ResumenCuenta } from '@/components/checkout/ResumenCuenta';

@@ -3,10 +3,8 @@ import { useState, memo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { 
     Users, Search, Phone, MapPin, Calendar, 
-    CreditCard, User as UserIcon, TrendingUp,
-    ArrowUpDown, Eye,
-    ArrowLeft, Mail, Star, History,
-    Clock, DollarSign, FileText, Download
+    CreditCard,
+    ArrowUpDown, Eye, Mail, FileText, Download
 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -17,7 +15,6 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, Dialog
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
 import { format } from 'date-fns';
-import { toast } from 'sonner';
 import PageSkeleton from '@/components/loaders/PageSkeleton';
 import { HuespedProfile } from './Huespedes/components/HuespedProfile';
 import { exportarDircetur } from './Huespedes/services/dircetur.service';
@@ -37,10 +34,6 @@ const Huespedes = memo(function Huespedes() {
         queryFn: () => hotelDb.Reserva.list(),
         enabled: !!hotelId,
     });
-
-    const handleExportarDircetur = (formato = 'excel') => {
-        exportarDircetur(reservas, formato, periodoExport, fechaExport, () => setExportDialogOpen(false));
-    };
 
     // Procesar datos para obtener una lista única de huéspedes
     const huespedes = reservas.reduce((acc, res) => {
