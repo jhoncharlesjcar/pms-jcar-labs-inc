@@ -10,6 +10,7 @@ Este directorio contiene las guías operativas y técnicas permanentes. Las regl
 | Documento | Alcance |
 | --- | --- |
 | [README del proyecto](../README.md) | Instalación, comandos, módulos y acceso rápido |
+| [Historial de Cambios (Changelog)](CHANGELOG.md) | Registro histórico de novedades, arquitectura y parches |
 | [Arquitectura](../specs/architecture.md) | Capas, rutas, seguridad y sincronización |
 | [Flujo de negocio](FLUJO_NEGOCIO.md) | Ciclo operativo desde reserva hasta cierre |
 | [Sistema de diseño](DESIGN_SYSTEM.md) | UX/UI, responsive, accesibilidad y componentes |

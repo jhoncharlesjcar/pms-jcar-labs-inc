@@ -109,6 +109,7 @@ La guía operativa completa está en [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md).
 ## Documentación
 
 - [Índice de documentación](docs/README.md)
+- [Historial de Cambios (Changelog)](docs/CHANGELOG.md)
 - [Arquitectura](specs/architecture.md)
 - [Flujo de negocio](docs/FLUJO_NEGOCIO.md)
 - [Sistema de diseño](docs/DESIGN_SYSTEM.md)
