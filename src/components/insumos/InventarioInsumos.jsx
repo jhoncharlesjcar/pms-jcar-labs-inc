@@ -111,7 +111,7 @@ const Insumos = memo(function Insumos() {
             const nuevaCat = window.prompt("Nombre de la nueva categoría (ej. Limpieza, Baño):");
             if (!nuevaCat) return;
             addCategoria.mutate(nuevaCat, {
-                onSuccess: (data) => {
+                onSuccess: (/** @type {any} */ data) => {
                     addInsumo.mutate({
                         nombre: fd.get('nombre'),
                         categoria_id: data.id,

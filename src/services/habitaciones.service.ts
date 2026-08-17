@@ -29,7 +29,7 @@ export const HabitacionesService = {
   async getHabitacionesByHotel(hotelId: string): Promise<HabitacionData[]> {
     const { data, error } = await supabase
       .from('habitaciones')
-      .select('*')
+      .select('id, hotel_id, numero, piso, tipo, estado, precio_noche, precio, capacidad, descripcion, amenities')
       .eq('hotel_id', hotelId)
       .order('numero', { ascending: true });
 
@@ -42,7 +42,7 @@ export const HabitacionesService = {
       .from('habitaciones')
       .update({ estado: nuevoEstado })
       .eq('id', habitacionId)
-      .select()
+      .select('id, estado')
       .single();
 
     if (error) throw error;

@@ -14,7 +14,7 @@ import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { cn } from '@/lib/utils';
 
-export const ConfigTarifas = memo(function ConfigTarifas({ hotelId }) {
+export const ConfigTarifas = memo(function ConfigTarifas(/** @type {{ hotelId: string }} */ { hotelId }) {
     const qc = useQueryClient();
     const { db: hotelDb } = useHotelData();
     const [tarifaForm, setTarifaForm] = useState({
@@ -63,7 +63,7 @@ export const ConfigTarifas = memo(function ConfigTarifas({ hotelId }) {
     }, [tarifas.length]);
 
     const crearTarifa = useMutation({
-        mutationFn: async (nueva) => {
+        mutationFn: async (/** @type {any} */ nueva) => {
             const { data, error } = await supabase
                 .from('tarifas_dinamicas')
                 .insert({
@@ -96,7 +96,7 @@ export const ConfigTarifas = memo(function ConfigTarifas({ hotelId }) {
     });
 
     const actualizarTarifa = useMutation({
-        mutationFn: async ({ id, updates }) => {
+        mutationFn: async (/** @type {any} */ { id, updates }) => {
             const { data, error } = await supabase
                 .from('tarifas_dinamicas')
                 .update(updates)
@@ -220,7 +220,7 @@ export const ConfigTarifas = memo(function ConfigTarifas({ hotelId }) {
                                                     label: 'Eliminar',
                                                     onClick: () => eliminarTarifa.mutate(t.id)
                                                 },
-                                                cancel: { label: 'Cancelar' }
+                                                cancel: { label: 'Cancelar', onClick: () => {} }
                                             });
                                         }}
                                         className="h-9 w-9 text-red-500/70 hover:text-red-500 hover:bg-red-500/10 rounded-md active:scale-95 transition-all"

@@ -186,6 +186,7 @@ export const ConfigZonaPeligrosa = memo(function ConfigZonaPeligrosa(/** @type {
                 )}
                 {isDeleting ? 'Borrando...' : 'Borrar Datos Permanentemente'}
             </Button>
+            {/* @ts-ignore */}
             <ConfirmDialog {...confirmProps} isPending={isDeleting} />
         </div>
     );

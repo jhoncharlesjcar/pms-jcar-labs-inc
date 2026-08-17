@@ -3,6 +3,7 @@ import { supabase } from '@/config/supabase';
 import { useQueryClient } from '@tanstack/react-query';
 import { useHotel } from '@/contexts/HotelContext';
 import logger from '@/lib/logger';
+import type { RealtimePostgresChangesPayload } from '@supabase/supabase-js';
 
 export function useRealtimeSync() {
     const queryClient = useQueryClient();
@@ -20,7 +21,7 @@ export function useRealtimeSync() {
                 schema: 'public', 
                 table: 'reservas',
                 filter: `hotel_id=eq.${hotelId}`
-            }, (payload) => {
+            }, (payload: RealtimePostgresChangesPayload<any>) => {
                 logger.debug('🔄 Sincronización Realtime: Reservas', payload);
                 queryClient.invalidateQueries({ queryKey: ['reservas', hotelId] });
             })
@@ -29,7 +30,7 @@ export function useRealtimeSync() {
                 schema: 'public', 
                 table: 'habitaciones',
                 filter: `hotel_id=eq.${hotelId}`
-            }, (payload) => {
+            }, (payload: RealtimePostgresChangesPayload<any>) => {
                 logger.debug('🔄 Sincronización Realtime: Habitaciones', payload);
                 queryClient.invalidateQueries({ queryKey: ['habitaciones', hotelId] });
                 queryClient.invalidateQueries({ queryKey: ['habitaciones_sidebar', hotelId] });
@@ -39,7 +40,7 @@ export function useRealtimeSync() {
                 schema: 'public', 
                 table: 'ventas',
                 filter: `hotel_id=eq.${hotelId}`
-            }, (payload) => {
+            }, (payload: RealtimePostgresChangesPayload<any>) => {
                 logger.debug('🔄 Sincronización Realtime: Ventas', payload);
                 queryClient.invalidateQueries({ queryKey: ['ventas', hotelId] });
             })

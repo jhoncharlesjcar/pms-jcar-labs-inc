@@ -58,8 +58,16 @@ export interface ProcesarCheckoutResult {
   errors: string[];
 }
 
-export type { MetodoPago } from '@/constants/paymentMethods';
-export type { TipoComprobante } from '@/constants/comprobantes';
+import type { MetodoPago } from '@/constants/paymentMethods';
+import type { TipoComprobante } from '@/constants/comprobantes';
+
+export type { MetodoPago, TipoComprobante };
+
+export interface ValidarMetodoPagoResult {
+  valido: boolean;
+  requiere_referencia: boolean;
+  error: string | null;
+}
 
 export interface ValidarComprobanteParams {
   tipo: TipoComprobante;
@@ -96,7 +104,10 @@ export interface PagoExistente {
 /** Tasa fija de IGV en Perú (18%) */
 export const TASA_IGV = 0.18;
 
-export { METODOS_PAGO as METODOS_PAGO_VALIDOS, METODOS_CON_REFERENCIA } from '@/constants/paymentMethods';
+import { METODOS_PAGO, METODOS_CON_REFERENCIA } from '@/constants/paymentMethods';
+
+export const METODOS_PAGO_VALIDOS = METODOS_PAGO;
+export { METODOS_CON_REFERENCIA };
 
 // ---------------------------------------------------------------------------
 // CHECKOUT-001: Cálculo del Total a Cobrar

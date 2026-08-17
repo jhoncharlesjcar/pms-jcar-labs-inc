@@ -100,3 +100,17 @@ export interface Reserva {
   numero_reserva?: string;
   created_date?: string;
 }
+
+/**
+ * ConfigHotel — Configuración global del hotel
+ */
+export interface ConfigHotel {
+  id: string;
+  loyalty_program_enabled?: boolean;
+  modo_sunat?: 'manual' | 'automatico' | 'desactivado';
+  aplica_igv?: boolean;
+  pasarela_activa?: string;
+  qr_yape_url?: string;
+  qr_plin_url?: string;
+  modo_automatico?: boolean;
+}

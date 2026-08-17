@@ -1,15 +1,16 @@
 /**
  * GSAPProvider — Mantiene ScrollTrigger sincronizado con cambios de ruta.
- *
- * ScrollTrigger.refresh() es necesario para animaciones que dependen
- * del layout (como el parallax del Dashboard).
  */
 
 import React, { useEffect, memo } from 'react';
 import { useLocation } from 'react-router-dom';
 import { refreshScrollTriggers } from '@/lib/gsap';
 
-const GSAPProvider = memo(function GSAPProvider({ children }) {
+interface GSAPProviderProps {
+  children: React.ReactNode;
+}
+
+const GSAPProvider = memo(function GSAPProvider({ children }: GSAPProviderProps) {
   const location = useLocation();
 
   // ─── Refrescar ScrollTrigger en cada cambio de ruta ───────────────────
@@ -22,5 +23,6 @@ const GSAPProvider = memo(function GSAPProvider({ children }) {
 
   return <>{children}</>;
 });
+
 GSAPProvider.displayName = 'GSAPProvider';
 export default GSAPProvider;

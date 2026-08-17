@@ -12,7 +12,19 @@ const METHODS = [
     { key: 'tarjeta', label: 'Tarjeta', icon: CreditCard },
 ];
 
-export const DailyAuditSummary = memo(function DailyAuditSummary({ total, transactions, methods = {}, sunat = {}, onOpenCaja }) {
+/**
+ * @typedef {Object} DailyAuditSummaryProps
+ * @property {number} total
+ * @property {number} transactions
+ * @property {Record<string, number>} [methods]
+ * @property {Object} [sunat]
+ * @property {number} [sunat.sunatPendientesCount]
+ * @property {number} [sunat.sunatRechazadasCount]
+ * @property {() => void} onOpenCaja
+ */
+
+export const DailyAuditSummary = memo(function DailyAuditSummary(/** @type {DailyAuditSummaryProps} */ props) {
+    const { total, transactions, methods = {}, sunat = {}, onOpenCaja } = props;
     const incidents = Number(sunat.sunatPendientesCount || 0) + Number(sunat.sunatRechazadasCount || 0);
 
     return (

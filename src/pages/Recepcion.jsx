@@ -1,36 +1,29 @@
 import React, { useState, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Plus, Search, CalendarDays, User, CheckCircle2, Sparkles, XCircle, LogIn, MapPin, Users as UsersIcon, Info, FileText, MessageSquare, Camera } from 'lucide-react';
+import { Plus, Search, CalendarDays, CheckCircle2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
+import logger from '@/lib/logger';
 import { cn } from '@/lib/utils';
-import { differenceInDays, format, addDays, parseISO } from 'date-fns';
+import { differenceInDays, addDays, format } from 'date-fns';
 import RegistrarVentaModal from '@/components/RegistrarVentaModal';
 import { useHotelData } from '@/hooks/useHotelData';
 import RecepcionTimeline from '@/components/recepcion/RecepcionTimeline';
 import RecepcionCockpit from '@/components/recepcion/RecepcionCockpit';
 
 import { useGsapStaggerList } from '@/hooks/useGsapStaggerList';
-import { generarFichaMincetur } from '@/lib/exportMincetur';
-import { WhatsAppService } from '@/services/whatsapp.service';
 import { useAuthStore } from '@/store/auth.store';
 import { toast } from 'sonner';
 import { useIdentity } from '@/hooks/useIdentity';
 import { useLoyaltyAccount } from '@/hooks/useLoyalty';
-import { StatusBadge } from '@/components/ui/StatusBadge';
 import EmptyState from '@/components/common/EmptyState';
 import ScannerDNIModal from '@/components/recepcion/ScannerDNIModal';
 import { roomStatusForReservationTransition } from '@/constants/roomStatus';
-import ConfirmDialog, { useConfirmDialog } from '@/components/common/ConfirmDialog';
+
 import {
     buildReceptionSummary,
-    getReservationOperationalState,
     matchesReceptionFilter,
-    OPERATIONAL_STATE_CONFIG,
-    sortReservationsByOperationalPriority,
+    sortReservationsByOperationalPriority
 } from '@/lib/recepcionCockpit';
 import { ReservaCard } from './Recepcion/components/ReservaCard';
 import { NuevaReservaSheet } from './Recepcion/components/NuevaReservaSheet';
@@ -60,7 +53,7 @@ export default function Recepcion() {
     const [ventaModal, setVentaModal] = useState(null);
     const [form, setForm] = useState(createEmptyForm);
     const [busqueda, setBusqueda] = useState('');
-    const [filtro, setFiltro] = useState('atencion');
+    const [filtro, setFiltro] = useState(/** @type {"activa" | "pendiente" | "atencion" | "historial" | "todas"} */('atencion'));
     const [vista, setVista] = useState('lista'); // 'lista' | 'timeline'
     const [scannerOpen, setScannerOpen] = useState(false);
 
@@ -199,7 +192,7 @@ export default function Recepcion() {
             const previousHabitaciones = qc.getQueryData(['habitaciones', hotelId]);
 
             // Optimistically update reservas list
-            qc.setQueryData(['reservas', hotelId], (old) => {
+            qc.setQueryData(['reservas', hotelId], (/** @type {any[]} */ old) => {
                 if (!old) return [];
                 return old.map(r => r.id === id ? { ...r, estado } : r);
             });
@@ -207,7 +200,7 @@ export default function Recepcion() {
             // Optimistically update habitaciones list if check-out (finalizada/cancelada) or check-in (activa)
             if (hab_id) {
                 const nextRoomStatus = roomStatusForReservationTransition(estadoAnterior, estado);
-                qc.setQueryData(['habitaciones', hotelId], (old) => {
+                qc.setQueryData(['habitaciones', hotelId], (/** @type {any[]} */ old) => {
                     if (!old) return [];
                     return old.map(h => {
                         if (h.id === hab_id && nextRoomStatus) {
@@ -360,18 +353,6 @@ export default function Recepcion() {
                                 description={filtro === 'atencion' ? 'No hay llegadas ni salidas que requieran atención ahora.' : 'No se encontraron reservas con los filtros actuales.'}
                                 action={{ label: 'Nueva Reserva', icon: Plus, onClick: () => setOpen(true) }}
                             />
-                        ) : (
-                            filtradas.map(r => (
-                                <ReservaCard
-                                    key={r.id}
-                                    r={r}
-                                    hotelActual={hotelActual}
-                                    hotelId={hotelId}
-                                    user={user}
-                                    actualizarEstado={actualizarEstado}
-                                    setVentaModal={setVentaModal}
-                                    hotelDb={hotelDb}
-                                />
                         ) : (
                             filtradas.map(r => (
                                 <ReservaCard

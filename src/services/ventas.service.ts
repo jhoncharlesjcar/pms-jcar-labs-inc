@@ -85,8 +85,10 @@ export interface CarritoItem {
   stock: number;
 }
 
-export type { MetodoPago } from '@/constants/paymentMethods';
-export type { TipoComprobante, EstadoComprobante } from '@/constants/comprobantes';
+import type { MetodoPago } from '@/constants/paymentMethods';
+import type { TipoComprobante, EstadoComprobante } from '@/constants/comprobantes';
+
+export type { MetodoPago, TipoComprobante, EstadoComprobante };
 
 export type TipoFiltro = 'hotel' | 'pos' | 'todos';
 

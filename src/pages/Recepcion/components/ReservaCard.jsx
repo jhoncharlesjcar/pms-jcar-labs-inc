@@ -28,7 +28,7 @@ const formatReservationDate = value => value
     ? format(typeof value === 'string' ? parseISO(value) : new Date(value), 'dd/MM')
     : '--';
 
-export const ReservaCard = React.memo(({ r, hotelActual, hotelId, user, actualizarEstado, setVentaModal, hotelDb }) => {
+export const ReservaCard = React.memo((/** @type {any} */ { r, hotelActual, hotelId, user, actualizarEstado, setVentaModal, hotelDb }) => {
     const initials = (r.huesped_nombre || '?').split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
     const { confirmProps, requestConfirm } = useConfirmDialog();
     const operationalState = getReservationOperationalState(r);
@@ -44,6 +44,7 @@ export const ReservaCard = React.memo(({ r, hotelActual, hotelId, user, actualiz
                     <div className="min-w-0 flex flex-col gap-0.5">
                         <div className="flex items-center gap-2 flex-wrap mb-0.5">
                             <p className="font-bold text-sm text-foreground tracking-tight leading-none">{r.huesped_nombre}</p>
+                            {/* @ts-ignore */}
                             <StatusBadge status={r.estado} className="text-[10px] px-1.5 py-0.5 rounded-sm" />
                             {operationalState !== 'history' && (
                                 <span className={cn(
@@ -147,6 +148,7 @@ export const ReservaCard = React.memo(({ r, hotelActual, hotelId, user, actualiz
                     </div>
                 </div>
             </div>
+            {/* @ts-ignore */}
             <ConfirmDialog {...confirmProps} isPending={actualizarEstado.isPending} />
         </article>
     );

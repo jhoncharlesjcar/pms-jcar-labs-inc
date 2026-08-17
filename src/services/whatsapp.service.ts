@@ -1,6 +1,7 @@
 import { format } from 'date-fns';
 import { toast } from 'sonner';
 import { registrarLog } from '@/lib/auditLogger';
+import type { Reserva, ConfigHotel, UserProfile } from '@/types';
 
 /**
  * Servicio para generar y enviar mensajes de WhatsApp estandarizados.
@@ -8,11 +9,8 @@ import { registrarLog } from '@/lib/auditLogger';
 export const WhatsAppService = {
     /**
      * Genera un mensaje y abre la URL de WhatsApp para una reserva
-     * @param {Object} reserva - Los datos de la reserva
-     * @param {Object} config - Configuración del hotel (para el nombre)
-     * @param {Object} context - { hotelId, user } para auditoría
      */
-    enviarMensajeReserva: (reserva, config, context = {}) => {
+    enviarMensajeReserva: (reserva: Reserva, config: Partial<ConfigHotel>, context: { hotelId?: string; user?: UserProfile } = {}) => {
         const telefono = reserva.huesped_telefono ? reserva.huesped_telefono.trim() : '';
         if (!telefono) {
             toast.error("El huésped no tiene número de teléfono registrado");

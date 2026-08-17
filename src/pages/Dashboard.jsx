@@ -4,9 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 import logger from '@/lib/logger';
 
 import { Link, useNavigate } from 'react-router-dom';
-import { format, subDays, formatDistanceToNow } from 'date-fns';
-import { es } from 'date-fns/locale';
-import { ResponsiveContainer, AreaChart, XAxis, YAxis, Tooltip, Area, ReferenceLine, PieChart, Pie, Cell } from 'recharts';
+import { format, subDays } from 'date-fns';
 import {
     BedDouble, Wallet, Receipt, CalendarDays, TrendingUp, CheckCircle2, User,
     LogIn, ShoppingCart, FileText, AlertTriangle, ArrowUpRight, Zap
@@ -21,7 +19,7 @@ import BroomIcon from '@/components/ui/icons/BroomIcon';
 import { DailyAuditSummary } from '@/components/dashboard/DailyAuditSummary';
 import { calcularDesgloseMetodosPago, calcularDesgloseSunat } from '@/services/caja.service';
 
-import { KpiCard, Counter, MoneyCounter } from './Dashboard/components/KpiCard';
+import { KpiCard } from './Dashboard/components/KpiCard';
 import { WeeklyAnalysisChart } from './Dashboard/components/WeeklyAnalysisChart';
 import { InventoryStatus } from './Dashboard/components/InventoryStatus';
 import { RecentActivity } from './Dashboard/components/RecentActivity';
@@ -393,39 +391,6 @@ export default function Dashboard() {
 
                 {/* 3. Ingresos Diarios Card (Toma 1 columna, al lado del chart) */}
                 <div ref={incomeCardRef} className="enterprise-card section-card ui-card-pad col-span-2 flex flex-col justify-between transition-all duration-300 ease-out hover:shadow-md lg:col-span-1">
-                    <div className="flex items-center gap-2 mb-3">
-                        <div className="w-6 h-6 rounded-md bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shadow-sm flex-shrink-0">
-                            <TrendingUp className="w-3.5 h-3.5" />
-                        </div>
-                        <h3 className="text-sm font-bold text-foreground tracking-tight leading-tight">Ingresos Hoy</h3>
-                    </div>
-
-                    <div className="space-y-4 flex-1 justify-center flex flex-col">
-                        <div className="space-y-1">
-                            <div className="flex justify-between items-center">
-                                <span className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">Hospedaje</span>
-                                <span className="text-sm font-medium text-foreground tabular-nums">S/ {ingresosHospedajeHoy.toFixed(2)}</span>
-                            </div>
-                            <div className="w-full h-1.5 bg-muted rounded-full overflow-hidden">
-                                <div className="h-full bg-primary rounded-full" style={{ width: ingresosHoy > 0 ? `${(ingresosHospedajeHoy / ingresosHoy) * 100}%` : '0%' }} />
-                            </div>
-                        </div>
-
-                        <div className="space-y-1">
-                            <div className="flex justify-between items-center">
-                                <span className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">Tienda (POS)</span>
-                                <span className="text-sm font-medium text-foreground tabular-nums">S/ {ingresosPosHoy.toFixed(2)}</span>
-                            </div>
-                            <div className="w-full h-1.5 bg-muted rounded-full overflow-hidden">
-                                <div className="h-full bg-amber-500 rounded-full" style={{ width: ingresosHoy > 0 ? `${(ingresosPosHoy / ingresosHoy) * 100}%` : '0%' }} />
-                            </div>
-                        </div>
-
-                        {/* KPIs Gerenciales: ADR & RevPAR */}
-                        <div className="grid grid-cols-2 gap-3 pt-3 border-t border-border/50">
-                            <div className="bg-muted/30 p-3 rounded-lg flex flex-col justify-between">
-                                <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">ADR</p>
-                                <p className="text-base font-bold text-foreground mt-1 tabular-nums">S/ {metrics.adr ? metrics.adr.toFixed(2) : '0.00'}</p>
                     <div className="flex items-center gap-2 mb-3">
                         <div className="w-6 h-6 rounded-md bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shadow-sm flex-shrink-0">
                             <TrendingUp className="w-3.5 h-3.5" />

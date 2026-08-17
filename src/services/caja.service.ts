@@ -15,8 +15,10 @@
 // Tipos
 // ---------------------------------------------------------------------------
 
-export type { MetodoPago } from '@/constants/paymentMethods';
-export type { EstadoComprobante } from '@/constants/comprobantes';
+import type { MetodoPago } from '@/constants/paymentMethods';
+import type { EstadoComprobante } from '@/constants/comprobantes';
+
+export type { MetodoPago, EstadoComprobante };
 export type CategoriaEgreso = 'operativo' | 'servicios' | 'insumos' | 'mantenimiento' | 'personal' | 'otros';
 export type PeriodoFiltro = 'hoy' | 'semana' | 'todo';
 
