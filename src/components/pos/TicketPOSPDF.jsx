@@ -331,12 +331,12 @@ const TicketPOSPDF = memo(function TicketPOSPDF({ venta, config }) {
                 )}
             </div>
 
-            <div className="flex flex-col sm:flex-row gap-2 mt-4">
-                <Button onClick={imprimir} className="w-full gap-2" variant="outline">
-                    <Printer className="w-4 h-4" /> PC / Web
+            <div className="flex gap-2 mt-4 w-full">
+                <Button onClick={imprimir} className="flex-1 gap-1 text-xs h-9 px-2" variant="outline">
+                    <Printer className="w-3.5 h-3.5" /> PC / Web
                 </Button>
-                <Button onClick={handleCompartir} className="w-full gap-2 bg-slate-900 hover:bg-slate-800 text-white">
-                    <Share2 className="w-4 h-4" /> Android PWA
+                <Button onClick={handleCompartir} className="flex-1 gap-1 text-xs h-9 px-2 bg-slate-900 hover:bg-slate-800 text-white">
+                    <Share2 className="w-3.5 h-3.5" /> Android PWA
                 </Button>
             </div>
         </div>
