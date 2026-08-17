@@ -120,6 +120,8 @@ Las funciones autenticadas reutilizan `supabase/functions/_shared/auth-middlewar
 
 - Vite divide los proveedores principales en chunks.
 - Las páginas usan lazy loading.
+- Procesamiento pesado delegado a Web Workers (ej. generación asíncrona de reportes y PDFs) para evitar bloquear el hilo de la UI.
+- Limpieza automática de animaciones (garbage collection) a través de los contextos nativos de `@gsap/react`.
 - Workbox precachea activos estáticos y aplica actualización automática.
 - No existe runtime caching de respuestas Supabase.
 - `ANALYZE=true pnpm build` genera un reporte local del bundle.

@@ -34,7 +34,8 @@ La matriz ejecutable de permisos vive en [`src/constants/permissions.ts`](src/co
 - React 18, React Router y Vite 6.
 - Supabase Auth, PostgreSQL, RLS, Realtime y Edge Functions.
 - TanStack Query con persistencia selectiva en IndexedDB.
-- Tailwind CSS, Radix UI, Manrope, Lucide, GSAP y Recharts.
+- Tailwind CSS, Radix UI, Manrope, Lucide, `@gsap/react` y Recharts.
+- Web Workers nativos para generación asíncrona de reportes y tickets PDF (`jsPDF`).
 - PWA con actualización automática mediante Workbox.
 - pnpm 9 y Node.js 22.
 
