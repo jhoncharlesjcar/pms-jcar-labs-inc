@@ -184,7 +184,7 @@ const TicketPDF = memo(function TicketPDF({ venta, config }) {
                 <p className="text-gray-400 text-[10px]">{config.mensaje_ticket || '¡Gracias por su preferencia!'}</p>
             </div>
 
-            <div className="mt-4 grid grid-cols-2 gap-2">
+            <div className="mt-4 flex flex-col sm:flex-row gap-2">
                 <Button onClick={imprimir} className="h-11 w-full gap-2" variant="outline">
                     <Printer className="w-4 h-4" /> Imprimir
                 </Button>

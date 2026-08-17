@@ -357,7 +357,7 @@ const Ventas = memo(function Ventas() {
             {/* Modal ticket detalle con Glassmorphism */}
             {ventaDetalle && (
                     <Dialog open onOpenChange={() => setVentaDetalle(null)}>
-                        <DialogContent className="max-w-md bg-card border border-border shadow-xl rounded-[2rem] p-8">
+                        <DialogContent className="max-w-md bg-card border border-border shadow-xl rounded-[2rem] p-4 sm:p-8 overflow-x-hidden">
                             <DialogHeader>
                                 <div className="mx-auto w-12 h-12 bg-primary/10 rounded-2xl flex items-center justify-center mb-4 border border-primary/20 shadow-sm text-primary">
                                     <Receipt className="w-6 h-6" />
@@ -366,7 +366,7 @@ const Ventas = memo(function Ventas() {
                                 <p className="text-center text-muted-foreground text-[11px] uppercase tracking-widest font-bold mt-1">Ticket #{ventaDetalle.numero_ticket}</p>
                             </DialogHeader>
                             
-                            <div className="mt-6 p-5 bg-background/50 rounded-2xl border border-border/40 shadow-inner">
+                            <div className="mt-6 p-3 sm:p-5 bg-background/50 rounded-2xl border border-border/40 shadow-inner overflow-x-auto custom-scrollbar">
                                 {ventaDetalle._tipo === 'pos' ? (
                                     <TicketPOSPDF venta={ventaDetalle} config={config} />
                                 ) : (

@@ -331,7 +331,7 @@ const TicketPOSPDF = memo(function TicketPOSPDF({ venta, config }) {
                 )}
             </div>
 
-            <div className="flex gap-2 mt-4">
+            <div className="flex flex-col sm:flex-row gap-2 mt-4">
                 <Button onClick={imprimir} className="w-full gap-2" variant="outline">
                     <Printer className="w-4 h-4" /> PC / Web
                 </Button>
