@@ -22,7 +22,9 @@ export const NuevaReservaSheet = ({
     setScannerOpen,
     noches,
     total,
-    saveReserva
+    saveReserva,
+    createdReserva,
+    onCloseSuccess
 }) => {
     return (
         <Sheet open={open} onOpenChange={setOpen}>
@@ -35,12 +37,61 @@ export const NuevaReservaSheet = ({
 
                     <div className="flex-1 overflow-y-auto p-4 sm:p-5 pt-4 space-y-5 sm:space-y-6 custom-scrollbar relative z-0">
                         <div className="absolute top-0 left-0 right-0 h-4 bg-gradient-to-b from-card to-transparent pointer-events-none z-10 -mt-4" />
-                        {/* Sección 1: Selección de Habitación */}
-                        <div className="space-y-4">
-                            <div className="flex items-center gap-2 mb-2">
-                                <div className="w-1 h-4 bg-primary rounded-full" />
-                                <h3 className="text-xs font-semibold text-muted-foreground/90 uppercase tracking-wider">1. Selección de Habitación</h3>
+                        
+                        {createdReserva ? (
+                            <div className="flex flex-col items-center justify-center py-10 space-y-6 text-center">
+                                <div className="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mb-2">
+                                    <Sparkles className="w-8 h-8" />
+                                </div>
+                                <div>
+                                    <h2 className="text-2xl font-bold text-foreground">¡Reserva Registrada!</h2>
+                                    <p className="text-muted-foreground mt-2">
+                                        La reserva para <strong>{createdReserva.huesped_nombre}</strong> ha sido guardada con éxito.
+                                    </p>
+                                </div>
+                                
+                                {createdReserva.checkin_token ? (
+                                    <div className="w-full max-w-sm space-y-3 bg-muted/30 p-4 rounded-xl border">
+                                        <p className="text-sm font-medium text-foreground mb-1">Compartir Enlace de Check-in</p>
+                                        <p className="text-xs text-muted-foreground mb-4">Envía este enlace al huésped para que complete sus datos antes de llegar.</p>
+                                        
+                                        <Button 
+                                            variant="default" 
+                                            className="w-full bg-[#25D366] hover:bg-[#25D366]/90 text-white gap-2"
+                                            onClick={() => {
+                                                const url = `${window.location.origin}/checkin/${createdReserva.checkin_token}`;
+                                                const text = `Hola ${createdReserva.huesped_nombre}, gracias por tu reserva. Por favor completa tu check-in digital aquí antes de tu llegada:\n\n${url}`;
+                                                window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
+                                            }}
+                                        >
+                                            Enviar por WhatsApp
+                                        </Button>
+                                        <Button 
+                                            variant="outline" 
+                                            className="w-full gap-2"
+                                            onClick={() => {
+                                                const url = `${window.location.origin}/checkin/${createdReserva.checkin_token}`;
+                                                navigator.clipboard.writeText(url);
+                                                toast.success('Enlace copiado al portapapeles');
+                                            }}
+                                        >
+                                            Copiar Enlace
+                                        </Button>
+                                    </div>
+                                ) : (
+                                    <div className="w-full max-w-sm p-4 text-sm text-yellow-600 bg-yellow-50 rounded-xl border border-yellow-200">
+                                        No se pudo generar el enlace de auto-registro en este momento.
+                                    </div>
+                                )}
                             </div>
+                        ) : (
+                            <>
+                                {/* Sección 1: Selección de Habitación */}
+                                <div className="space-y-4">
+                                    <div className="flex items-center gap-2 mb-2">
+                                        <div className="w-1 h-4 bg-primary rounded-full" />
+                                        <h3 className="text-xs font-semibold text-muted-foreground/90 uppercase tracking-wider">1. Selección de Habitación</h3>
+                                    </div>
                             <div ref={roomGridRef} className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
                                 {habitacionesDisp.map(h => (
                                     <button key={h.id} onClick={() => seleccionarHab(h)}
@@ -62,8 +113,10 @@ export const NuevaReservaSheet = ({
                                     </button>
                                 ))}
                                 {habitacionesDisp.length === 0 && <p className="col-span-full py-8 text-center text-sm font-bold text-muted-foreground bg-secondary/20 rounded-2xl border border-dashed border-border/60">No hay habitaciones disponibles</p>}
-                            </div>                              </div>
-                            {/* Sección 2: Datos del Huésped */}
+                            </div>
+                        </div>
+
+                        {/* Sección 2: Datos del Huésped */}
                         <div className="space-y-4">
                             <div className="flex items-center gap-2 mb-2">
                                 <div className="w-1 h-4 bg-primary rounded-full" />
@@ -273,27 +326,38 @@ export const NuevaReservaSheet = ({
                                     </div>
                                 </div>
                             </div>
-                        </div>
+                            </div>
+                        </>
+                    )}
                     </div>
 
                     {/* Footer con Botones */}
-                    <div className="p-4 bg-muted/10 border-t border-border flex flex-col sm:flex-row gap-3">
-                        <Button variant="outline" className="order-2 sm:order-1" onClick={() => setOpen(false)}>
-                            Cancelar
-                        </Button>
-                        <Button className="order-1 flex-1 shadow-sm sm:order-2"
-                            onClick={() => {
-                                if (form.huesped_dni && form.huesped_dni.length !== 8 && form.huesped_dni.length !== 11 && form.huesped_dni.length !== 12) {
-                                    toast.error('El documento ingresado no tiene un formato válido (DNI 8, RUC 11, CE 12)');
-                                    return;
-                                }
-                                saveReserva.mutate({ ...form, noches, total });
-                            }}
-                            disabled={saveReserva.isPending || !form.habitacion_id || !form.huesped_nombre}>
-                            {saveReserva.isPending ? 'Procesando...' : 'Finalizar Registro'}
-                        </Button>
-
-                    </div>
+                    {!createdReserva && (
+                        <div className="p-4 bg-muted/10 border-t border-border flex flex-col sm:flex-row gap-3">
+                            <Button variant="outline" className="order-2 sm:order-1" onClick={() => setOpen(false)}>
+                                Cancelar
+                            </Button>
+                            <Button className="order-1 flex-1 shadow-sm sm:order-2"
+                                onClick={() => {
+                                    if (form.huesped_dni && form.huesped_dni.length !== 8 && form.huesped_dni.length !== 11 && form.huesped_dni.length !== 12) {
+                                        toast.error('El documento ingresado no tiene un formato válido (DNI 8, RUC 11, CE 12)');
+                                        return;
+                                    }
+                                    saveReserva.mutate({ ...form, noches, total });
+                                }}
+                                disabled={saveReserva.isPending || !form.habitacion_id || !form.huesped_nombre}>
+                                {saveReserva.isPending ? 'Procesando...' : 'Finalizar Registro'}
+                            </Button>
+                        </div>
+                    )}
+                    
+                    {createdReserva && (
+                        <div className="p-4 bg-muted/10 border-t border-border flex flex-col sm:flex-row gap-3">
+                            <Button variant="outline" className="w-full" onClick={onCloseSuccess}>
+                                Cerrar y Volver
+                            </Button>
+                        </div>
+                    )}
                 </div>
             </SheetContent>
         </Sheet>

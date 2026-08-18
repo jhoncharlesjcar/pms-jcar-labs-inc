@@ -53,7 +53,7 @@ export function useCajaData(hotelId) {
 
     // --- CALCULATIONS ---
     const stats = useMemo(() => {
-        const hoy = new Date().toISOString().split('T')[0];
+        const hoy = new Date().toLocaleDateString('sv-SE', { timeZone: 'America/Lima' });
         
         const hHoy = ventasHotel.filter(v => (v.fecha_pago || v.fecha_venta || v.created_date || '').startsWith(hoy));
         const pHoy = ventasPOS.filter(v => (v.fecha_venta || v.created_date || '').startsWith(hoy));

@@ -8,6 +8,7 @@ import { cn } from '@/lib/utils';
 import { differenceInDays, addDays, format } from 'date-fns';
 import RegistrarVentaModal from '@/components/RegistrarVentaModal';
 import { useHotelData } from '@/hooks/useHotelData';
+import { supabase } from '@/config/supabase';
 import RecepcionTimeline from '@/components/recepcion/RecepcionTimeline';
 import RecepcionCockpit from '@/components/recepcion/RecepcionCockpit';
 
@@ -51,6 +52,7 @@ export default function Recepcion() {
     const { user } = useAuthStore();
     const [open, setOpen] = useState(false);
     const [ventaModal, setVentaModal] = useState(null);
+    const [createdReserva, setCreatedReserva] = useState(null);
     const [form, setForm] = useState(createEmptyForm);
     const [busqueda, setBusqueda] = useState('');
     const [filtro, setFiltro] = useState(/** @type {"activa" | "pendiente" | "atencion" | "historial" | "todas"} */('atencion'));
@@ -149,38 +151,79 @@ export default function Recepcion() {
     const saveReserva = useMutation({
         /** @param {any} data */
         mutationFn: async (data) => {
-            const nueva = await hotelDb.Reserva.create({
-                ...data,
-                numero_reserva: `R${Date.now().toString().slice(-6)}`,
+            const { data: nueva, error } = await supabase.rpc('create_reservation_atomic', {
+                p_hotel_id: hotelId,
+                p_habitacion_id: data.habitacion_id || null,
+                p_habitacion_numero: data.habitacion_numero || '',
+                p_habitacion_tipo: data.habitacion_tipo || '',
+                p_huesped_nombre: data.huesped_nombre,
+                p_huesped_dni: data.huesped_dni || '',
+                p_fecha_entrada: data.fecha_entrada,
+                p_fecha_salida: data.fecha_salida,
+                p_noches: Number(data.noches || 1),
+                p_precio_noche: Number(data.precio_noche || 0),
+                p_total: Number(data.total || 0),
+                p_estado: data.estado || 'activa',
+                p_huesped_telefono: data.huesped_telefono || null,
+                p_huesped_email: data.huesped_email || null,
+                p_huesped_sexo: data.huesped_sexo || null,
+                p_huesped_fecha_nacimiento: data.huesped_fecha_nacimiento?.trim() || null,
+                p_huesped_procedencia: data.huesped_procedencia || null,
+                p_huesped_destino: data.huesped_destino || null,
+                p_huesped_profesion: data.huesped_profesion || null,
+                p_huesped_estado_civil: data.huesped_estado_civil || null,
+                p_nacionalidad: data.nacionalidad || 'Peruana',
+                p_motivo_viaje: data.motivo_viaje || 'turismo',
+                p_tipo_documento: data.tipo_documento || 'DNI',
+                p_tiene_menores: Boolean(data.tiene_menores),
+                p_observaciones: data.observaciones?.trim() || null,
+                p_origen: data.origen || 'recepcion',
+                p_servicios_extra_ids: data.servicios_extra_ids || [],
             });
 
-            if (nueva.habitacion_id) {
-                await hotelDb.Habitacion.update(nueva.habitacion_id, {
-                    estado: nueva.estado === 'activa' ? 'ocupada' : 'reservada'
-                });
+            if (error) {
+                logger.error('Error al crear reserva atómica:', error);
+                throw new Error(error.message || 'Error al guardar reserva');
             }
+
+            if (nueva.estado !== 'activa') {
+                const { data: tokens, error: tokenError } = await supabase.rpc('generate_reservation_tokens', { p_reserva_id: nueva.id });
+                if (!tokenError && tokens) {
+                    nueva.checkin_token = tokens.checkin_token;
+                }
+            }
+
             return nueva;
         },
         onSuccess: (nueva) => {
             qc.invalidateQueries({ queryKey: ['reservas', hotelId] });
             qc.invalidateQueries({ queryKey: ['habitaciones', hotelId] });
-            setOpen(false);
+            
             if (nueva.estado === 'activa') {
+                setOpen(false);
                 setVentaModal(nueva);
+                setForm(createEmptyForm());
+            } else {
+                setCreatedReserva(nueva);
+                // Do not close the modal or reset form yet, we are showing the Success Screen!
             }
-            setForm(createEmptyForm());
         },
+        onError: (err) => {
+            toast.error(err.message || 'Error al guardar reserva');
+        }
     });
 
     const actualizarEstado = useMutation({
         /** @param {any} params */
-        mutationFn: ({ id, estado, hab_id, estadoAnterior }) => {
-            const updates = [hotelDb.Reserva.update(id, { estado })];
+        mutationFn: async ({ id, estado, hab_id, estadoAnterior }) => {
             const nextRoomStatus = roomStatusForReservationTransition(estadoAnterior, estado);
-            if (hab_id && nextRoomStatus) {
-                updates.push(hotelDb.Habitacion.update(hab_id, { estado: nextRoomStatus }));
-            }
-            return Promise.all(updates);
+            const { error } = await supabase.rpc('update_reservation_status_atomic', {
+                p_reserva_id: id,
+                p_nuevo_estado: estado,
+                p_next_room_status: (hab_id && nextRoomStatus) ? nextRoomStatus : null,
+            });
+            if (error) throw error;
+            return true;
         },
         onMutate: async ({ id, estado, hab_id, estadoAnterior }) => {
             // Cancel outgoing refetches so they don't overwrite our optimistic update
@@ -388,6 +431,12 @@ export default function Recepcion() {
                 noches={noches}
                 total={total}
                 saveReserva={saveReserva}
+                createdReserva={createdReserva}
+                onCloseSuccess={() => {
+                    setCreatedReserva(null);
+                    setOpen(false);
+                    setForm(createEmptyForm());
+                }}
             />
 
             <ScannerDNIModal 

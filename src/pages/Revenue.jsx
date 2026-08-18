@@ -235,5 +235,6 @@ export const Revenue = memo(function Revenue() {
             </div>
         </div>
     );
-})
+});
+
 export default Revenue;

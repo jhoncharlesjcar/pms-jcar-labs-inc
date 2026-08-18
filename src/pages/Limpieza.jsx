@@ -308,7 +308,7 @@ const Limpieza = memo(function Limpieza() {
                                                 <Button 
                                                     aria-label={`Marcar habitación ${hab.numero} como lista`}
                                                     variant="emerald" 
-                                                    className="w-full gap-1.5 text-xs shadow-xs"
+                                                    className="w-full gap-1.5 text-xs shadow-xs min-h-[44px]"
                                                     onClick={() => {
                                                         requestConfirm({
                                                             title: `¿Habitación #${hab.numero} lista para vender?`,
@@ -326,7 +326,7 @@ const Limpieza = memo(function Limpieza() {
                                                 <Button 
                                                     aria-label={`Marcar habitación ${hab.numero} como sucia`}
                                                     variant="outline" 
-                                                    className="w-full gap-1.5 border-purple-500/30 bg-purple-500/10 text-xs text-purple-600 shadow-xs hover:bg-purple-500/20 dark:text-purple-400"
+                                                    className="w-full gap-1.5 border-purple-500/30 bg-purple-500/10 text-xs text-purple-600 shadow-xs hover:bg-purple-500/20 dark:text-purple-400 min-h-[44px]"
                                                     onClick={() => {
                                                         requestConfirm({
                                                             title: `Enviar habitación #${hab.numero} a limpieza`,
@@ -344,7 +344,7 @@ const Limpieza = memo(function Limpieza() {
                                                 <Button 
                                                     aria-label={`Reportar avería en habitación ${hab.numero}`}
                                                     variant="ghost" 
-                                                    className="w-full gap-1.5 text-[10px] font-bold uppercase tracking-widest text-amber-600 hover:bg-amber-500/10 dark:text-amber-400"
+                                                    className="w-full gap-1.5 text-[10px] font-bold uppercase tracking-widest text-amber-600 hover:bg-amber-500/10 dark:text-amber-400 min-h-[44px]"
                                                     onClick={() => {
                                                         setMantenimientoModal({ open: true, hab: hab, motivo: '' });
                                                     }}
@@ -373,19 +373,21 @@ const Limpieza = memo(function Limpieza() {
             <ConfirmDialog {...confirmProps} isPending={actualizarEstado.isPending} />
 
             <Dialog open={mantenimientoModal.open} onOpenChange={(val) => setMantenimientoModal(prev => ({ ...prev, open: val }))}>
-                <DialogContent className="sm:max-w-md bg-card border-border/40 rounded-xl p-6 shadow-2xl">
-                    <DialogHeader className="mb-2">
-                        <div className="w-10 h-10 bg-red-500/10 rounded-xl flex items-center justify-center mb-3 border border-red-500/20 shadow-sm text-red-500">
-                            <Wrench className="w-5 h-5" />
-                        </div>
-                        <DialogTitle className="text-xl font-extrabold tracking-tight text-foreground">
-                            Reportar Falla
-                        </DialogTitle>
-                        <p className="text-[10px] uppercase tracking-widest font-bold text-muted-foreground mt-1">
-                            Habitación #{mantenimientoModal.hab?.numero}
-                        </p>
-                    </DialogHeader>
-                    <div className="space-y-4 py-3">
+                <DialogContent className="sm:max-w-md bg-card border-border/40 rounded-[2rem] sm:rounded-xl p-0 shadow-2xl flex flex-col max-h-[85dvh] overflow-hidden">
+                    <div className="p-6 pb-2 border-b border-border/40 flex-shrink-0">
+                        <DialogHeader className="mb-2">
+                            <div className="w-10 h-10 bg-red-500/10 rounded-xl flex items-center justify-center mb-3 border border-red-500/20 shadow-sm text-red-500">
+                                <Wrench className="w-5 h-5" />
+                            </div>
+                            <DialogTitle className="text-xl font-extrabold tracking-tight text-foreground">
+                                Reportar Falla
+                            </DialogTitle>
+                            <p className="text-[10px] uppercase tracking-widest font-bold text-muted-foreground mt-1">
+                                Habitación #{mantenimientoModal.hab?.numero}
+                            </p>
+                        </DialogHeader>
+                    </div>
+                    <div className="p-6 py-3 overflow-y-auto custom-scrollbar flex-1 space-y-4">
                         <div className="space-y-2.5">
                             <Label htmlFor="motivo" className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground ml-1">Motivo / Problema Reportado</Label>
                             <Input 
@@ -404,7 +406,7 @@ const Limpieza = memo(function Limpieza() {
                             </p>
                         </div>
                     </div>
-                    <DialogFooter className="gap-2 sm:gap-2 pt-2">
+                    <DialogFooter className="gap-2 sm:gap-2 p-6 pt-3 border-t border-border/40 bg-card/50 flex-shrink-0">
                         <Button 
                             variant="ghost" 
                             onClick={() => setMantenimientoModal({ open: false, hab: null, motivo: '' })}

@@ -6,7 +6,12 @@ export async function sendSunatSoap(
   base64Zip: string
 ): Promise<{ estadoFinal: string; messageResult: string; ticket: string; base64Cdr?: string; soapResponseStatus: number; responseText: string }> {
   
-  const isSandbox = hotel.sunat_usuario_sol.toUpperCase().includes("MODODATOS") || hotel.ruc.startsWith("2060");
+  // P0-2 FIX: Use the explicit sunat_modo_prueba flag, NOT RUC prefix.
+  // Default to sandbox (true) when flag is undefined — fail safe.
+  const isSandbox = hotel.sunat_modo_prueba !== false;
+  if (hotel.sunat_modo_prueba === undefined || hotel.sunat_modo_prueba === null) {
+    console.warn(`[SUNAT] sunat_modo_prueba is not set for hotel ${hotel.ruc} — defaulting to SANDBOX for safety`);
+  }
   const sunatSoapUrl = isSandbox
     ? "https://e-beta.sunat.gob.pe/ol-ti-itcpfegem-beta/billService"
     : (Deno.env.get("SUNAT_ENDPOINT") || "https://e-factura.sunat.gob.pe/ol-ti-itcpfegem/billService");

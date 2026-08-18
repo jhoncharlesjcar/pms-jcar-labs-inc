@@ -48,11 +48,14 @@ CREATE TABLE IF NOT EXISTS public.checkins_publicos (
 ALTER TABLE public.checkins_publicos ENABLE ROW LEVEL SECURITY;
 REVOKE ALL ON public.checkins_publicos FROM PUBLIC, anon, authenticated;
 
+DROP POLICY IF EXISTS "checkins_staff_select" ON public.checkins_publicos;
 CREATE POLICY "checkins_staff_select" ON public.checkins_publicos
   FOR SELECT TO authenticated USING (
     public.is_user_active()
     AND (hotel_id = public.get_user_hotel_id() OR public.get_user_role() = 'developer')
   );
+
+DROP POLICY IF EXISTS "checkins_staff_update" ON public.checkins_publicos;
 CREATE POLICY "checkins_staff_update" ON public.checkins_publicos
   FOR UPDATE TO authenticated USING (
     public.is_user_active()

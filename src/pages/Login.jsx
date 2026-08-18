@@ -160,7 +160,7 @@ const Login = memo(function Login() {
                 <div className="text-center mb-6">
                     <div
                         ref={logoRef}
-                        className="group relative mx-auto mb-4 flex h-24 w-24 items-center justify-center overflow-hidden rounded-2xl border border-white/20 bg-white p-2 shadow-[0_15px_40px_rgba(0,0,0,0.5)] sm:h-28 sm:w-28"
+                        className="group relative mx-auto mb-4 flex h-24 w-24 items-center justify-center overflow-hidden rounded-2xl border border-white/20 bg-white p-2 shadow-[0_15px_40px_rgba(0,0,0,0.5)] sm:h-28 sm:w-28 opacity-0"
                     >
                         <img
                             src="/logo.jpg"
@@ -170,13 +170,13 @@ const Login = memo(function Login() {
                     </div>
                     <h1
                         ref={titleRef}
-                        className="text-2xl font-black text-white uppercase tracking-wider"
+                        className="text-2xl font-black text-white uppercase tracking-wider opacity-0"
                     >
                         PMS JCAR LABS
                     </h1>
                     <p
                         ref={subtitleRef}
-                        className="text-slate-400 mt-1 text-xs tracking-wide font-medium"
+                        className="text-slate-400 mt-1 text-xs tracking-wide font-medium opacity-0"
                     >
                         Sistema de Gestión Hotelera
                     </p>
@@ -185,7 +185,7 @@ const Login = memo(function Login() {
                 {/* Login Card */}
                 <div
                     ref={cardRef}
-                    className="rounded-3xl border border-white/10 bg-white/[0.04] p-6 shadow-[0_20px_50px_rgba(0,0,0,0.5)] backdrop-blur-3xl sm:p-8"
+                    className="rounded-3xl border border-white/10 bg-white/[0.04] p-6 shadow-[0_20px_50px_rgba(0,0,0,0.5)] backdrop-blur-3xl sm:p-8 opacity-0"
                 >
                     <h2 className="text-xl font-bold text-white mb-6 text-center">Iniciar Sesión</h2>
 
@@ -289,7 +289,7 @@ const Login = memo(function Login() {
                 </div>
 
                 {/* Footer Section */}
-                <div ref={footerRef} className="mt-8 text-center">
+                <div ref={footerRef} className="mt-8 text-center opacity-0">
                     <p className="text-xs text-slate-500 font-medium">
                         © PMS JCAR LABS. Todos los derechos reservados.
                     </p>

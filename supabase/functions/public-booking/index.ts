@@ -6,15 +6,18 @@ declare const Deno: any;
 
 const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const datePattern = /^\d{4}-\d{2}-\d{2}$/;
+const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 function randomToken(): string {
   const bytes = crypto.getRandomValues(new Uint8Array(32));
   return btoa(String.fromCharCode(...bytes)).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
 }
+
 async function sha256(value: string): Promise<string> {
   const hash = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(value));
   return Array.from(new Uint8Array(hash)).map((b) => b.toString(16).padStart(2, "0")).join("");
 }
+
 function dates(input: any): { start: Date; end: Date; nights: number } | null {
   if (!datePattern.test(input.fecha_entrada) || !datePattern.test(input.fecha_salida)) return null;
   const start = new Date(`${input.fecha_entrada}T00:00:00Z`);
@@ -30,9 +33,23 @@ serve(async (req: Request) => {
   if (Deno.env.get("PUBLIC_BOOKING_ENABLED") !== "true") return errorResponse("Public booking is disabled", 503);
 
   try {
+    const clientIp = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown-ip";
+    const ipHash = await sha256(`booking:${clientIp}`);
+
+    const db = createClient(Deno.env.get("SUPABASE_URL") ?? "", Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "");
+
+    // P1: Rate limiting per IP (10 requests per 5 minutes)
+    const { data: allowed, error: rateLimitError } = await db.rpc("check_booking_rate_limit", {
+      p_ip_hash: ipHash,
+      p_max_attempts: 15,
+      p_window_seconds: 300,
+    });
+    if (rateLimitError || allowed === false) {
+      return errorResponse("Too many booking requests. Please try again in a few minutes.", 429);
+    }
+
     const body = await req.json();
     if (!uuidPattern.test(body.hotel_id || "")) return errorResponse("Invalid hotel_id", 400);
-    const db = createClient(Deno.env.get("SUPABASE_URL") ?? "", Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "");
 
     const { data: hotel, error: hotelError } = await db.from("hoteles")
       .select("id,nombre,ciudad").eq("id", body.hotel_id).eq("activo", true).single();
@@ -46,11 +63,14 @@ serve(async (req: Request) => {
       .select("id,numero,tipo,descripcion,capacidad,precio_noche,precio")
       .eq("hotel_id", body.hotel_id).neq("estado", "mantenimiento");
     if (roomError) throw roomError;
+
+    // P1: Include 'confirmada' in occupied query along with 'pendiente' and 'activa'
     const { data: occupied, error: occupiedError } = await db.from("reservas")
       .select("habitacion_id").eq("hotel_id", body.hotel_id)
-      .in("estado", ["pendiente", "activa"])
+      .in("estado", ["pendiente", "confirmada", "activa"])
       .lt("fecha_entrada", body.fecha_salida).gt("fecha_salida", body.fecha_entrada);
     if (occupiedError) throw occupiedError;
+
     const occupiedIds = new Set((occupied || []).map((r: any) => r.habitacion_id));
     const available = (rooms || []).filter((r: any) => !occupiedIds.has(r.id)).map((r: any) => ({
       id: r.id, numero: r.numero, tipo: r.tipo, descripcion: r.descripcion,
@@ -68,8 +88,12 @@ serve(async (req: Request) => {
     const document = String(guest.documento || "").trim();
     const phone = String(guest.telefono || "").trim();
     const email = String(guest.email || "").trim();
-    if (name.length < 3 || name.length > 150 || !/^[A-Za-z0-9-]{6,20}$/.test(document) || phone.length < 6 || phone.length > 30 || email.length > 254) {
+
+    if (name.length < 3 || name.length > 150 || !/^[A-Za-z0-9-]{6,20}$/.test(document) || phone.length < 6 || phone.length > 30) {
       return errorResponse("Invalid guest data", 400);
+    }
+    if (email && !emailPattern.test(email)) {
+      return errorResponse("Invalid email format", 400);
     }
 
     const reservationNumber = `WEB-${crypto.randomUUID().slice(0, 8).toUpperCase()}`;

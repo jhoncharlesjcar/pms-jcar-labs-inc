@@ -15,8 +15,8 @@ import { TrendingDown, DollarSign, FileText } from 'lucide-react';
 export const CajaEgresoModal = memo(function CajaEgresoModal(/** @type {any} */ { expenseModal, setExpenseModal, addEgreso, user }) {
     return (
         <Dialog open={expenseModal} onOpenChange={setExpenseModal}>
-            <DialogContent className="max-w-md p-0 overflow-hidden rounded-xl border border-border/80 shadow-2xl glass-panel">
-                <div className="bg-primary/10 p-6 relative overflow-hidden border-b border-primary/20">
+            <DialogContent className="max-w-md p-0 overflow-hidden flex flex-col max-h-[85dvh] rounded-[2rem] sm:rounded-xl border border-border/80 shadow-2xl glass-panel">
+                <div className="bg-primary/10 p-6 relative flex-shrink-0 border-b border-primary/20">
                     <DialogHeader>
                         <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center mb-3 shadow-sm text-primary-foreground">
                             <TrendingDown className="w-5 h-5" />
@@ -40,7 +40,7 @@ export const CajaEgresoModal = memo(function CajaEgresoModal(/** @type {any} */ 
                         usuario_id: user?.id,
                         usuario_nombre: user?.full_name || user?.email
                     });
-                }} className="p-6 space-y-4">
+                }} className="p-6 space-y-4 overflow-y-auto custom-scrollbar flex-1">
                     <div className="space-y-2">
                         <Label htmlFor="egreso_monto" className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">Monto del Gasto (S/)</Label>
                         <div className="relative">

@@ -196,6 +196,7 @@ const RegistrarVentaModal = memo(function RegistrarVentaModal({ reserva, onClose
         config: {
             modo_sunat: config.modo_sunat,
             aplica_igv: config.aplica_igv !== false,
+            loyalty_program_enabled: config.loyalty_program_enabled === true,
         },
         user,
     });

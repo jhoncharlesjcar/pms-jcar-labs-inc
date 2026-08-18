@@ -134,19 +134,23 @@ const PuntoVenta = memo(function PuntoVenta() {
                     </Button>
                 </div>
             </div>
+            </div>
+
+            {/* Espacio para barra inferior en móvil */}
+            <div className="lg:hidden h-16" />
 
             {/* ===== BARRA INFERIOR MÓVIL ===== */}
             <nav aria-label="Acciones del punto de venta" className="lg:hidden fixed bottom-0 left-0 right-0 bg-card/95 backdrop-blur-2xl border-t border-border/60 flex items-center justify-around z-50 safe-bottom p-1.5 shadow-lg">
                 <button
                     onClick={() => setVistaMovil('catalogo')}
-                    className={`flex-1 min-h-[40px] flex flex-col items-center justify-center text-[10px] font-bold transition-all rounded-lg ${vistaMovil === 'catalogo' ? 'text-primary bg-primary/10' : 'text-muted-foreground'}`}
+                    className={`flex-1 min-h-[44px] flex flex-col items-center justify-center text-[10px] font-bold transition-all rounded-lg ${vistaMovil === 'catalogo' ? 'text-primary bg-primary/10' : 'text-muted-foreground'}`}
                 >
                     <Store className="w-3.5 h-3.5 mb-0.5" />
                     <span>Productos</span>
                 </button>
                 <button
                     onClick={() => setVistaMovil('carrito')}
-                    className={`flex-1 min-h-[40px] flex flex-col items-center justify-center text-[10px] font-bold transition-all rounded-lg relative ${vistaMovil === 'carrito' ? 'text-primary bg-primary/10' : 'text-muted-foreground'}`}
+                    className={`flex-1 min-h-[44px] flex flex-col items-center justify-center text-[10px] font-bold transition-all rounded-lg relative ${vistaMovil === 'carrito' ? 'text-primary bg-primary/10' : 'text-muted-foreground'}`}
                 >
                     <ShoppingCart className="w-3.5 h-3.5 mb-0.5" />
                     <span>Carrito</span>
@@ -159,18 +163,13 @@ const PuntoVenta = memo(function PuntoVenta() {
                 {items.length > 0 && (
                     <button
                         onClick={() => setPagoOpen(true)}
-                        className="flex-1 min-h-[40px] flex flex-col items-center justify-center text-[10px] font-black text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg shadow-sm transition-all active:scale-95"
+                        className="flex-1 min-h-[44px] flex flex-col items-center justify-center text-[10px] font-black text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg shadow-sm transition-all active:scale-95"
                     >
                         <Receipt className="w-3.5 h-3.5 mb-0.5" />
                         <span>S/ {totalGeneral.toFixed(2)}</span>
                     </button>
                 )}
             </nav>
-
-            {/* Espacio para barra inferior en móvil */}
-            <div className="lg:hidden h-16" />
-            </div>
-
             <PagoModal
                 open={pagoOpen}
                 onClose={() => setPagoOpen(false)}

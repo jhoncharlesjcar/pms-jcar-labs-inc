@@ -72,5 +72,3 @@ export function StatusBadge({ status, label, showIcon = true, className = '', ch
         </span>
     );
 }
-
-export default StatusBadge;

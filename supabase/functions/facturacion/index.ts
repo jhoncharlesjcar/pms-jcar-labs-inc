@@ -35,7 +35,7 @@ serve(async (req: Request) => {
     const { data: existing } = await supabase
       .from("comprobantes").select("id, estado")
       .eq("source_table", sourceTable).eq("source_id", ventaId).maybeSingle();
-    if (existing) {
+    if (existing && existing.estado === 'aceptado') {
       return new Response(JSON.stringify({ comprobante_id: existing.id, estado: existing.estado, idempotent: true }), {
         status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
@@ -85,8 +85,10 @@ serve(async (req: Request) => {
       return errorResponse("Browser-encrypted SUNAT credentials are not usable by the server", 503);
     }
 
+    // P0-3 FIX: Per-hotel certificate from DB, with env var fallback (shared cert for now)
+    const dbCertPem = hotel.sunat_certificado_pem;
     const privateKeyPem = Deno.env.get("SUNAT_CERT_PRIVATE_KEY_PEM");
-    const certPem = Deno.env.get("SUNAT_CERT_PEM");
+    const certPem = dbCertPem || Deno.env.get("SUNAT_CERT_PEM");
     const allowTestCert = Deno.env.get("SUNAT_ALLOW_TEST_CERTIFICATE") === "true" && hotel.sunat_modo_prueba === true;
     if ((!privateKeyPem || !certPem) && !allowTestCert) {
       return errorResponse("A real SUNAT certificate is required", 503);

@@ -17,7 +17,6 @@ interface AuthContextValue {
   authError: { type: string; message: string } | null;
   authChecked: boolean;
   navigateToLogin: () => Promise<void>;
-  checkUserAuth: () => Promise<void>;
   auth: { logout: () => Promise<void> };
 }
 
@@ -121,20 +120,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }, []);
 
-  const checkUserAuth = useCallback(async () => {
-    try {
-      const { data: { session: currentSession } } = await supabase.auth.getSession();
-      if (currentSession?.user) {
-        setSession(currentSession);
-        setStoreSession(currentSession);
-        await loadUserProfile(currentSession.user);
-      }
-    } catch (err) {
-      logger.error('Error in checkUserAuth:', err);
-    } finally {
-      setAuthChecked(true);
-    }
-  }, [loadUserProfile]);
+  // checkUserAuth eliminado porque supabase.auth.onAuthStateChange 
+  // lanza INITIAL_SESSION inmediatamente al montarse garantizando la carga.
 
   useEffect(() => {
     let isMounted = true;
@@ -148,8 +135,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setStoreSession(newSession);
         setAuthError(null);
 
-        // El acceso permanece cerrado hasta validar perfil, rol y estado activo.
-        setIsLoadingAuth(true);
+        // El acceso permanece cerrado hasta validar perfil, rol y estado activo,
+        // pero evitamos unmount de toda la app si ya teníamos un usuario en memoria
+        // (ej: cuando Supabase emite SIGNED_IN por un refresco de token en background)
+        const isInitialLoad = !storeUser;
+        if (isInitialLoad) {
+          setIsLoadingAuth(true);
+        }
         await loadUserProfile(newSession.user);
         if (isMounted) setIsLoadingAuth(false);
       } else if (event === 'SIGNED_OUT' || (event === 'INITIAL_SESSION' && !newSession)) {
@@ -164,13 +156,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
     });
 
-    checkUserAuth();
-
     return () => {
       isMounted = false;
       subscription?.unsubscribe();
     };
-  }, [checkUserAuth, loadUserProfile]);
+  }, [loadUserProfile]);
 
   const navigateToLogin = useCallback(async () => {
     try {
@@ -196,7 +186,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     authError,
     authChecked,
     navigateToLogin,
-    checkUserAuth,
     auth: {
       logout: async () => {
         const currentUserId = user?.id;
@@ -214,8 +203,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           }
           const deadLetters = await getDeadLetterCount(currentUserId, currentHotelId);
           if (deadLetters > 0) {
-            window.alert(`No se puede cerrar sesión: hay ${deadLetters} cambios que requieren revisión. Resuélvelos antes de salir.`);
-            return;
+            const proceed = window.confirm(`Hay ${deadLetters} cambio(s) fallidos que no se pudieron sincronizar. Si cierras sesión ahora se perderán. ¿Deseas salir de todos modos?`);
+            if (!proceed) return;
           }
         }
 

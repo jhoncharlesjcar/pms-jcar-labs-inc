@@ -71,6 +71,9 @@ const Configuracion = memo(function Configuracion() {
         sunat_clave_sol: '',
         sunat_certificado_pem: '',
         sunat_modo_prueba: true,
+        aplica_igv: true,
+        modo_sunat: 'desactivado',
+        loyalty_program_enabled: false,
         pts_por_sol: 1,
         soles_por_punto: 0.1,
         modo_automatico: false,
@@ -102,6 +105,9 @@ const Configuracion = memo(function Configuracion() {
                 sunat_clave_sol: hotel.sunat_clave_sol || '',
                 sunat_certificado_pem: hotel.sunat_certificado_pem || '',
                 sunat_modo_prueba: hotel.sunat_modo_prueba ?? true,
+                aplica_igv: hotel.aplica_igv ?? true,
+                modo_sunat: hotel.modo_sunat || 'desactivado',
+                loyalty_program_enabled: hotel.loyalty_program_enabled ?? false,
                 pts_por_sol: hotel.pts_por_sol ?? 1,
                 soles_por_punto: hotel.soles_por_punto ?? 0.1,
                 modo_automatico: hotel.modo_automatico ?? false,
@@ -140,6 +146,8 @@ const Configuracion = memo(function Configuracion() {
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['hotel-config'] });
             queryClient.invalidateQueries({ queryKey: ['hotel-actual'] });
+            queryClient.invalidateQueries({ queryKey: ['config'] });
+            queryClient.invalidateQueries({ queryKey: ['hoteles'] });
             setForm(current => ({
                 ...current,
                 sunat_clave_sol: '',

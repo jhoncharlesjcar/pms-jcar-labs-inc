@@ -4,11 +4,17 @@
  * Encapsula la lógica de registro de pago, envío a SUNAT, liberación
  * de habitación y auditoría usando checkout.service + React Query.
  *
+ * P0-5 & P1 FIX:
+ * - Pre-check de pago duplicado directo contra BD Supabase.
+ * - Redención atómica de puntos ANTES de crear la venta; si falla, no se aplica descuento.
+ * - Manejo de reversión en caso de error tras la redención.
+ *
  * @see specs/domain-checkout.md
  * @see src/services/checkout.service.ts
  */
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { db } from '@/api/db';
+import { supabase } from '@/config/supabase';
 import { crearComprobante } from '@/api/facturacion';
 import { registrarLog } from '@/lib/auditLogger';
 import { toast } from 'sonner';
@@ -22,6 +28,7 @@ import {
     METODOS_CON_REFERENCIA,
 } from '@/services/checkout.service';
 import type { PagoExistente, TipoComprobante, MetodoPago } from '@/services/checkout.service';
+import { redeemPointsOnCheckout, accumulatePointsOnCheckout, reversePointsOnCancellation } from '@/services/loyalty.service';
 
 // ---------------------------------------------------------------------------
 // Tipos
@@ -194,10 +201,44 @@ export function useCheckout(params: UseCheckoutParams): UseCheckoutReturn {
                 throw new Error(validationErrors.join('\n'));
             }
 
-            // ─── 2. Pre-check: pago duplicado (CHECKOUT-013) ──────────────
+            // ─── 2. Pre-check: pago duplicado en cliente y servidor ─────────
             const pagoDuplicado = validarPagoDuplicado(reserva.id, pagosExistentes);
             if (!pagoDuplicado.valido) {
                 throw new Error(pagoDuplicado.error || 'Pago duplicado detectado');
+            }
+
+            // Verificación server-side directa contra Supabase
+            if (reserva.id) {
+                const { data: existingVenta, error: checkError } = await supabase
+                    .from('ventas')
+                    .select('id')
+                    .eq('reserva_id', reserva.id)
+                    .maybeSingle();
+
+                if (!checkError && existingVenta) {
+                    throw new Error('Ya existe una venta registrada para esta reserva en el servidor');
+                }
+            }
+
+            // ─── 2.5. P0-5 FIX: Redención atómica de puntos ANTES de crear la venta ──
+            const docNum = formData.requiereComprobante && formData.tipoComprobante === 'boleta'
+                ? formData.dniCliente
+                : (reserva.huesped_dni || '');
+
+            let pointsRedeemed = false;
+            if (formData.redimirPuntos && config.loyalty_program_enabled && docNum?.trim()) {
+                try {
+                    await redeemPointsOnCheckout({
+                        hotelId,
+                        guestDocumentNumber: docNum.trim(),
+                        reservaId: reserva.id,
+                        userId: user.id,
+                    });
+                    pointsRedeemed = true;
+                } catch (err: any) {
+                    logger.error('[Checkout] Fallo al redimir puntos de fidelidad:', err);
+                    throw new Error(`Error en fidelización: ${err.message || 'No se pudieron redimir los puntos'}`);
+                }
             }
 
             // ─── 3. Crear venta en BD ─────────────────────────────────────
@@ -207,9 +248,28 @@ export function useCheckout(params: UseCheckoutParams): UseCheckoutReturn {
                 total_consumos: Math.max(0, (reserva.total || 0) - (reserva.precio_noche || 0) * (reserva.noches || 1)),
                 descuento: Number(formData.descuento || 0),
             });
-            const venta = await db.entities.Venta.create(
-                construirPayloadVenta(reserva, formData, hotelId, total)
-            );
+
+            let venta: any;
+            try {
+                venta = await db.entities.Venta.create(
+                    construirPayloadVenta(reserva, formData, hotelId, total)
+                );
+            } catch (createErr: any) {
+                // Si la venta falla y habíamos redimido puntos, intentamos revertir
+                if (pointsRedeemed && docNum?.trim()) {
+                    try {
+                        await reversePointsOnCancellation({
+                            hotelId,
+                            guestDocumentNumber: docNum.trim(),
+                            reservaId: reserva.id,
+                            userId: user.id,
+                        });
+                    } catch (revErr) {
+                        logger.error('[Checkout] Error revirtiendo puntos tras fallo de venta:', revErr);
+                    }
+                }
+                throw createErr;
+            }
 
             let ventaFinal: VentaResult = venta;
 
@@ -242,37 +302,20 @@ export function useCheckout(params: UseCheckoutParams): UseCheckoutReturn {
                 // No bloquear: la venta ya está registrada
             }
 
-            // ─── 5.1. Fidelización por Puntos (Reglas 1, 2, 3) ─────────────
+            // ─── 5.1. Acumular Puntos de Fidelización (Reglas 1, 2) ────────
             try {
-                if (config.loyalty_program_enabled) {
-                    const docNum = formData.requiereComprobante && formData.tipoComprobante === 'boleta'
-                        ? formData.dniCliente
-                        : (reserva.huesped_dni || '');
-
-                    if (docNum && docNum.trim().length > 0) {
-                        const { redeemPointsOnCheckout, accumulatePointsOnCheckout } = await import('@/services/loyalty.service');
-
-                        if (formData.redimirPuntos) {
-                            await redeemPointsOnCheckout({
-                                hotelId,
-                                guestDocumentNumber: docNum,
-                                reservaId: reserva.id,
-                                userId: user.id,
-                            });
-                        }
-
-                        await accumulatePointsOnCheckout({
-                            hotelId,
-                            guestDocumentNumber: docNum,
-                            guestName: reserva.huesped_nombre,
-                            nights: reserva.noches || 1,
-                            reservaId: reserva.id,
-                            userId: user.id,
-                        });
-                    }
+                if (config.loyalty_program_enabled && docNum && docNum.trim().length > 0) {
+                    await accumulatePointsOnCheckout({
+                        hotelId,
+                        guestDocumentNumber: docNum.trim(),
+                        guestName: reserva.huesped_nombre,
+                        nights: reserva.noches || 1,
+                        reservaId: reserva.id,
+                        userId: user.id,
+                    });
                 }
             } catch (err) {
-                logger.error('[Checkout] Error procesando puntos de fidelidad:', err);
+                logger.error('[Checkout] Error acumulando puntos de fidelidad tras venta:', err);
             }
 
             // ─── 6. Auditoría inmutable ───────────────────────────────────
@@ -292,6 +335,7 @@ export function useCheckout(params: UseCheckoutParams): UseCheckoutReturn {
             qc.invalidateQueries({ queryKey: ['ventas', hotelId] });
             qc.invalidateQueries({ queryKey: ['reservas', hotelId] });
             qc.invalidateQueries({ queryKey: ['habitaciones', hotelId] });
+            qc.invalidateQueries({ queryKey: ['loyalty', hotelId] });
 
             return ventaFinal;
         },

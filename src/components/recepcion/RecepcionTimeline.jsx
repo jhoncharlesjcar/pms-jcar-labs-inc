@@ -116,11 +116,11 @@ const RecepcionTimeline = ({ reservas, habitaciones }) => {
                                 </div>
                                 {/* Habitaciones del Piso */}
                                 {habitacionesAgrupadas[piso].map(hab => (
-                                    <div key={hab.id} className="flex border-b border-border/30 group hover:bg-muted/10 transition-colors h-12">
+                                    <div key={hab.id} className="flex border-b border-border/30 group table-row-dense h-12">
                                         <div className="w-40 flex-shrink-0 px-3 py-2 border-r border-border/50 flex items-center justify-between gap-2 bg-card group-hover:bg-transparent transition-colors">
                                             <div className="min-w-0">
-                                                <span className="text-sm font-bold">{hab.numero}</span>
-                                                <p className="truncate text-[9px] font-medium uppercase text-muted-foreground">{hab.tipo}</p>
+                                                <span className="text-sm font-bold tabular-dense tracking-dense">{hab.numero}</span>
+                                                <p className="truncate text-[9px] font-medium uppercase text-muted-foreground tracking-dense">{hab.tipo}</p>
                                             </div>
                                             <StatusBadge status={hab.estado} showIcon={false} className="max-w-20 truncate px-1.5 py-0.5 text-[8px]" />
                                         </div>

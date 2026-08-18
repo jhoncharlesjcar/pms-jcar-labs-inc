@@ -465,7 +465,7 @@ export default function Dashboard() {
                         </div>
                         <h3 className="text-sm font-bold text-foreground tracking-tight">Acciones Rápidas</h3>
                     </div>
-                    <div className="grid grid-cols-3 gap-2 flex-1">
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 flex-1">
                         {quickActions.map((a) => {
                             const Icon = a.icon;
                             return (

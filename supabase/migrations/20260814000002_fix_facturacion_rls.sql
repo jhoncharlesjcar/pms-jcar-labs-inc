@@ -22,6 +22,25 @@ BEGIN
   END IF;
 END $$;
 
+-- Deduplicate historical records before applying unique constraints
+DELETE FROM public.comprobantes a
+USING public.comprobantes b
+WHERE a.id < b.id
+  AND a.hotel_id = b.hotel_id
+  AND a.tipo = b.tipo
+  AND a.serie = b.serie
+  AND a.numero = b.numero;
+
+DELETE FROM public.comprobantes a
+USING public.comprobantes b
+WHERE a.id < b.id
+  AND a.source_table IS NOT NULL
+  AND b.source_table IS NOT NULL
+  AND a.source_id IS NOT NULL
+  AND b.source_id IS NOT NULL
+  AND a.source_table = b.source_table
+  AND a.source_id = b.source_id;
+
 CREATE UNIQUE INDEX IF NOT EXISTS uq_comprobante_correlativo
   ON public.comprobantes(hotel_id, tipo, serie, numero);
 CREATE UNIQUE INDEX IF NOT EXISTS uq_comprobante_source
@@ -37,6 +56,18 @@ CREATE TABLE IF NOT EXISTS public.comprobante_sequences (
 );
 ALTER TABLE public.comprobante_sequences ENABLE ROW LEVEL SECURITY;
 REVOKE ALL ON public.comprobante_sequences FROM anon, authenticated;
+
+-- Initialize sequences from existing comprobantes if any
+INSERT INTO public.comprobante_sequences(hotel_id, tipo, serie, ultimo_numero)
+SELECT 
+  hotel_id,
+  tipo,
+  serie,
+  COALESCE(MAX(NULLIF(regexp_replace(numero, '\D', '', 'g'), '')::bigint), 0)
+FROM public.comprobantes
+GROUP BY hotel_id, tipo, serie
+ON CONFLICT (hotel_id, tipo, serie) 
+DO UPDATE SET ultimo_numero = GREATEST(public.comprobante_sequences.ultimo_numero, EXCLUDED.ultimo_numero);
 
 CREATE OR REPLACE FUNCTION public.next_comprobante_number(p_hotel_id uuid, p_tipo text, p_serie text)
 RETURNS text

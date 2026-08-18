@@ -199,6 +199,44 @@
   font-family: 'Manrope', 'Inter', sans-serif;
 }
 
+/* NUEVO: Micro-interacciones iOS Feel */
+.tap-active {
+  transition: transform 0.15s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.15s ease-out;
+}
+
+.tap-active:active {
+  transform: scale(0.98);
+}
+
+@media (hover: hover) {
+  .tap-active:hover {
+    transform: translateY(-1px);
+    box-shadow: var(--glass-shadow);
+  }
+
+  .tap-active:hover:active {
+    transform: scale(0.98) translateY(0);
+  }
+}
+
+/* NUEVO: Utilidades para Alta Densidad (Data Tables & Números) */
+.tracking-dense {
+  letter-spacing: -0.04em;
+}
+.tabular-dense {
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+}
+.table-row-dense {
+  transition: background-color 0.2s;
+}
+.table-row-dense:hover {
+  background-color: hsl(var(--muted) / 0.5);
+}
+.table-row-dense:nth-child(even) {
+  background-color: hsl(var(--muted) / 0.2);
+}
+
 .text-fluid-xl {
   font-size: clamp(1.75rem, 1.35rem + 1.6vw, 2.75rem);
   line-height: 1.1;
@@ -222,7 +260,7 @@
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   NUEVO: LAYOUT RESPONSIVO
+    NUEVO: LAYOUT RESPONSIVO
    ═══════════════════════════════════════════════════════════════ */
 .container-fluid {
   width: 100%;
@@ -279,7 +317,7 @@
   letter-spacing: -0.045em;
 }
 
-.page-header > div > p {
+.page-header>div>p {
   text-wrap: balance;
 }
 
@@ -341,7 +379,7 @@
   box-shadow: inset 0 1px 2px hsl(var(--foreground) / 0.03);
 }
 
-.config-tabs > button {
+.config-tabs>button {
   width: 100%;
   min-width: 0;
   gap: 0.375rem;
@@ -404,11 +442,25 @@
   background: hsl(var(--room-accent));
 }
 
-.room-card[data-state='disponible'] { --room-accent: 160 52% 38%; }
-.room-card[data-state='ocupada'] { --room-accent: 350 66% 48%; }
-.room-card[data-state='reservada'] { --room-accent: 220 75% 55%; }
-.room-card[data-state='mantenimiento'] { --room-accent: 38 84% 48%; }
-.room-card[data-state='limpieza'] { --room-accent: 270 58% 56%; }
+.room-card[data-state='disponible'] {
+  --room-accent: 160 52% 38%;
+}
+
+.room-card[data-state='ocupada'] {
+  --room-accent: 350 66% 48%;
+}
+
+.room-card[data-state='reservada'] {
+  --room-accent: 220 75% 55%;
+}
+
+.room-card[data-state='mantenimiento'] {
+  --room-accent: 38 84% 48%;
+}
+
+.room-card[data-state='limpieza'] {
+  --room-accent: 270 58% 56%;
+}
 
 .room-card-number {
   font-size: clamp(1.75rem, 1.5rem + 0.55vw, 2.125rem);
@@ -443,8 +495,8 @@
     flex-direction: column;
   }
 
-  .page-header > :last-child,
-  .page-header > :last-child > button {
+  .page-header> :last-child,
+  .page-header> :last-child>button {
     width: 100%;
   }
 
@@ -471,6 +523,7 @@
 }
 
 /* Tablas densas: scroll horizontal nativo en móvil */
+
 .table-responsive {
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
@@ -484,8 +537,8 @@
 @media (pointer: coarse) {
 
   .touch-target,
-  button:not(.h-auto),
-  [role="button"] {
+  button:not(.h-auto):not([role="switch"]),
+  [role="button"]:not([role="switch"]) {
     min-height: 44px;
   }
 

@@ -19,7 +19,7 @@ export interface UseGsapCardHoverOptions {
 export function useGsapCardHover(ref: React.RefObject<HTMLElement | null>, opts: UseGsapCardHoverOptions = {}) {
   const {
     scale = 1.02,
-    glowColor = 'hsla(var(--primary), 0.18)',
+    glowColor = 'hsl(var(--primary) / 0.18)',
     glowSize = 28,
     borderColor,
     duration = 0.35,
@@ -49,10 +49,11 @@ export function useGsapCardHover(ref: React.RefObject<HTMLElement | null>, opts:
     gsap.to(el, {
       scale: 1,
       boxShadow: 'none',
-      borderColor: '',
+      borderColor: borderColor ? 'transparent' : undefined,
       duration: duration * 0.8,
       ease: 'power2.out',
       overwrite: 'auto',
+      clearProps: 'boxShadow,borderColor'
     });
   });
 

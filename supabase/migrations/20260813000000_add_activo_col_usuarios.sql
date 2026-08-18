@@ -7,7 +7,7 @@ ALTER TABLE public.usuarios
 CREATE INDEX IF NOT EXISTS idx_usuarios_activo
   ON public.usuarios (activo) WHERE activo = true;
 
-CREATE OR REPLACE FUNCTION public.get_user_hotel_id(p_user_id uuid DEFAULT auth.uid())
+CREATE OR REPLACE FUNCTION public.get_user_hotel_id(p_user_id uuid)
 RETURNS uuid
 LANGUAGE sql
 STABLE
@@ -17,7 +17,17 @@ AS $$
   SELECT u.hotel_id FROM public.usuarios AS u WHERE u.id = p_user_id;
 $$;
 
-CREATE OR REPLACE FUNCTION public.get_user_role(p_user_id uuid DEFAULT auth.uid())
+CREATE OR REPLACE FUNCTION public.get_user_hotel_id()
+RETURNS uuid
+LANGUAGE sql
+STABLE
+SECURITY DEFINER
+SET search_path = pg_catalog, public
+AS $$
+  SELECT public.get_user_hotel_id(auth.uid());
+$$;
+
+CREATE OR REPLACE FUNCTION public.get_user_role(p_user_id uuid)
 RETURNS text
 LANGUAGE sql
 STABLE
@@ -27,7 +37,17 @@ AS $$
   SELECT u.role FROM public.usuarios AS u WHERE u.id = p_user_id AND u.activo IS TRUE;
 $$;
 
-CREATE OR REPLACE FUNCTION public.is_user_active(p_user_id uuid DEFAULT auth.uid())
+CREATE OR REPLACE FUNCTION public.get_user_role()
+RETURNS text
+LANGUAGE sql
+STABLE
+SECURITY DEFINER
+SET search_path = pg_catalog, public
+AS $$
+  SELECT public.get_user_role(auth.uid());
+$$;
+
+CREATE OR REPLACE FUNCTION public.is_user_active(p_user_id uuid)
 RETURNS boolean
 LANGUAGE sql
 STABLE
@@ -37,12 +57,29 @@ AS $$
   SELECT COALESCE((SELECT u.activo FROM public.usuarios AS u WHERE u.id = p_user_id), false);
 $$;
 
+CREATE OR REPLACE FUNCTION public.is_user_active()
+RETURNS boolean
+LANGUAGE sql
+STABLE
+SECURITY DEFINER
+SET search_path = pg_catalog, public
+AS $$
+  SELECT public.is_user_active(auth.uid());
+$$;
+
 REVOKE ALL ON FUNCTION public.get_user_hotel_id(uuid) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.get_user_hotel_id() FROM PUBLIC;
 REVOKE ALL ON FUNCTION public.get_user_role(uuid) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.get_user_role() FROM PUBLIC;
 REVOKE ALL ON FUNCTION public.is_user_active(uuid) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.is_user_active() FROM PUBLIC;
+
 GRANT EXECUTE ON FUNCTION public.get_user_hotel_id(uuid) TO authenticated, service_role;
+GRANT EXECUTE ON FUNCTION public.get_user_hotel_id() TO authenticated, service_role;
 GRANT EXECUTE ON FUNCTION public.get_user_role(uuid) TO authenticated, service_role;
+GRANT EXECUTE ON FUNCTION public.get_user_role() TO authenticated, service_role;
 GRANT EXECUTE ON FUNCTION public.is_user_active(uuid) TO authenticated, service_role;
+GRANT EXECUTE ON FUNCTION public.is_user_active() TO authenticated, service_role;
 
 DROP POLICY IF EXISTS "Usuarios ven su propio perfil" ON public.usuarios;
 DROP POLICY IF EXISTS "admin_ver_usuarios_hotel" ON public.usuarios;

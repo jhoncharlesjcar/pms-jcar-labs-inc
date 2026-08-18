@@ -328,7 +328,7 @@ const Habitaciones = memo(function Habitaciones() {
                                         <article
                                             key={h.id}
                                             data-state={h.estado}
-                                            className="room-card group flex flex-col justify-between"
+                                            className="room-card group flex flex-col justify-between tap-active"
                                         >
                                             <div className="flex items-center justify-between gap-2">
                                                 <div className="flex min-w-0 items-center gap-2">

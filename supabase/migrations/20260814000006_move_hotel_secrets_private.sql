@@ -12,6 +12,20 @@ CREATE TABLE IF NOT EXISTS private.hotel_secrets (
 );
 REVOKE ALL ON private.hotel_secrets FROM PUBLIC, anon, authenticated;
 
+-- Ensure all hotel fiscal and configuration columns exist on public.hoteles
+ALTER TABLE public.hoteles
+  ADD COLUMN IF NOT EXISTS ruc text,
+  ADD COLUMN IF NOT EXISTS razon_social text,
+  ADD COLUMN IF NOT EXISTS direccion text,
+  ADD COLUMN IF NOT EXISTS ciudad text,
+  ADD COLUMN IF NOT EXISTS aplica_igv boolean DEFAULT true,
+  ADD COLUMN IF NOT EXISTS modo_sunat text DEFAULT 'desactivado',
+  ADD COLUMN IF NOT EXISTS sunat_usuario_sol text,
+  ADD COLUMN IF NOT EXISTS sunat_clave_sol text,
+  ADD COLUMN IF NOT EXISTS sunat_certificado_pem text,
+  ADD COLUMN IF NOT EXISTS sunat_modo_prueba boolean DEFAULT true,
+  ADD COLUMN IF NOT EXISTS pasarela_private_key text;
+
 INSERT INTO private.hotel_secrets(hotel_id, sunat_clave_sol, sunat_certificado_pem, pasarela_private_key)
 SELECT id, sunat_clave_sol, sunat_certificado_pem, pasarela_private_key
 FROM public.hoteles
@@ -57,6 +71,9 @@ CREATE TRIGGER trg_block_public_hotel_secret_writes
   BEFORE INSERT OR UPDATE ON public.hoteles FOR EACH ROW
   EXECUTE FUNCTION public.block_public_hotel_secret_writes();
 REVOKE ALL ON FUNCTION public.block_public_hotel_secret_writes() FROM PUBLIC;
+
+-- 5. RPC para recuperar credenciales SUNAT (service_role only)
+DROP FUNCTION IF EXISTS public.get_hotel_sunat_credentials(uuid);
 
 CREATE OR REPLACE FUNCTION public.get_hotel_sunat_credentials(p_hotel_id uuid)
 RETURNS TABLE(

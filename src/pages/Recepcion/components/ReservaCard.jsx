@@ -35,7 +35,7 @@ export const ReservaCard = React.memo((/** @type {any} */ { r, hotelActual, hote
     const operationalConfig = OPERATIONAL_STATE_CONFIG[operationalState];
     
     return (
-        <article className="enterprise-card operational-card ui-card-pad group transition-all duration-300 ease-out hover:shadow-md">
+        <article className="enterprise-card operational-card ui-card-pad group transition-all duration-300 ease-out hover:shadow-md tap-active">
             <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
                 <div className="flex items-center gap-3">
                     <div className={cn("w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 shadow-sm bg-gradient-to-br text-white font-bold text-sm", avatarColors[r.estado] || 'from-gray-500 to-gray-600')}>
@@ -55,10 +55,10 @@ export const ReservaCard = React.memo((/** @type {any} */ { r, hotelActual, hote
                                 </span>
                             )}
                         </div>
-                        <p className="text-xs text-muted-foreground font-medium">
+                        <p className="text-xs text-muted-foreground font-medium tracking-dense">
                             Habitación <span className="text-foreground font-semibold">#{r.habitacion_numero}</span> <span className="opacity-50 mx-1">•</span> {r.noches} {r.noches === 1 ? 'noche' : 'noches'}
                         </p>
-                        <p className="text-[11px] font-medium text-muted-foreground flex flex-wrap items-center gap-x-1.5 gap-y-0.5 mt-1">
+                        <p className="text-[11px] font-medium text-muted-foreground flex flex-wrap items-center gap-x-1.5 gap-y-0.5 mt-1 tabular-dense tracking-dense">
                             <CalendarDays className="w-3.5 h-3.5 text-muted-foreground/80" />
                             {formatReservationDate(r.fecha_entrada)} → {formatReservationDate(r.fecha_salida)} <span className="opacity-50 mx-1">•</span> DNI: <span className="text-foreground">{r.huesped_dni || 'N/A'}</span>
                         </p>
@@ -66,8 +66,8 @@ export const ReservaCard = React.memo((/** @type {any} */ { r, hotelActual, hote
                 </div>
                 <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between lg:justify-end gap-4 mt-1 lg:mt-0 pt-3 lg:pt-0 border-t lg:border-0 border-border/40">
                     <div className="text-left sm:text-right">
-                        <p className="text-xl font-bold text-foreground tracking-tight tabular-nums leading-none whitespace-nowrap">S/ {r.total?.toFixed(2)}</p>
-                        <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider mt-1">Ref: #{r.numero_reserva}</p>
+                        <p className="text-xl font-bold text-foreground tracking-dense tabular-dense leading-none whitespace-nowrap">S/ {r.total?.toFixed(2)}</p>
+                        <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider mt-1 tabular-dense">Ref: #{r.numero_reserva}</p>
                     </div>
                     <div className="w-px h-8 bg-border/40 hidden sm:block mx-1" />
                     <div className="grid w-full grid-cols-2 gap-2 sm:flex sm:w-auto sm:flex-nowrap sm:items-center">

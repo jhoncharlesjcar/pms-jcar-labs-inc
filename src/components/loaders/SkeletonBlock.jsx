@@ -14,8 +14,8 @@ import { memo } from 'react';
 import { cn } from '@/lib/utils';
 
 const SkeletonBlock = memo(function SkeletonBlock(/** @type {any} */ { className, as, variant = 'text' }) {
-  const baseClasses = 'skeleton'; // Uses the pulse animation
-  const cardClasses = 'skeleton-card'; // Uses the shimmer animation
+  const baseClasses = 'animate-pulse bg-muted/60';
+  const cardClasses = 'bg-card border border-border/40 rounded-2xl shadow-sm';
 
   // Circle variant
   if (variant === 'circle' || as === 'circle') {

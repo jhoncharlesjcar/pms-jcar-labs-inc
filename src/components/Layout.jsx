@@ -247,19 +247,15 @@ const Layout = memo(function Layout() {
                         />
                     </div>
                     {!sidebarCollapsed && (
-                        <div className="min-w-0 flex-1 opacity-100 transition-opacity duration-300">
-                            <p className="truncate text-[14px] font-extrabold leading-tight tracking-[-0.02em] text-foreground">PMS JCAR LABS</p>
-                            <p className="mt-0.5 truncate text-[9px] font-bold uppercase tracking-[0.16em] text-muted-foreground">Hospitality OS</p>
+                        <div className="min-w-0 flex-1 opacity-100 transition-opacity duration-300 flex items-center justify-between gap-2">
+                            <div className="min-w-0 pr-2">
+                                <p className="truncate text-[14px] font-extrabold leading-tight tracking-[-0.02em] text-foreground">PMS JCAR LABS</p>
+                                <p className="mt-0.5 truncate text-[9px] font-bold uppercase tracking-[0.16em] text-muted-foreground">Hospitality OS</p>
+                            </div>
+                            <SelectorHotel />
                         </div>
                     )}
                 </div>
-
-                {/* Selector de Hotel */}
-                {!sidebarCollapsed && (
-                    <div className="px-3 pt-3 animate-in fade-in zoom-in duration-300">
-                        <SelectorHotel />
-                    </div>
-                )}
 
                 {/* Búsqueda Global */}
                 {!sidebarCollapsed && (
@@ -448,12 +444,12 @@ const Layout = memo(function Layout() {
                                 )}
                             >
                                 <div className="relative">
-                                    <Icon className={cn("w-5 h-5", active && "animate-pulse")} />
+                                    <Icon className={cn("w-5 h-5 transition-all duration-300", active && "scale-110 drop-shadow-md text-primary")} />
                                     {badge > 0 && (
                                         <span className="absolute -top-1.5 -right-2 w-3.5 h-3.5 bg-destructive text-destructive-foreground text-[8px] font-bold rounded-full flex items-center justify-center border-2 border-card"></span>
                                     )}
                                 </div>
-                                <span className={cn("text-[9px] font-semibold tracking-wide", active && "font-bold")}>{label}</span>
+                                <span className={cn("text-[9px] font-semibold tracking-wide transition-all", active && "font-bold scale-105")}>{label}</span>
                             </Link>
                         );
                     })}

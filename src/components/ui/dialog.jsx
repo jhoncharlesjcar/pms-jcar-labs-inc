@@ -33,11 +33,12 @@ const DialogContent = React.forwardRef(({ className, children, ...props }, ref) 
         <DialogPrimitive.Content
             ref={ref}
             className={cn(
-                "fixed left-[50%] top-[50%] z-50 grid w-[calc(100%-2rem)] max-w-lg translate-x-[-50%] translate-y-[-50%] gap-4 border border-border/60 bg-card/95 backdrop-blur-2xl p-5 sm:p-6 shadow-2xl duration-150 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-[0.98] data-[state=open]:zoom-in-[0.98] data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%] rounded-2xl max-h-[90vh] overflow-y-auto custom-scrollbar",
+                "fixed left-[50%] top-[50%] z-50 grid w-[calc(100%-1rem)] sm:w-[calc(100%-2rem)] max-w-lg translate-x-[-50%] translate-y-[-50%] gap-4 border border-border/60 bg-card/95 backdrop-blur-2xl p-4 sm:p-6 shadow-2xl duration-150 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-[0.98] data-[state=open]:zoom-in-[0.98] data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%] rounded-2xl max-h-[85dvh] sm:max-h-[90vh] overflow-y-auto custom-scrollbar",
                 className
             )}
-            {...props}
-            aria-describedby={props["aria-describedby"] || undefined}>
+            aria-describedby={props["aria-describedby"] ? props["aria-describedby"] : undefined}
+            {...props}>
+            {!props["aria-describedby"] && <DialogPrimitive.Description className="sr-only">Dialog content</DialogPrimitive.Description>}
             {children}
             <DialogPrimitive.Close
                 aria-label="Cerrar ventana emergente"

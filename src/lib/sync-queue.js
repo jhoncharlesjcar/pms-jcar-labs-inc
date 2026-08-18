@@ -90,84 +90,100 @@ export async function getDeadLetterCount(userId, hotelId) {
 
 /**
  * Procesa la cola de mutaciones secuencialmente para el usuario/hotel dado.
+ * Utiliza Web Locks API para evitar procesamiento concurrente entre pestañas.
  */
 export async function processQueue(userId, hotelId) {
-    if (!navigator.onLine) return;
+    if (!navigator.onLine || !userId || !hotelId) return;
 
-    const queueKey = getQueueKey(userId, hotelId);
-    const dlKey = getDeadLetterKey(userId, hotelId);
+    const runSync = async () => {
+        const queueKey = getQueueKey(userId, hotelId);
+        const dlKey = getDeadLetterKey(userId, hotelId);
 
-    let queue = (await get(queueKey)) || [];
-    if (queue.length === 0) return;
+        let queue = (await get(queueKey)) || [];
+        if (queue.length === 0) return;
 
-    logger.debug(`Procesando ${queue.length} operaciones encoladas...`);
-    toast.info(`Sincronizando ${queue.length} cambios pendientes...`);
+        logger.debug(`Procesando ${queue.length} operaciones encoladas...`);
+        toast.info(`Sincronizando ${queue.length} cambios pendientes...`);
 
-    const retryQueue = [];
-    const deadLetterQueue = (await get(dlKey)) || [];
-    let successCount = 0;
+        const retryQueue = [];
+        const deadLetterQueue = (await get(dlKey)) || [];
+        let successCount = 0;
 
-    for (const op of queue) {
-        try {
-            if (op.type === 'create') {
-                const { error } = await supabase.from(op.table).insert({ ...op.payload, id: op.id });
-                if (error) throw error;
-            }
-            else if (op.type === 'update') {
-                const { error } = await supabase.from(op.table).update(op.payload).eq('id', op.id);
-                if (error) throw error;
-            }
-            else if (op.type === 'delete') {
-                const { error } = await supabase.from(op.table).delete().eq('id', op.id);
-                if (error) throw error;
-            }
-            successCount++;
-        } catch (error) {
-            logger.error(`Error procesando operación de cola [${op.type}] en ${op.table}:`, error);
+        for (const op of queue) {
+            try {
+                if (op.type === 'create') {
+                    const { error } = await supabase.from(op.table).insert({ ...op.payload, id: op.id });
+                    if (error) throw error;
+                }
+                else if (op.type === 'update') {
+                    const { error } = await supabase.from(op.table).update(op.payload).eq('id', op.id);
+                    if (error) throw error;
+                }
+                else if (op.type === 'delete') {
+                    const { error } = await supabase.from(op.table).delete().eq('id', op.id);
+                    if (error) throw error;
+                }
+                successCount++;
+            } catch (error) {
+                logger.error(`Error procesando operación de cola [${op.type}] en ${op.table}:`, error);
 
-            const isNetworkError =
-                error.message?.includes('FetchError') ||
-                error.message?.includes('Failed to fetch') ||
-                error.status === 503;
+                const isNetworkError =
+                    error.message?.includes('FetchError') ||
+                    error.message?.includes('Failed to fetch') ||
+                    error.status === 503;
 
-            if (isNetworkError) {
-                // Error de red: reintentar después
-                retryQueue.push({ ...op, retries: (op.retries || 0) + 1, status: 'pending' });
-            } else if ((op.retries || 0) < MAX_RETRIES) {
-                // Error de BD pero aún tiene reintentos disponibles
-                retryQueue.push({
-                    ...op,
-                    retries: (op.retries || 0) + 1,
-                    status: 'failed',
-                    lastError: error.message || String(error),
-                });
-            } else {
-                // Agotó reintentos: mover a dead-letter
-                logger.error('Operación movida a dead-letter tras agotar reintentos:', op, error);
-                deadLetterQueue.push({
-                    ...op,
-                    status: 'dead-letter',
-                    lastError: error.message || String(error),
-                    movedAt: new Date().toISOString(),
-                });
+                if (isNetworkError) {
+                    retryQueue.push({ ...op, retries: (op.retries || 0) + 1, status: 'pending' });
+                } else if ((op.retries || 0) < MAX_RETRIES) {
+                    retryQueue.push({
+                        ...op,
+                        retries: (op.retries || 0) + 1,
+                        status: 'failed',
+                        lastError: error.message || String(error),
+                    });
+                } else {
+                    logger.error('Operación movida a dead-letter tras agotar reintentos:', op, error);
+                    deadLetterQueue.push({
+                        ...op,
+                        status: 'dead-letter',
+                        lastError: error.message || String(error),
+                        movedAt: new Date().toISOString(),
+                    });
+                }
             }
         }
-    }
 
-    // Actualizar colas
-    await set(queueKey, retryQueue);
-    await set(dlKey, deadLetterQueue);
+        // Actualizar colas
+        await set(queueKey, retryQueue);
+        await set(dlKey, deadLetterQueue);
 
-    window.dispatchEvent(new CustomEvent('offline_queue_updated', { detail: retryQueue.length }));
+        window.dispatchEvent(new CustomEvent('offline_queue_updated', { detail: retryQueue.length }));
 
-    if (successCount > 0) {
-        toast.success(`Se sincronizaron ${successCount} cambios con éxito`);
-    }
-    if (retryQueue.length > 0) {
-        toast.error(`Quedan ${retryQueue.length} cambios pendientes sin sincronizar`);
-    }
-    if (deadLetterQueue.length > 0) {
-        toast.warning(`${deadLetterQueue.length} operaciones requieren revisión manual (dead-letter)`);
+        if (successCount > 0) {
+            toast.success(`Se sincronizaron ${successCount} cambios con éxito`);
+        }
+        if (retryQueue.length > 0) {
+            toast.error(`Quedan ${retryQueue.length} cambios pendientes sin sincronizar`);
+        }
+        if (deadLetterQueue.length > 0) {
+            toast.warning(`${deadLetterQueue.length} operaciones requieren revisión manual (dead-letter)`);
+        }
+    };
+
+    if (navigator?.locks?.request) {
+        try {
+            await navigator.locks.request(`sync_queue_${userId}_${hotelId}`, { ifAvailable: true }, async (lock) => {
+                if (!lock) {
+                    logger.debug('Otra pestaña ya está procesando la cola de sincronización.');
+                    return;
+                }
+                await runSync();
+            });
+        } catch {
+            await runSync();
+        }
+    } else {
+        await runSync();
     }
 }
 

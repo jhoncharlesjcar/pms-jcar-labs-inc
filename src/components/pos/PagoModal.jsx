@@ -13,6 +13,7 @@ import { YapeIcon, PlinIcon, EfectivoIcon, TarjetaIcon } from '@/components/Paym
 import { toast } from 'sonner';
 import { crearComprobante } from '@/api/facturacion';
 import ComprobanteModal from '@/components/comprobantes/ComprobanteModal';
+import { supabase } from '@/config/supabase';
 
 const METODOS = [
     { value: 'efectivo', label: <span className="flex items-center gap-1"><EfectivoIcon /> Efectivo</span> },
@@ -30,7 +31,7 @@ const METODOS = [
  * @param {any} props.reservaSeleccionada
  * @param {function} props.onExito
  */
-const PagoModal = memo(function PagoModal(/** @type {any} */ { open, onClose, resumen, reservaSeleccionada, onExito }) {
+const PagoModal = memo(function PagoModal({ open, onClose, resumen, reservaSeleccionada, onExito }) {
     const qc = useQueryClient();
     const { db: hotelDb, hotelId } = useHotelData();
     const [metodoPago, setMetodoPago] = useState('efectivo');
@@ -74,53 +75,40 @@ const PagoModal = memo(function PagoModal(/** @type {any} */ { open, onClose, re
 
     const registrar = useMutation({
         mutationFn: async () => {
-            const numeroTicket = `POS${Date.now().toString().slice(-6)}`;
-            const ahora = new Date().toISOString();
+            const huespedNombreFinal = tipoComprobante === 'factura' 
+                ? razonSocial 
+                : (tipoComprobante === 'boleta' ? nombreCliente : (reservaSeleccionada?.huesped_nombre || 'Cliente mostrador'));
+            const huespedDniFinal = tipoComprobante === 'factura' 
+                ? rucCliente 
+                : (tipoComprobante === 'boleta' ? dniCliente : (reservaSeleccionada?.huesped_dni || ''));
 
-            // 1. Crear la venta
-            const venta = await hotelDb.VentaPOS.create({
-                numero_ticket: numeroTicket,
-                tipo: reservaSeleccionada ? (resumen.items.length > 0 ? 'estadía_extras' : 'solo_estadía') : 'solo_extras',
-                habitacion_numero: reservaSeleccionada?.habitacion_numero || '',
-                huesped_nombre: tipoComprobante === 'factura' ? razonSocial : (tipoComprobante === 'boleta' ? nombreCliente : (reservaSeleccionada?.huesped_nombre || 'Cliente mostrador')),
-                huesped_dni: tipoComprobante === 'factura' ? rucCliente : (tipoComprobante === 'boleta' ? dniCliente : (reservaSeleccionada?.huesped_dni || '')),
-                reserva_id: reservaSeleccionada?.id || null,
-                items: resumen.items,
-                subtotal_estadia: resumen.subtotalEstadia,
-                subtotal_extras: resumen.subtotalExtras,
-                descuento: Number(descuento),
-                total: totalFinal,
-                metodo_pago: metodoPago,
-                estado_comprobante: estadoComprobante,
-                tipo_comprobante: tipoComprobante,
-                ruc_cliente: tipoComprobante === 'factura' ? rucCliente : '',
-                razon_social: tipoComprobante === 'factura' ? razonSocial : '',
-                notas,
-                fecha_venta: ahora, // Usamos timestamp para precisión
+            // 1. Creación atómica de venta POS + descuento de stock vía RPC
+            const { data: venta, error: rpcError } = await supabase.rpc('create_pos_sale_atomic', {
+                p_hotel_id: hotelId,
+                p_items: resumen.items || [],
+                p_tipo: reservaSeleccionada ? (resumen.items.length > 0 ? 'estadía_extras' : 'solo_estadía') : 'solo_extras',
+                p_habitacion_numero: reservaSeleccionada?.habitacion_numero || '',
+                p_huesped_nombre: huespedNombreFinal,
+                p_huesped_dni: huespedDniFinal,
+                p_reserva_id: reservaSeleccionada?.id || null,
+                p_subtotal_estadia: resumen.subtotalEstadia || 0,
+                p_subtotal_extras: resumen.subtotalExtras || 0,
+                p_descuento: Number(descuento || 0),
+                p_total: totalFinal,
+                p_metodo_pago: metodoPago,
+                p_estado_comprobante: estadoComprobante,
+                p_tipo_comprobante: tipoComprobante,
+                p_ruc_cliente: tipoComprobante === 'factura' ? rucCliente : '',
+                p_razon_social: tipoComprobante === 'factura' ? razonSocial : '',
+                p_notas: notas || '',
             });
 
-            // 2. Descontar stock de cada producto vendido
-            if (resumen.items && resumen.items.length > 0) {
-                const promises = resumen.items.map(async (item) => {
-                    if (item.id) {
-                        // Obtener stock actual del producto
-                        const [prod] = await hotelDb.Producto.filter({ id: item.id });
-                        if (prod && prod.stock !== undefined) {
-                            const nuevoStock = Math.max(0, (prod.stock || 0) - (item.cantidad || 1));
-                            return hotelDb.Producto.update(item.id, { stock: nuevoStock });
-                        }
-                    }
-                });
-                await Promise.all(promises);
+            if (rpcError) {
+                logger.error('Error al registrar venta POS atómica:', rpcError);
+                throw new Error(rpcError.message || 'Error al procesar venta POS');
             }
 
-            // 3. Si hay reserva vinculada, marcarla como finalizada
-            if (reservaSeleccionada) {
-                await hotelDb.Reserva.update(reservaSeleccionada.id, { estado: 'finalizada' });
-                await hotelDb.Habitacion.update(reservaSeleccionada.habitacion_id, { estado: 'limpieza' });
-            }
-
-            // 4. Si SUNAT es automático y se requiere comprobante, facturar vía API
+            // 2. Si SUNAT es automático y se requiere comprobante, facturar vía API
             if (config.modo_sunat === 'automatico' && tipoComprobante !== 'ninguno') {
                 try {
                     const compRes = await crearComprobante(venta.id, 'ventas_pos');

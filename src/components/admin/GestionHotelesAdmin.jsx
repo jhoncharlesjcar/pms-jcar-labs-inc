@@ -2,6 +2,7 @@
 import { useState, memo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { db } from '@/api/db';
+import { supabase } from '@/config/supabase';
 import { useAuth } from '@/contexts/AuthContext';
 import {
     Building2, Plus, Pencil, Trash2, ToggleLeft, ToggleRight,
@@ -63,11 +64,6 @@ const GestionHotelesAdmin = memo(function GestionHotelesAdmin({ onClose }) {
         enabled: desbloqueado,
     });
 
-    const { data: codigos = [] } = useQuery({
-        queryKey: ['codigos-desbloqueo'],
-        queryFn: () => db.entities.CodigoDesbloqueo.list(),
-    });
-
     const saveHotel = useMutation({
         mutationFn: (/** @type {any} */ vars) => editHotel
             ? db.entities.Hotel.update(editHotel.id, vars)
@@ -88,29 +84,26 @@ const GestionHotelesAdmin = memo(function GestionHotelesAdmin({ onClose }) {
         onSuccess: () => qc.invalidateQueries({ queryKey: ['hoteles'] }),
     });
 
-    const marcarCodigoUsado = useMutation({
-        mutationFn: (/** @type {any} */ vars) => db.entities.CodigoDesbloqueo.update(vars.id, {
-            usado: true,
-            usado_por: user?.email,
-            fecha_uso: new Date().toISOString().split('T')[0],
-        }),
-        onSuccess: () => qc.invalidateQueries({ queryKey: ['codigos-desbloqueo'] }),
-    });
-
-    // Verificar código
+    // P0-4 FIX: Verify code server-side via RPC — codes never leave the database
     const verificarCodigo = async () => {
         if (!codigoInput.trim()) return;
         setVerificando(true);
         setCodigoError('');
-        // Buscar código válido y no usado
-        const match = codigos.find(c => c.codigo === codigoInput.trim() && !c.usado);
-        if (match) {
-            await marcarCodigoUsado.mutateAsync({ id: match.id });
-            setDesbloqueado(true);
-            setCodigoInput('');
-        } else {
-            const yaUsado = codigos.find(c => c.codigo === codigoInput.trim() && c.usado);
-            setCodigoError(yaUsado ? 'Este código ya fue utilizado anteriormente.' : 'Código inválido. Solicita uno nuevo al developer.');
+        try {
+            const { data: isValid, error } = await supabase.rpc('consume_unlock_code', {
+                p_codigo: codigoInput.trim(),
+                p_user_email: user?.email || 'unknown',
+            });
+            if (error) throw error;
+            if (isValid) {
+                setDesbloqueado(true);
+                setCodigoInput('');
+            } else {
+                setCodigoError('Código inválido o ya utilizado. Solicita uno nuevo al developer.');
+            }
+        } catch (err) {
+            console.error('[Unlock] Error:', err);
+            setCodigoError('Error al verificar el código. Intenta de nuevo.');
         }
         setVerificando(false);
     };
