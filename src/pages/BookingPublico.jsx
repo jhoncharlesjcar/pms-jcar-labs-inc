@@ -136,7 +136,7 @@ function formatDescripcion(desc) {
             return 'Estándar';
         }
         return String(desc);
-    } catch (e) {
+    } catch {
         return String(desc);
     }
 }
