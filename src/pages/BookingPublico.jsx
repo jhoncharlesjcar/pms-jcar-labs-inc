@@ -89,7 +89,12 @@ export default function BookingPublico() {
                         <h2 id="rooms-title" className="font-black">Opciones disponibles</h2>
                         {options.map(room => (
                             <button key={room.id} type="button" onClick={() => setSelected(room)} aria-pressed={selected?.id === room.id} className="flex w-full items-center justify-between rounded-2xl border bg-card p-5 text-left focus-visible:ring-2">
-                                <span><strong>{room.tipo || room.nombre}</strong><small className="block text-muted-foreground">{room.descripcion || 'Habitación disponible'}</small></span>
+                                <span>
+                                    <strong>{room.tipo || room.nombre}</strong>
+                                    <small className="block text-muted-foreground mt-1">
+                                        {formatDescripcion(room.descripcion)}
+                                    </small>
+                                </span>
                                 <strong>S/ {Number(room.total || 0).toFixed(2)}</strong>
                             </button>
                         ))}
@@ -116,3 +121,22 @@ function Field({ id, label, children }) { return <div className="space-y-2"><Lab
 function InlineError({ message }) { return <p role="alert" className="text-sm font-semibold text-destructive">{message}</p>; }
 function PublicLoading() { return <main id="main-content" className="min-h-screen grid place-items-center"><p role="status">Cargando enlace seguro…</p></main>; }
 function PublicError({ message }) { return <main id="main-content" className="min-h-screen grid place-items-center p-6"><div role="alert" className="max-w-md rounded-2xl border border-destructive/30 bg-card p-6 text-center"><ShieldAlert className="mx-auto mb-3 h-8 w-8 text-destructive" /><h1 className="font-black">Servicio no disponible</h1><p className="mt-2 text-sm text-muted-foreground">{message}</p></div></main>; }
+
+function formatDescripcion(desc) {
+    if (!desc) return 'Habitación disponible';
+    try {
+        const obj = typeof desc === 'string' && desc.startsWith('{') ? JSON.parse(desc) : desc;
+        if (typeof obj === 'object' && obj !== null) {
+            const amenities = [];
+            if (obj.wifi) amenities.push('WiFi');
+            if (obj.tv) amenities.push('TV');
+            if (obj.agua) amenities.push('Agua Caliente');
+            if (obj.bano || obj.baño) amenities.push('Baño Privado');
+            if (amenities.length > 0) return amenities.join(' • ');
+            return 'Estándar';
+        }
+        return String(desc);
+    } catch (e) {
+        return String(desc);
+    }
+}

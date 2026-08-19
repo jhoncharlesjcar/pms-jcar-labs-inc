@@ -2,6 +2,7 @@ import { supabase } from '@/config/supabase';
 import logger from '@/lib/logger';
 import { enqueueMutation } from '@/lib/sync-queue';
 import { generateUUID } from '@/lib/utils';
+import { clearPersistedCache } from '@/lib/query-client';
 
 /**
  * Capa de acceso a datos — Supabase
@@ -273,6 +274,9 @@ const auth = {
             // Limpieza selectiva para no borrar configuraciones (tema, pwa)
             Object.keys(localStorage).forEach(k => k.startsWith('sb-') && localStorage.removeItem(k));
             sessionStorage.clear();
+            
+            // Purgar caché de React Query en IndexedDB para evitar datos fantasma
+            await clearPersistedCache();
             
             logger.debug('Limpieza completada. Redireccionando...');
             

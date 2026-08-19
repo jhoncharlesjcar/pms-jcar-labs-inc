@@ -1,7 +1,7 @@
 import { useState, memo } from 'react';
 import { useHotel } from '@/contexts/HotelContext';
 import { useAuth } from '@/contexts/AuthContext';
-import { Building2, ChevronDown, Check } from 'lucide-react';
+import { Building2, Check } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const SelectorHotel = memo(function SelectorHotel({ mobile = false }) {

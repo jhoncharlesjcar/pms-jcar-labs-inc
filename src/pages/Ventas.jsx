@@ -221,7 +221,10 @@ const Ventas = memo(function Ventas() {
                                             </td>
                                             <td className="px-4 py-2.5">
                                                 <p className="font-medium text-foreground text-sm">#{v.numero_ticket}</p>
-                                                <p className="text-xs text-muted-foreground flex items-center gap-1 mt-0.5"><CalendarDays className="w-3 h-3" /> {v.fecha_pago || v.fecha_venta}</p>
+                                                <p className="text-xs text-muted-foreground flex items-center gap-1 mt-0.5">
+                                                    <CalendarDays className="w-3 h-3" /> 
+                                                    {format(new Date(v.fecha_pago || v.fecha_venta || v.created_date), "dd MMM, HH:mm", { locale: es })}
+                                                </p>
                                             </td>
                                             <td className="px-4 py-2.5">
                                                 <p className="font-medium text-foreground text-sm truncate max-w-[150px]">{v.huesped_nombre || 'Cliente mostrador'}</p>

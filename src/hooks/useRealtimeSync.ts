@@ -48,11 +48,14 @@ export function useRealtimeSync() {
                 if (status === 'SUBSCRIBED') {
                     logger.debug('✅ Realtime Activo');
                 }
-                if (['CHANNEL_ERROR', 'TIMED_OUT', 'CLOSED'].includes(status)) {
+                if (['CHANNEL_ERROR', 'TIMED_OUT'].includes(status)) {
                     logger.error(`Realtime no disponible (${status}); refrescando datos como respaldo`);
                     queryClient.invalidateQueries({ queryKey: ['reservas', hotelId] });
                     queryClient.invalidateQueries({ queryKey: ['habitaciones', hotelId] });
                     queryClient.invalidateQueries({ queryKey: ['ventas', hotelId] });
+                }
+                if (status === 'CLOSED') {
+                    logger.debug(`Realtime desconectado (CLOSED) intencionalmente.`);
                 }
                 if (err) {
                     logger.error('❌ Error Realtime:', err);
