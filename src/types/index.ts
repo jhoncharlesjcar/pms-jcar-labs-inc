@@ -98,6 +98,7 @@ export interface Reserva {
   noches: number;
   precio_noche: number;
   total: number;
+  checkin_token?: string;
   num_adultos: number;
   num_ninos: number;
   estado: 'pendiente' | 'confirmada' | 'activa' | 'finalizada' | 'cancelada';
