@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { AIService } from '@/services/ai.service';
-import { Plus, Trash2, Edit2, Check, X, Search } from 'lucide-react';
+import { Plus, Trash2, Edit2, Check, Search } from 'lucide-react';
 import { toast } from 'sonner';
 
 const CATEGORIES = [
@@ -25,18 +25,20 @@ export default function KnowledgeManager({ hotelId }) {
     });
 
     const upsertMutation = useMutation({
+        /** @param {Partial<import('@/types/ai.types').AIKnowledge>} data */
         mutationFn: (data) => AIService.upsertKnowledge(hotelId, data),
         onSuccess: () => {
-            queryClient.invalidateQueries(['ai-knowledge', hotelId]);
+            queryClient.invalidateQueries({ queryKey: ['ai-knowledge', hotelId] });
             setEditingItem(null);
             toast.success("Conocimiento guardado correctamente");
         }
     });
 
     const deleteMutation = useMutation({
+        /** @param {string} id */
         mutationFn: (id) => AIService.deleteKnowledge(id),
         onSuccess: () => {
-            queryClient.invalidateQueries(['ai-knowledge', hotelId]);
+            queryClient.invalidateQueries({ queryKey: ['ai-knowledge', hotelId] });
             toast.success("Entrada eliminada");
         }
     });
@@ -53,10 +55,10 @@ export default function KnowledgeManager({ hotelId }) {
         const formData = new FormData(e.target);
         upsertMutation.mutate({
             id: editingItem?.id, // undefined si es nuevo
-            title: formData.get('title'),
-            category: formData.get('category'),
-            content: formData.get('content'),
-            priority: parseInt(formData.get('priority')) || 0,
+            title: formData.get('title')?.toString() || '',
+            category: /** @type {any} */ (formData.get('category')?.toString() || 'general'),
+            content: formData.get('content')?.toString() || '',
+            priority: parseInt(formData.get('priority')?.toString() || '0', 10),
             activo: formData.get('activo') === 'on'
         });
     };

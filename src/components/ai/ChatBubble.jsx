@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { AIService } from '@/services/ai.service';
-import { Bot, X, Send, User, CheckCircle2 } from 'lucide-react';
+import { Bot, X, Send } from 'lucide-react';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { toast } from 'sonner';
@@ -20,8 +20,7 @@ export default function ChatBubble({ hotelId }) {
     const [sessionId, setSessionId] = useState('');
     const messagesEndRef = useRef(null);
 
-    // Si el agente está desactivado, no renderizar nada
-    if (!hotelConfig?.agent_enabled) return null;
+    // Conditional rendering moved below hooks
 
     useEffect(() => {
         // Inicializar session_id
@@ -69,7 +68,7 @@ export default function ChatBubble({ hotelId }) {
                 timestamp: new Date() 
             }]);
 
-        } catch (error) {
+        } catch {
             toast.error("Ocurrió un error al enviar el mensaje.");
             setMessages(prev => [...prev, { 
                 id: Date.now().toString(), 
@@ -81,6 +80,8 @@ export default function ChatBubble({ hotelId }) {
             setIsTyping(false);
         }
     };
+
+    if (!hotelConfig?.agent_enabled) return null;
 
     return (
         <div className="fixed bottom-6 right-6 z-50">
@@ -133,7 +134,7 @@ export default function ChatBubble({ hotelId }) {
                             Hoy, {format(new Date(), "HH:mm", { locale: es })}
                         </div>
                         
-                        {messages.map((msg, i) => {
+                        {messages.map((msg, _i) => {
                             const isUser = msg.role === 'user';
                             const isSystem = msg.role === 'system';
 

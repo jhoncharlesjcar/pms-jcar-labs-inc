@@ -11,6 +11,7 @@ export interface AIHotelConfig {
   max_concurrent_conversations: number;
   auto_followup_enabled: boolean;
   upselling_enabled: boolean;
+  response_delay_seconds?: number;
   created_at?: string;
   updated_at?: string;
 }

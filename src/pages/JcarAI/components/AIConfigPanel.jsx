@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { AIService } from '@/services/ai.service';
 import { Save, AlertCircle } from 'lucide-react';
@@ -13,13 +13,15 @@ export default function AIConfigPanel({ hotelId }) {
     });
 
     const updateMutation = useMutation({
+        /** @param {Partial<import('@/types/ai.types').AIHotelConfig>} updates */
         mutationFn: (updates) => AIService.updateConfig(hotelId, updates),
         onSuccess: () => {
-            queryClient.invalidateQueries(['ai-config', hotelId]);
+            queryClient.invalidateQueries({ queryKey: ['ai-config', hotelId] });
             toast.success("Configuración actualizada correctamente");
         }
     });
 
+    /** @param {string} field @param {any} value */
     const handleToggle = (field, value) => {
         updateMutation.mutate({ [field]: value });
     };
@@ -29,11 +31,11 @@ export default function AIConfigPanel({ hotelId }) {
         const formData = new FormData(e.target);
         
         updateMutation.mutate({
-            agent_name: formData.get('agent_name'),
-            agent_personality: formData.get('agent_personality'),
-            welcome_message: formData.get('welcome_message'),
-            handoff_message: formData.get('handoff_message'),
-            response_delay_seconds: parseInt(formData.get('response_delay_seconds') || 0, 10),
+            agent_name: formData.get('agent_name')?.toString() || '',
+            agent_personality: formData.get('agent_personality')?.toString() || '',
+            welcome_message: formData.get('welcome_message')?.toString() || '',
+            handoff_message: formData.get('handoff_message')?.toString() || '',
+            response_delay_seconds: parseInt(formData.get('response_delay_seconds')?.toString() || '0', 10),
         });
     };
 
