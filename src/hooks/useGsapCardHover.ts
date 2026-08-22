@@ -32,9 +32,24 @@ export function useGsapCardHover(ref: React.RefObject<HTMLElement | null>, opts:
     const el = ref.current;
     if (!el) return;
     
+    // GSAP cannot parse `var(...)` or `hsl(x y z / a)` natively in complex strings.
+    let resolvedGlowColor = glowColor;
+    if (resolvedGlowColor.includes('var(')) {
+      const varMatch = resolvedGlowColor.match(/var\((--[^)]+)\)/);
+      if (varMatch) {
+        const varValue = getComputedStyle(el).getPropertyValue(varMatch[1]).trim();
+        const commaSeparated = varValue.replace(/\s+/g, ', ');
+        resolvedGlowColor = resolvedGlowColor.replace(`var(${varMatch[1]})`, commaSeparated);
+      }
+    }
+    // Convert modern hsl(a b c / d) to hsla(a, b, c, d)
+    if (resolvedGlowColor.includes('/')) {
+      resolvedGlowColor = resolvedGlowColor.replace('hsl(', 'hsla(').replace('/', ',');
+    }
+    
     gsap.to(el, {
       scale,
-      boxShadow: `0 ${glowSize * 0.5}px ${glowSize}px -8px ${glowColor}, 0 4px 12px rgba(0,0,0,0.08)`,
+      boxShadow: `0 ${glowSize * 0.5}px ${glowSize}px -8px ${resolvedGlowColor}, 0 4px 12px rgba(0,0,0,0.08)`,
       borderColor: borderColor || undefined,
       duration,
       ease,

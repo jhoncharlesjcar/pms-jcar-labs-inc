@@ -3,7 +3,7 @@ import { useState, useEffect, useRef, useMemo, memo } from 'react';
 import {
     BedDouble, CalendarDays, Settings,
     Menu, X, LogOut, ShoppingCart, Code2, Building2,
-    LayoutGrid, Users, CreditCard, FileText, Wallet, Sun, Moon, Package, TrendingUp
+    LayoutGrid, Users, CreditCard, FileText, Wallet, Sun, Moon, Package, TrendingUp, Bot
 } from 'lucide-react';
 
 import { useAuth } from '@/contexts/AuthContext';
@@ -22,11 +22,7 @@ import { useHotelData } from '@/hooks/useHotelData';
 import { useRealtimeSync } from '@/hooks/useRealtimeSync';
 import OfflineSyncManager from '@/components/OfflineSyncManager';
 import { canAccessPath } from '@/constants/permissions';
-
-// ScrollTrigger debe usar #main-content como contenedor de scroll
 import BroomIcon from '@/components/ui/icons/BroomIcon';
-
-// (El scroller por defecto se configura dinámicamente dentro de Layout)
 
 const navGroups = [
     {
@@ -52,6 +48,7 @@ const navGroups = [
         title: 'ANALÍTICA Y CONFIGURACIÓN',
         items: [
             { path: '/revenue', label: 'Revenue & BI', icon: TrendingUp },
+            { path: '/jcar-ai', label: 'JCAR AI', icon: Bot },
             { path: '/reportes', label: 'Reportes', icon: FileText },
             { path: '/configuracion', label: 'Configuración', icon: Settings },
         ]

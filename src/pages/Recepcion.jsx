@@ -71,7 +71,11 @@ export default function Recepcion() {
 
     const { data: reservas = [] } = useQuery({
         queryKey: ['reservas', hotelId],
-        queryFn: () => hotelDb.Reserva.list(),
+        queryFn: async () => {
+            const data = await hotelDb.Reserva.list();
+            console.log("RESERVAS FETECHED:", data);
+            return data;
+        },
         enabled: !!hotelId,
     });
 

@@ -1,6 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import forge from "npm:node-forge@1.3.1";
-import JSZip from "npm:jszip@3.10.1";
+import forge from "pnpm:node-forge@1.3.1";
+import JSZip from "pnpm:jszip@3.10.1";
 
 import { buildUblXml } from "./xmlGenerator.ts";
 import { getOrCreateTestPfx, signXmlDocument } from "./xmlSigner.ts";

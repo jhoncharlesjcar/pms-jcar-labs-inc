@@ -335,14 +335,13 @@ export default function Dashboard() {
     }, [ocupacionPct]);
 
 
-
     return (
         <div className="page-shell">
             {/* ═══ Header — Saludo Personalizado ═══ */}
             <div className="page-header lg:items-center">
                 <div>
                     <p className="text-sm font-medium text-muted-foreground mb-0.5">
-                        {getGreeting()}, <span className="font-display font-bold text-foreground">{user?.full_name?.split(' ')[0] || 'Admin'}</span> 👋
+                        {getGreeting()}, <span className="font-display font-bold text-foreground">{user?.full_name || 'Admin'}</span> <span className="text-muted-foreground text-xs font-medium capitalize">({user?.role || 'Desarrollador'})</span> 👋
                     </p>
                     <h1 className="text-xl sm:text-2xl font-bold text-foreground tracking-tight">Esto es lo que pasa en tu hotel hoy</h1>
                     <div className="flex items-center gap-2 mt-1.5">

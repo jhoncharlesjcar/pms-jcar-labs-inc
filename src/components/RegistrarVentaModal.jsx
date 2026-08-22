@@ -30,7 +30,7 @@ import { FidelidadCard } from '@/components/checkout/FidelidadCard';
 import { ComprobanteSelector } from '@/components/checkout/ComprobanteSelector';
 import { VentaExitosaDialog } from '@/components/checkout/VentaExitosaDialog';
 
-const RegistrarVentaModal = memo(function RegistrarVentaModal({ reserva, onClose, onSuccess }) {
+const RegistrarVentaModal = memo(function RegistrarVentaModal(/** @type {any} */ { reserva, onClose, onSuccess }) {
     const { hotelActual } = useHotel();
     const { user } = useAuth();
     const hotelId = hotelActual?.id;

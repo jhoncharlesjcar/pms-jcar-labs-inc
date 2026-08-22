@@ -7,6 +7,7 @@ import { supabase } from '@/config/supabase';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import ChatBubble from '@/components/ai/ChatBubble';
 
 async function invokeBooking(body) {
     const { data, error } = await supabase.functions.invoke('public-booking', { body });
@@ -21,10 +22,18 @@ export default function BookingPublico() {
         fecha_entrada: format(new Date(), 'yyyy-MM-dd'),
         fecha_salida: format(addDays(new Date(), 1), 'yyyy-MM-dd'),
     });
-    const [guest, setGuest] = useState({ nombre: '', documento: '', telefono: '', email: '' });
+    const [guest, setGuest] = useState({ 
+        tipo_reserva: 'particular', 
+        nombre: '', 
+        documento: '', 
+        tipo_documento: 'DNI',
+        telefono: '', 
+        email: '' 
+    });
     const [options, setOptions] = useState([]);
     const [selected, setSelected] = useState(null);
     const [completed, setCompleted] = useState(null);
+    const [isSearchingDoc, setIsSearchingDoc] = useState(false);
 
     const context = useQuery({
         queryKey: ['public-booking-context', hotelId],
@@ -50,6 +59,31 @@ export default function BookingPublico() {
         onSuccess: data => setCompleted(data.reservation || data),
     });
 
+    const searchIdentity = async (e) => {
+        e.preventDefault();
+        if (!guest.documento || guest.documento.length < 8) return;
+        setIsSearchingDoc(true);
+        try {
+            const data = await invokeBooking({
+                action: 'identity',
+                document_type: guest.tipo_documento,
+                document_number: guest.documento,
+                hotel_id: hotelId
+            });
+            if (data?.success && data.data) {
+                if (guest.tipo_documento === 'DNI') {
+                    setGuest(prev => ({ ...prev, nombre: data.data.nombreCompleto }));
+                } else if (guest.tipo_documento === 'RUC') {
+                    setGuest(prev => ({ ...prev, nombre: data.data.razonSocial }));
+                }
+            }
+        } catch (error) {
+            console.error('Error fetching identity:', error);
+        } finally {
+            setIsSearchingDoc(false);
+        }
+    };
+
     if (!hotelId) return <PublicError message="El enlace de reserva es incompleto." />;
     if (context.isPending) return <PublicLoading />;
     if (context.isError) return <PublicError message={context.error.message} />;
@@ -58,9 +92,21 @@ export default function BookingPublico() {
         return (
             <main id="main-content" className="min-h-screen grid place-items-center bg-background p-6">
                 <section className="max-w-lg rounded-3xl border bg-card p-8 text-center shadow-lg">
-                    <h1 className="text-2xl font-black">Solicitud recibida</h1>
-                    <p className="mt-3 text-sm text-muted-foreground">El hotel recibió tu solicitud de reserva.</p>
-                    {completed.numero_reserva && <p className="mt-4 font-mono font-bold">Código: {completed.numero_reserva}</p>}
+                    <h1 className="text-2xl font-black">¡Reserva solicitada!</h1>
+                    <p className="mt-3 text-sm text-muted-foreground">Hemos recibido tu solicitud de reserva.</p>
+                    {completed.numero_reserva && <p className="mt-4 font-mono font-bold text-lg">Código: {completed.numero_reserva}</p>}
+                    
+                    {completed.links && completed.links.checkin_token && (
+                        <div className="mt-8 p-6 bg-primary/10 rounded-2xl border border-primary/20">
+                            <h2 className="font-bold text-primary mb-2">Paso 2: Auto-registro</h2>
+                            <p className="text-sm text-foreground/80 mb-4">
+                                Agiliza tu check-in completando tus datos ahora mismo. ¡No hagas filas en recepción!
+                            </p>
+                            <Button className="w-full" onClick={() => window.location.href = `/public-checkin/${completed.links.checkin_token}`}>
+                                Completar Auto-registro
+                            </Button>
+                        </div>
+                    )}
                 </section>
             </main>
         );
@@ -104,15 +150,44 @@ export default function BookingPublico() {
                 {selected && (
                     <section aria-labelledby="guest-title" className="space-y-4 rounded-3xl border bg-card p-6">
                         <h2 id="guest-title" className="font-black">Datos del huésped</h2>
-                        <Field id="guest-name" label="Nombre completo"><Input id="guest-name" autoComplete="name" value={guest.nombre} onChange={e => setGuest({ ...guest, nombre: e.target.value })} /></Field>
-                        <Field id="guest-doc" label="Documento"><Input id="guest-doc" inputMode="numeric" value={guest.documento} onChange={e => setGuest({ ...guest, documento: e.target.value })} /></Field>
-                        <Field id="guest-phone" label="Teléfono"><Input id="guest-phone" type="tel" autoComplete="tel" value={guest.telefono} onChange={e => setGuest({ ...guest, telefono: e.target.value })} /></Field>
-                        <Field id="guest-email" label="Correo (opcional)"><Input id="guest-email" type="email" autoComplete="email" value={guest.email} onChange={e => setGuest({ ...guest, email: e.target.value })} /></Field>
-                        <Button className="w-full" disabled={create.isPending || !guest.nombre || !guest.documento || !guest.telefono} onClick={() => create.mutate()}>Solicitar reserva</Button>
+                        
+                        <div className="flex gap-4 mb-4">
+                            <label className="flex items-center gap-2">
+                                <input type="radio" name="tipo_reserva" checked={guest.tipo_reserva === 'particular'} onChange={() => setGuest({ ...guest, tipo_reserva: 'particular', tipo_documento: 'DNI', nombre: '', documento: '' })} className="accent-primary" />
+                                Particular
+                            </label>
+                            <label className="flex items-center gap-2">
+                                <input type="radio" name="tipo_reserva" checked={guest.tipo_reserva === 'corporativa'} onChange={() => setGuest({ ...guest, tipo_reserva: 'corporativa', tipo_documento: 'RUC', nombre: '', documento: '' })} className="accent-primary" />
+                                Corporativa (Empresa)
+                            </label>
+                        </div>
+
+                        <div className="grid gap-4 sm:grid-cols-2 items-end">
+                            <Field id="guest-doc" label={guest.tipo_reserva === 'corporativa' ? 'RUC' : 'DNI / Pasaporte'}>
+                                <div className="flex gap-2">
+                                    <Input id="guest-doc" inputMode="numeric" value={guest.documento} onChange={e => setGuest({ ...guest, documento: e.target.value })} placeholder={guest.tipo_reserva === 'corporativa' ? 'Ingresa RUC' : 'Ingresa Documento'} />
+                                    {(guest.tipo_documento === 'DNI' || guest.tipo_documento === 'RUC') && (
+                                        <Button type="button" variant="secondary" onClick={searchIdentity} disabled={isSearchingDoc || guest.documento.length < 8}>
+                                            {isSearchingDoc ? 'Buscando...' : 'Buscar'}
+                                        </Button>
+                                    )}
+                                </div>
+                            </Field>
+                            <Field id="guest-name" label={guest.tipo_reserva === 'corporativa' ? 'Razón Social' : 'Nombre completo'}>
+                                <Input id="guest-name" autoComplete="name" value={guest.nombre} onChange={e => setGuest({ ...guest, nombre: e.target.value })} />
+                            </Field>
+                        </div>
+                        <div className="grid gap-4 sm:grid-cols-2">
+                            <Field id="guest-phone" label="Teléfono"><Input id="guest-phone" type="tel" autoComplete="tel" value={guest.telefono} onChange={e => setGuest({ ...guest, telefono: e.target.value })} /></Field>
+                            <Field id="guest-email" label="Correo (opcional)"><Input id="guest-email" type="email" autoComplete="email" value={guest.email} onChange={e => setGuest({ ...guest, email: e.target.value })} /></Field>
+                        </div>
+                        <Button className="w-full mt-4" disabled={create.isPending || !guest.nombre || !guest.documento || !guest.telefono} onClick={() => create.mutate()}>Solicitar reserva</Button>
                         {create.isError && <InlineError message={create.error.message} />}
                     </section>
                 )}
             </div>
+            
+            <ChatBubble hotelId={hotelId} />
         </main>
     );
 }

@@ -14,6 +14,7 @@ export const ROUTE_ROLE_MAP: Record<string, readonly AppRole[]> = {
   '/habitaciones': ['admin', 'developer', 'recepcionista', 'limpieza'],
   '/limpieza': ['admin', 'developer', 'recepcionista', 'limpieza'],
   '/revenue': ['admin', 'developer'],
+  '/jcar-ai': ['admin', 'developer'],
   '/insumos': ['admin', 'developer'],
   '/fidelizacion': ['admin', 'developer', 'recepcionista'],
 };

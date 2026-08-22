@@ -56,6 +56,45 @@ serve(async (req: Request) => {
     if (hotelError || !hotel) return errorResponse("Hotel not available", 404);
     if (body.action === "hotel") return Response.json({ hotel }, { headers: corsHeaders });
 
+    if (body.action === "identity") {
+      const type = body.document_type;
+      const num = body.document_number;
+      if (type !== "DNI" && type !== "RUC") return errorResponse("Invalid document_type", 400);
+      
+      const token = Deno.env.get("APIS_NET_PE_TOKEN");
+      if (!token) return errorResponse("Identity API not configured", 500);
+      
+      const endpoint = type === "DNI" 
+        ? `https://api.decolecta.com/api/dni/${num}`
+        : `https://api.decolecta.com/api/ruc/${num}`;
+
+      try {
+        const res = await fetch(endpoint, {
+          method: "GET",
+          headers: { "Authorization": `Bearer ${token}`, "Accept": "application/json" }
+        });
+        if (!res.ok) throw new Error("API error");
+        const raw = await res.json();
+        if (!raw.success || !raw.data) throw new Error("Not found");
+        
+        let formattedData;
+        if (type === "DNI") {
+           formattedData = {
+              nombreCompleto: raw.data.nombre_completo || `${raw.data.nombres} ${raw.data.apellido_paterno} ${raw.data.apellido_materno}`.trim()
+           };
+        } else {
+           formattedData = {
+              razonSocial: raw.data.nombre_o_razon_social || raw.data.razon_social,
+              estado: raw.data.estado,
+              condicion: raw.data.condicion
+           };
+        }
+        return Response.json({ success: true, data: formattedData }, { headers: corsHeaders });
+      } catch (err) {
+        return Response.json({ success: false, error: "Not found" }, { headers: corsHeaders });
+      }
+    }
+
     const range = dates(body);
     if (!range) return errorResponse("Invalid date range", 400);
 

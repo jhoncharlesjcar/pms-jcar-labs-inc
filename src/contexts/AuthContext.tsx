@@ -28,7 +28,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // Estado local para loading / errores (no persistente)
   const [user, setUser] = useState<UserProfile | null>(storeUser);
   const [session, setSession] = useState<any>(storeSession);
-  const [isLoadingAuth, setIsLoadingAuth] = useState(true);
+  const [isLoadingAuth, setIsLoadingAuth] = useState(!storeUser);
   const [isLoadingPublicSettings] = useState(false);
   const [authError, setAuthError] = useState<{ type: string; message: string } | null>(null);
   const [authChecked, setAuthChecked] = useState(false);
@@ -138,7 +138,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         // El acceso permanece cerrado hasta validar perfil, rol y estado activo,
         // pero evitamos unmount de toda la app si ya teníamos un usuario en memoria
         // (ej: cuando Supabase emite SIGNED_IN por un refresco de token en background)
-        const isInitialLoad = !storeUser;
+        const currentUser = useAuthStore.getState().user;
+        const isInitialLoad = !currentUser;
         if (isInitialLoad) {
           setIsLoadingAuth(true);
         }

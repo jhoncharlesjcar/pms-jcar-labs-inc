@@ -103,6 +103,8 @@ export interface Reserva {
   estado: 'pendiente' | 'confirmada' | 'activa' | 'finalizada' | 'cancelada';
   observaciones?: string;
   numero_reserva?: string;
+  token_autoregistro?: string;
+  autoregistro_completado?: boolean;
   created_date?: string;
 }
 
