@@ -2,7 +2,7 @@
 import { SignedXml } from "npm:xml-crypto@6.0.0";
 import forge from "npm:node-forge@1.3.1";
 
-let cachedTestPfx: any = null;
+let cachedTestPfx: { privateKeyPem: string; certPem: string; certBase64: string } | null = null;
 
 export function getOrCreateTestPfx() {
   if (cachedTestPfx) return cachedTestPfx;
@@ -35,7 +35,7 @@ export function getOrCreateTestPfx() {
   return cachedTestPfx;
 }
 
-export function signXmlDocument(xmlString: string, pfxCache: any): string {
+export function signXmlDocument(xmlString: string, pfxCache: { privateKeyPem: string; certPem: string }): string {
   const { privateKeyPem, certPem } = pfxCache;
 
   const sig = new SignedXml({

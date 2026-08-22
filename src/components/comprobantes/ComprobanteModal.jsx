@@ -319,7 +319,7 @@ const ComprobanteModal = memo(function ComprobanteModal(/** @type {any} */ { isO
         ruc_cliente: tipoComprobante === 'factura' ? rucCliente : '',
         razon_social: tipoComprobante === 'factura' ? razonSocial : '',
       };
-      const filename = await generarPDF(ventaConDatos, hotel, tipoComprobante);
+      const filename = await generarPDF(ventaConDatos, hotel, /** @type {"factura"|"boleta"} */ (tipoComprobante));
       if (onEmitido) onEmitido(filename, tipoComprobante);
     } catch (err) {
       logger.error(err);

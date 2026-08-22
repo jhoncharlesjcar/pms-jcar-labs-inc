@@ -102,7 +102,7 @@ serve(async (req: Request) => {
       .order('created_at', { ascending: false })
       .limit(10);
     
-    const history = (historyData || []).reverse(); // Orden cronológico
+    const history: any[] = (historyData || []).reverse(); // Orden cronológico
 
     // 5. Cargar knowledge base
     const { data: knowledge } = await supabase

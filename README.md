@@ -2,8 +2,8 @@
 
 PMS hotelero multi-tenant para gestionar recepción, habitaciones, huéspedes, limpieza, ventas, POS, caja, inventario, reportes, revenue y configuración de propiedades.
 
-**Versión del proyecto:** 1.0.1
-**Documentación actualizada:** 16 de agosto de 2026
+**Versión del proyecto:** 2.0.0
+**Documentación actualizada:** 22 de agosto de 2026
 **Rama productiva:** `main`
 
 ## Capacidades
@@ -13,9 +13,12 @@ PMS hotelero multi-tenant para gestionar recepción, habitaciones, huéspedes, l
 - Ventas del hotel y punto de venta con múltiples medios de pago.
 - Caja, egresos, arqueo y cierre de turno.
 - Limpieza e inventario de suministros.
-- Comprobantes internos y flujo de facturación electrónica.
-- Booking, pre-check-in y portal del huésped mediante rutas públicas controladas.
-- Administración multi-hotel con aislamiento por `hotel_id`.
+- **Facturación electrónica SUNAT:** Generación, firmado XML y emisión de comprobantes (Facturas/Boletas).
+- **Inteligencia Artificial (AI Gateway):** Asistente conversacional Gemini 2.0 con *Tool Calling* y base de conocimiento dinámica.
+- **Channel Manager (OTA Sync):** Sincronización bidireccional de inventario y tarifas con Agencias de Viajes Online (OTAs).
+- **Pasarela de Pagos y Portales:** Portal del huésped, Booking Engine integrado, Pre-Checkin y webhooks de validación de pagos.
+- **Integraciones:** Notificaciones vía WhatsApp y exportación a DIRCETUR/MINCETUR.
+- Administración multi-hotel con aislamiento estricto por `hotel_id`.
 - Interfaz PWA responsiva con modos claro y oscuro.
 
 ## Roles
@@ -32,10 +35,12 @@ La matriz ejecutable de permisos vive en [`src/constants/permissions.ts`](src/co
 ## Tecnología
 
 - React 18, React Router y Vite 6.
-- Supabase Auth, PostgreSQL, RLS, Realtime y Edge Functions.
+- Supabase Auth, PostgreSQL, RLS, Realtime y 15+ Edge Functions.
 - TanStack Query con persistencia selectiva en IndexedDB.
 - Tailwind CSS, Radix UI, Manrope, Lucide, `@gsap/react` y Recharts.
 - Web Workers nativos para generación asíncrona de reportes y tickets PDF (`jsPDF`).
+- Deno 2.x, `xml-crypto` y `node-forge` para firmado criptográfico de Facturación SUNAT.
+- Google Gemini 2.0 API para Inteligencia Artificial y Function Calling.
 - PWA con actualización automática mediante Workbox.
 - pnpm 9 y Node.js 22.
 

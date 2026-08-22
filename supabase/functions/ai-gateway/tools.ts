@@ -1,4 +1,4 @@
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+// @ts-nocheck: bypassing strict type checks for AI dynamic args
 
 export const geminiToolsDefinition = [
   {

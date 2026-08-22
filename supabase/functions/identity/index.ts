@@ -1,6 +1,5 @@
-// @ts-nocheck
+// @ts-nocheck: bypassing strict type checks for Identity endpoint
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
 import { authenticateRequest, errorResponse, createAdminClient } from '../_shared/auth-middleware.ts';
 
@@ -193,6 +192,7 @@ serve(async (req: Request) => {
       status: 200,
     });
 
+  // deno-lint-ignore no-explicit-any
   } catch (err: any) {
     console.error("Identity Service Error:", err);
     const responseTime = Date.now() - startTime;

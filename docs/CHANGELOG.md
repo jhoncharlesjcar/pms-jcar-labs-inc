@@ -2,6 +2,20 @@
 
 Este documento registra los cambios más relevantes, mejoras arquitectónicas y soluciones a errores en el PMS JCAR LABS.
 
+## [2.0.0] - 22 de Agosto de 2026
+
+### Nuevas Características Mayores (Supabase Edge Functions)
+- **Facturación Electrónica SUNAT:** Nuevo módulo completo de generación de comprobantes (Facturas y Boletas). Implementación de Edge Functions nativas en Deno (`facturacion`, `xmlGenerator`, `xmlSigner`) con firmado criptográfico usando `xml-crypto` y envío al servicio web de SUNAT.
+- **JcarAI (AI Gateway):** Integración con Google Gemini 2.0 Flash para habilitar un asistente conversacional inteligente. Incluye soporte nativo para *Tool Calling* permitiendo a la IA interactuar con la base de datos (inventario, políticas, disponibilidad) y responder contextualmente.
+- **Channel Manager (OTA Sync):** Nuevas integraciones para sincronizar inventario (`ota-sync-inventory`) y tarifas (`ota-sync-rates`) bidireccionalmente con Agencias de Viajes Online (OTAs).
+- **Pasarela de Pagos y Webhooks:** Nuevo ecosistema de pagos mediante `generate-payment`, `validate-gateway`, y `webhook-gateway` para procesar transacciones en línea de manera segura.
+- **Portal del Huésped (Guest Portal & Pre-Checkin):** Rutas seguras (`public-booking`, `public-checkin`, `guest-portal`) para que los huéspedes gestionen su estancia antes de llegar al hotel.
+
+### Integraciones y Mejoras Adicionales
+- Integración oficial con DIRCETUR / MINCETUR para exportación de registros de huéspedes.
+- Mensajería automatizada integrada vía WhatsApp (`whatsapp.service.ts`).
+- Refactorización de dependencias Deno usando configuración explícita (`deno.json`) aislando el entorno Edge de Node.js, resolviendo problemas de caché (npm) y colisiones de LSP.
+
 ## [1.0.1] - 16 de Agosto de 2026
 
 ### Mejoras Arquitectónicas y Rendimiento (Web Workers & GSAP)

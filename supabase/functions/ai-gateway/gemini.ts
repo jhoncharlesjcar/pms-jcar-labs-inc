@@ -59,7 +59,7 @@ export async function submitToolResponseToGemini(
   // Formatear historial
   const contents = history.map(msg => ({
     role: msg.role === 'assistant' ? 'model' : msg.role,
-    parts: [{ text: msg.content }]
+    parts: msg._functionCall ? [{ functionCall: msg._functionCall }] : [{ text: msg.content }]
   }));
 
   // Añadir tool call functionResponse
@@ -77,7 +77,7 @@ export async function submitToolResponseToGemini(
 
   contents.push({
     role: 'user', // En Gemini el usuario devuelve el functionResponse
-    parts: functionResponsesParts
+    parts: functionResponsesParts as any
   });
 
   const payload = {

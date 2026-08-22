@@ -1,7 +1,7 @@
 # Arquitectura del PMS JCAR LABS
 
-**Versión:** 1.0.0
-**Última revisión:** 16 de agosto de 2026
+**Versión:** 2.0.0
+**Última revisión:** 22 de agosto de 2026
 
 ## Objetivo
 
@@ -19,9 +19,9 @@ flowchart LR
     DB --> API["Supabase API"]
     API --> AUTH["Supabase Auth"]
     API --> PG["PostgreSQL + RLS"]
-    UI --> EDGE["Edge Functions"]
+    UI --> EDGE["Edge Functions (Deno)"]
     EDGE --> PG
-    EDGE --> EXT["SUNAT, identidad, pagos y OTA"]
+    EDGE --> EXT["SUNAT, Gemini AI, identidad, OTA, pasarelas"]
 ```
 
 ## Frontend
@@ -97,11 +97,15 @@ El filtro del cliente no es un control de seguridad. Una operación sigue siendo
 Las Edge Functions cubren:
 
 - configuración de secretos por hotel;
-- facturación e identidad;
-- invitación de usuarios;
+- **facturación electrónica (SUNAT)** y firmado XML (`facturacion`, `xmlGenerator`, `xmlSigner`);
+- **inteligencia artificial (Gemini 2.0)** y tool calling (`ai-gateway`);
+- **conectividad OTA** bidireccional (`ota-sync-inventory`, `ota-sync-rates`);
+- **pasarelas de pago** y webhooks (`generate-payment`, `validate-gateway`, `webhook-gateway`);
 - booking, check-in y portal públicos;
-- pagos, webhooks y conectividad OTA;
+- invitación de usuarios e identidad;
 - expiración de puntos.
+
+Las funciones están escritas para el runtime de Deno 2.x. Se utiliza el archivo `deno.json` para configurar módulos nativos (`npm:` specifiers) como `xml-crypto` y deshabilitar advertencias intrusivas de linter, asegurando que el servidor de lenguaje no colisione con el proyecto React raíz.
 
 Las funciones autenticadas reutilizan `supabase/functions/_shared/auth-middleware.ts`. Las integraciones sin proveedor real deben devolver un error explícito y permanecer deshabilitadas.
 

@@ -5,7 +5,7 @@ import {
   errorResponse,
 } from "../_shared/auth-middleware.ts";
 
-declare const Deno: any;
+declare const Deno: { env: { get(key: string): string | undefined } };
 
 serve(async (req: Request) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });

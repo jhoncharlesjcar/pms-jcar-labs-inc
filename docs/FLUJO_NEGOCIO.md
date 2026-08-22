@@ -64,14 +64,21 @@ Medios de pago admitidos: efectivo, Yape, Plin, transferencia y tarjeta. Los pag
 
 La confirmación se bloquea mientras falten datos obligatorios o exista una mutación en curso.
 
-## 5. Comprobantes
+## 5. Comprobantes (Facturación Electrónica SUNAT)
 
-El sistema diferencia:
+El sistema diferencia el estado de los documentos:
 
-- `ticket_interno`;
-- `sunat_pendiente`;
-- `sunat_emitido`;
-- `sunat_rechazado`.
+- `ticket_interno`: Documento no fiscal para control interno.
+- `sunat_pendiente`: Comprobante generado y esperando firma/envío.
+- `sunat_emitido`: Comprobante firmado (XML digital) y aceptado por SUNAT (CDR válido).
+- `sunat_rechazado`: Rechazado por SUNAT, requiere corrección.
+
+**Flujo de Facturación (Edge Functions):**
+1. Recepción emite una Factura o Boleta durante el checkout o venta POS.
+2. La base de datos invoca la Edge Function de `facturacion`.
+3. `xmlGenerator.ts` construye el UBL 2.1 estándar de SUNAT.
+4. `xmlSigner.ts` utiliza `xml-crypto` y certificados digitales para firmar criptográficamente el XML.
+5. Se envía el payload a los web services de SUNAT y se procesa el CDR (Constancia de Recepción).
 
 Un ticket interno o pendiente no debe presentarse como comprobante tributario aceptado. Solamente un documento aceptado puede mostrar la representación electrónica y su QR fiscal.
 
@@ -145,3 +152,22 @@ Las métricas siempre se calculan dentro del hotel activo.
 - Todo cobro pertenece a un hotel y a un medio de pago.
 - El estado fiscal mostrado debe coincidir con el persistido.
 - La interfaz responsiva no elimina pasos ni acciones del flujo de negocio.
+
+## 10. Channel Manager y OTA Sync
+
+La conectividad con Agencias de Viajes Online (Booking.com, Expedia, Airbnb) se realiza mediante un flujo bidireccional seguro:
+
+1. **Recepción de Reserva (OTA -> PMS):** Un webhook autenticado recibe el XML/JSON de la reserva.
+2. El sistema valida el `hotel_id`, bloquea la disponibilidad real y crea la reserva en estado "Confirmada".
+3. **Sincronización de Inventario (PMS -> OTA):** La Edge Function `ota-sync-inventory` envía en tiempo real el ajuste de disponibilidad hacia los canales externos al modificarse una ocupación o bloqueo de limpieza.
+4. **Sincronización de Tarifas (PMS -> OTA):** La Edge Function `ota-sync-rates` refleja cualquier cambio de precios (Revenue) hacia las OTAs.
+
+## 11. Asistente Inteligente (JcarAI / AI Gateway)
+
+El hotel puede configurar un agente inteligente accesible para recepcionistas o huéspedes (vía web/WhatsApp):
+
+1. **Interacción:** El usuario o huésped hace una pregunta ("¿Tienen piscina?", "¿Hay cuartos libres hoy?").
+2. **Contexto:** Se carga la Base de Conocimiento (Knowledge Manager) específica del `hotel_id` y el historial de la conversación.
+3. **Inferencia y Tool Calling:** La Edge Function `ai-gateway` procesa el contexto en Gemini 2.0. Si la consulta requiere datos transaccionales, Gemini solicita invocar un *Tool* local.
+4. **Respuesta:** El servidor ejecuta la lectura segura de inventario o políticas y retorna el resultado al modelo para generar la respuesta final natural.
+5. El sistema preserva un registro (`ai_messages`) para auditoría y permite "Handoff" (transferencia a un humano) si el modelo no puede resolver la solicitud.

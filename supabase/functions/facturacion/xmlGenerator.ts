@@ -16,7 +16,7 @@ const IGV_TRIBUTO = {
   codigoInternacional: "VAT",
 };
 
-export function buildUblXml(comp: any, hotel: any, formattedNumber: string): string {
+export function buildUblXml(comp: Record<string, string | number | undefined>, hotel: Record<string, string | undefined>, formattedNumber: string): string {
   const tipoDoc = comp.tipo === "Factura" ? "01" : "03";
   // Si no viene cliente_tipo, inferimos 6 para Factura y 1 para Boleta
   const clienteTipoDoc = comp.cliente_tipo || (comp.tipo === "Factura" ? "6" : "1");

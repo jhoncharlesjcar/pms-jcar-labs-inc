@@ -4,7 +4,7 @@
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
-declare const Deno: any;
+declare const Deno: { env: { get(key: string): string | undefined } };
 
 export interface AuthenticatedUser {
   id: string;
