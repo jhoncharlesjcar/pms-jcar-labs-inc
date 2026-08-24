@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Bot, MessageSquare, BookOpen, Settings as SettingsIcon, BarChart3 } from 'lucide-react';
+import { Bot, MessageSquare, BookOpen, Settings as SettingsIcon, BarChart3, Radio } from 'lucide-react';
 import { useHotelData } from '@/hooks/useHotelData';
 import PageSkeleton from '@/components/loaders/PageSkeleton';
 
@@ -8,11 +8,13 @@ import AIDashboard from './components/AIDashboard.jsx';
 import ConversationList from './components/ConversationList.jsx';
 import KnowledgeManager from './components/KnowledgeManager.jsx';
 import AIConfigPanel from './components/AIConfigPanel.jsx';
+import ChannelManager from './components/ChannelManager.jsx';
 
 const tabs = [
     { id: 'dashboard', label: 'Dashboard', icon: BarChart3 },
     { id: 'conversations', label: 'Conversaciones', icon: MessageSquare },
     { id: 'knowledge', label: 'Conocimiento', icon: BookOpen },
+    { id: 'channels', label: 'Canales', icon: Radio },
     { id: 'config', label: 'Configuración', icon: SettingsIcon },
 ];
 
@@ -70,6 +72,7 @@ export default function JcarAI() {
                 {activeTab === 'dashboard' && <AIDashboard hotelId={hotelId} />}
                 {activeTab === 'conversations' && <ConversationList hotelId={hotelId} />}
                 {activeTab === 'knowledge' && <KnowledgeManager hotelId={hotelId} />}
+                {activeTab === 'channels' && <ChannelManager hotelId={hotelId} />}
                 {activeTab === 'config' && <AIConfigPanel hotelId={hotelId} />}
             </div>
         </div>

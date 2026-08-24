@@ -1,142 +1,147 @@
 import React from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { AIService } from '@/services/ai.service';
-import { Save, AlertCircle } from 'lucide-react';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { AlertCircle, Save } from 'lucide-react';
 import { toast } from 'sonner';
+import { AIService } from '@/services/ai.service';
+
+const inputClass = 'w-full rounded-md border border-input bg-background px-3 py-2 text-sm';
 
 export default function AIConfigPanel({ hotelId }) {
     const queryClient = useQueryClient();
-
     const { data: config, isLoading } = useQuery({
         queryKey: ['ai-config', hotelId],
-        queryFn: () => AIService.getConfig(hotelId)
+        queryFn: () => AIService.getConfig(hotelId),
+        enabled: Boolean(hotelId),
     });
 
     const updateMutation = useMutation({
-        /** @param {Partial<import('@/types/ai.types').AIHotelConfig>} updates */
         mutationFn: (updates) => AIService.updateConfig(hotelId, updates),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['ai-config', hotelId] });
-            toast.success("Configuración actualizada correctamente");
-        }
+            toast.success('Configuración actualizada correctamente');
+        },
+        onError: (error) => toast.error(error?.message || 'No se pudo actualizar la configuración'),
     });
 
-    /** @param {string} field @param {any} value */
-    const handleToggle = (field, value) => {
-        updateMutation.mutate({ [field]: value });
-    };
-
-    const handleSubmit = (e) => {
-        e.preventDefault();
-        const formData = new FormData(e.target);
-        
+    const handleSubmit = (event) => {
+        event.preventDefault();
+        const form = new FormData(event.currentTarget);
         updateMutation.mutate({
-            agent_name: formData.get('agent_name')?.toString() || '',
-            agent_personality: formData.get('agent_personality')?.toString() || '',
-            welcome_message: formData.get('welcome_message')?.toString() || '',
-            handoff_message: formData.get('handoff_message')?.toString() || '',
-            response_delay_seconds: parseInt(formData.get('response_delay_seconds')?.toString() || '0', 10),
+            agent_name: form.get('agent_name')?.toString() || '',
+            agent_personality: form.get('agent_personality')?.toString() || '',
+            welcome_message: form.get('welcome_message')?.toString() || '',
+            handoff_message: form.get('handoff_message')?.toString() || '',
+            response_delay_seconds: Number(form.get('response_delay_seconds') || 0),
+            quote_validity_minutes: Number(form.get('quote_validity_minutes') || 30),
+            hold_minutes: Number(form.get('hold_minutes') || 15),
+            deposit_type: form.get('deposit_type')?.toString() || 'full',
+            deposit_value: Number(form.get('deposit_value') || 100),
+            max_discount_percent: Number(form.get('max_discount_percent') || 0),
+            abandoned_followup_minutes: Number(form.get('abandoned_followup_minutes') || 60),
         });
     };
 
-    if (isLoading) {
-        return <div className="p-8 text-center text-muted-foreground">Cargando configuración...</div>;
-    }
-
-    const isEnabled = config?.agent_enabled;
+    if (isLoading) return <div className="p-8 text-center text-muted-foreground">Cargando configuración…</div>;
 
     return (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            <div className="lg:col-span-2 space-y-6">
-                
-                {/* Master Switch */}
-                <div className={`p-6 rounded-xl border ${isEnabled ? 'bg-primary/5 border-primary/20' : 'bg-muted/30 border-border'} flex items-center justify-between transition-colors`}>
+        <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
+            <div className="space-y-6 lg:col-span-2">
+                <div className={`flex items-center justify-between rounded-xl border p-6 ${config?.agent_enabled ? 'border-primary/20 bg-primary/5' : 'border-border bg-muted/30'}`}>
                     <div>
-                        <h3 className="text-lg font-semibold text-foreground">Estado del Agente IA</h3>
-                        <p className="text-sm text-muted-foreground mt-1">Activa o desactiva el widget de chat en la página de reservas.</p>
+                        <h3 className="text-lg font-semibold">Estado de JcarAI</h3>
+                        <p className="mt-1 text-sm text-muted-foreground">Activa el empleado digital multicanal del hotel.</p>
                     </div>
-                    <label className="relative inline-flex items-center cursor-pointer">
-                        <input type="checkbox" className="sr-only peer" checked={isEnabled} onChange={(e) => handleToggle('agent_enabled', e.target.checked)} />
-                        <div className="w-14 h-7 bg-muted peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-primary"></div>
+                    <label className="relative inline-flex cursor-pointer items-center">
+                        <input
+                            type="checkbox"
+                            className="peer sr-only"
+                            checked={Boolean(config?.agent_enabled)}
+                            onChange={(event) => updateMutation.mutate({ agent_enabled: event.target.checked })}
+                        />
+                        <span className="h-7 w-14 rounded-full bg-muted after:absolute after:left-[2px] after:top-[2px] after:h-6 after:w-6 after:rounded-full after:border after:bg-white after:transition-all peer-checked:bg-primary peer-checked:after:translate-x-full" />
                     </label>
                 </div>
 
-                <div className="bg-card border border-border rounded-xl p-6">
-                    <h3 className="text-lg font-semibold mb-4">Personalidad y Textos</h3>
-                    <form onSubmit={handleSubmit} className="space-y-5">
-                        
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div className="space-y-2">
-                                <label className="text-sm font-semibold">Nombre del Agente</label>
-                                <input name="agent_name" defaultValue={config?.agent_name} className="w-full px-3 py-2 bg-background border border-input rounded-md text-sm" placeholder="Ej: Lucía" />
-                            </div>
-                            <div className="space-y-2">
-                                <label className="text-sm font-semibold">Tono y Personalidad</label>
-                                <input name="agent_personality" defaultValue={config?.agent_personality} className="w-full px-3 py-2 bg-background border border-input rounded-md text-sm" placeholder="Ej: formal y directo" />
-                            </div>
+                <form onSubmit={handleSubmit} className="space-y-6 rounded-xl border border-border bg-card p-6">
+                    <section className="space-y-4">
+                        <h3 className="text-lg font-semibold">Personalidad y mensajes</h3>
+                        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                            <label className="space-y-2 text-sm font-medium">Nombre del agente
+                                <input name="agent_name" defaultValue={config?.agent_name} className={inputClass} placeholder="Ej. Lucía" />
+                            </label>
+                            <label className="space-y-2 text-sm font-medium">Tono y personalidad
+                                <input name="agent_personality" defaultValue={config?.agent_personality} className={inputClass} placeholder="Amable, profesional y persuasiva" />
+                            </label>
                         </div>
-
-                        <div className="space-y-2">
-                            <label className="text-sm font-semibold">Mensaje de Bienvenida</label>
-                            <textarea name="welcome_message" defaultValue={config?.welcome_message} rows={2} className="w-full px-3 py-2 bg-background border border-input rounded-md text-sm" />
-                            <p className="text-xs text-muted-foreground">Este es el primer mensaje que envía el agente cuando el usuario abre el chat.</p>
-                        </div>
-
-                        <div className="space-y-2">
-                            <label className="text-sm font-semibold">Mensaje de Transferencia (Handoff)</label>
-                            <textarea name="handoff_message" defaultValue={config?.handoff_message} rows={2} className="w-full px-3 py-2 bg-background border border-input rounded-md text-sm" />
-                            <p className="text-xs text-muted-foreground">Se envía cuando la IA no puede resolver la duda y necesita un humano.</p>
-                        </div>
-
-                        <div className="space-y-2 pt-2">
-                            <label className="text-sm font-semibold text-amber-500">Retraso de Respuesta (Anti-Ban WhatsApp)</label>
+                        <label className="block space-y-2 text-sm font-medium">Mensaje de bienvenida
+                            <textarea name="welcome_message" defaultValue={config?.welcome_message} rows={2} className={inputClass} />
+                        </label>
+                        <label className="block space-y-2 text-sm font-medium">Mensaje de transferencia
+                            <textarea name="handoff_message" defaultValue={config?.handoff_message} rows={2} className={inputClass} />
+                        </label>
+                        <label className="block space-y-2 text-sm font-medium">Ritmo de respuesta del canal
                             <div className="flex items-center gap-3">
-                                <input name="response_delay_seconds" type="number" min="0" max="30" defaultValue={config?.response_delay_seconds || 0} className="w-24 px-3 py-2 bg-background border border-input rounded-md text-sm" />
-                                <span className="text-sm">segundos</span>
+                                <input name="response_delay_seconds" type="number" min="0" max="30" defaultValue={config?.response_delay_seconds || 0} className="w-24 rounded-md border border-input bg-background px-3 py-2" />
+                                <span className="text-sm text-muted-foreground">segundos</span>
                             </div>
-                            <p className="text-xs text-muted-foreground">Configura los segundos que tardará el bot en responder. Ideal para evadir bloqueos en WhatsApp no oficial (recomendado: 3 a 5 seg).</p>
-                        </div>
+                            <span className="block text-xs font-normal text-muted-foreground">Ordena la cola y ofrece una conversación con ritmo natural.</span>
+                        </label>
+                    </section>
 
-                        <div className="pt-4 border-t border-border flex justify-end">
-                            <button type="submit" disabled={updateMutation.isPending} className="flex items-center gap-2 px-6 py-2 bg-primary text-primary-foreground font-semibold rounded-lg hover:bg-primary/90 transition-colors">
-                                {updateMutation.isPending ? 'Guardando...' : <><Save className="w-4 h-4"/> Guardar Textos</>}
-                            </button>
+                    <section className="space-y-4 border-t border-border pt-5">
+                        <div>
+                            <h3 className="text-lg font-semibold">Reglas comerciales</h3>
+                            <p className="text-xs text-muted-foreground">Se aplican en PostgreSQL; el modelo no puede alterarlas.</p>
                         </div>
-                    </form>
-                </div>
+                        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                            <NumberField name="quote_validity_minutes" label="Vigencia de cotización" suffix="minutos" min="5" max="1440" value={config?.quote_validity_minutes || 30} />
+                            <NumberField name="hold_minutes" label="Duración del hold" suffix="minutos" min="5" max="120" value={config?.hold_minutes || 15} />
+                            <label className="space-y-2 text-sm font-medium">Tipo de adelanto
+                                <select name="deposit_type" defaultValue={config?.deposit_type || 'full'} className={inputClass}>
+                                    <option value="full">Pago completo</option>
+                                    <option value="percentage">Porcentaje</option>
+                                    <option value="fixed">Monto fijo</option>
+                                </select>
+                            </label>
+                            <NumberField name="deposit_value" label="Valor del adelanto" suffix="% o S/" min="0" step="0.01" value={config?.deposit_value ?? 100} />
+                            <NumberField name="max_discount_percent" label="Descuento máximo" suffix="%" min="0" max="100" step="0.1" value={config?.max_discount_percent || 0} />
+                            <NumberField name="abandoned_followup_minutes" label="Seguimiento de abandono" suffix="minutos" min="5" max="10080" value={config?.abandoned_followup_minutes || 60} />
+                        </div>
+                    </section>
+
+                    <div className="flex justify-end border-t border-border pt-4">
+                        <button type="submit" disabled={updateMutation.isPending} className="flex items-center gap-2 rounded-lg bg-primary px-6 py-2 font-semibold text-primary-foreground disabled:opacity-50">
+                            <Save className="h-4 w-4" /> {updateMutation.isPending ? 'Guardando…' : 'Guardar configuración'}
+                        </button>
+                    </div>
+                </form>
             </div>
 
-            <div className="space-y-6">
-                <div className="bg-card border border-border rounded-xl p-6">
-                    <h3 className="text-lg font-semibold mb-4">Ajustes del Modelo</h3>
-                    
-                    <div className="space-y-4">
-                        <div className="flex items-start justify-between gap-2 border-b border-border pb-4">
-                            <div>
-                                <p className="font-semibold text-sm">Handoff 24/7</p>
-                                <p className="text-xs text-muted-foreground mt-0.5">La IA registra consultas fuera de horario como pendientes para el staff.</p>
+            <aside className="space-y-6">
+                <div className="rounded-xl border border-border bg-card p-6">
+                    <h3 className="mb-4 text-lg font-semibold">Capacidades activas</h3>
+                    <div className="space-y-3 text-sm">
+                        {['Ventas y cotización', 'Hold de inventario', 'Pago verificado', 'Recepción posreserva', 'Handoff humano'].map((capability) => (
+                            <div key={capability} className="flex items-center justify-between border-b border-border pb-3 last:border-0">
+                                <span>{capability}</span><span className="rounded bg-emerald-500/10 px-2 py-0.5 text-xs font-bold text-emerald-500">Activo</span>
                             </div>
-                            <div className="bg-emerald-500/10 text-emerald-500 px-2 py-0.5 text-xs font-bold rounded">Activo</div>
-                        </div>
-
-                        <div className="flex items-start justify-between gap-2 border-b border-border pb-4">
-                            <div>
-                                <p className="font-semibold text-sm">Idioma Bilingüe</p>
-                                <p className="text-xs text-muted-foreground mt-0.5">El agente detecta automáticamente inglés o español nativo con Gemini.</p>
-                            </div>
-                            <div className="bg-emerald-500/10 text-emerald-500 px-2 py-0.5 text-xs font-bold rounded">Activo</div>
-                        </div>
-                        
-                        <div className="p-4 bg-blue-500/10 rounded-lg flex gap-3 text-blue-700 dark:text-blue-400 text-sm">
-                            <AlertCircle className="w-5 h-5 flex-shrink-0" />
-                            <div>
-                                <p className="font-semibold mb-1">Modelo Actual: Gemini 2.0 Flash</p>
-                                <p className="opacity-80">El agente usa function calling avanzado para consultar precios y crear reservas en tiempo real.</p>
-                            </div>
-                        </div>
+                        ))}
+                    </div>
+                    <div className="mt-5 flex gap-3 rounded-lg bg-blue-500/10 p-4 text-sm text-blue-700 dark:text-blue-400">
+                        <AlertCircle className="h-5 w-5 shrink-0" />
+                        <p>Disponibilidad, tarifas, holds y confirmaciones se validan en el PMS.</p>
                     </div>
                 </div>
-            </div>
+            </aside>
         </div>
+    );
+}
+
+function NumberField({ name, label, suffix, value, ...inputProps }) {
+    return (
+        <label className="space-y-2 text-sm font-medium">{label}
+            <input name={name} type="number" defaultValue={value} className={inputClass} {...inputProps} />
+            <span className="block text-xs font-normal text-muted-foreground">{suffix}</span>
+        </label>
     );
 }

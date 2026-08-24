@@ -98,23 +98,24 @@ serve(async (req: Request) => {
     const range = dates(body);
     if (!range) return errorResponse("Invalid date range", 400);
 
-    const { data: rooms, error: roomError } = await db.from("habitaciones")
-      .select("id,numero,tipo,descripcion,capacidad,precio_noche,precio")
-      .eq("hotel_id", body.hotel_id).neq("estado", "mantenimiento");
-    if (roomError) throw roomError;
-
-    // P1: Include 'confirmada' in occupied query along with 'pendiente' and 'activa'
-    const { data: occupied, error: occupiedError } = await db.from("reservas")
-      .select("habitacion_id").eq("hotel_id", body.hotel_id)
-      .in("estado", ["pendiente", "confirmada", "activa"])
-      .lt("fecha_entrada", body.fecha_salida).gt("fecha_salida", body.fecha_entrada);
-    if (occupiedError) throw occupiedError;
-
-    const occupiedIds = new Set((occupied || []).map((r: any) => r.habitacion_id));
-    const available = (rooms || []).filter((r: any) => !occupiedIds.has(r.id)).map((r: any) => ({
-      id: r.id, numero: r.numero, tipo: r.tipo, descripcion: r.descripcion,
-      capacidad: r.capacidad, precio_noche: Number(r.precio_noche ?? r.precio),
-      total: Number((Number(r.precio_noche ?? r.precio) * range.nights).toFixed(2)),
+    const { data: availability, error: availabilityError } = await db.rpc("ai_search_availability_v2", {
+      p_hotel_id: body.hotel_id,
+      p_fecha_entrada: body.fecha_entrada,
+      p_fecha_salida: body.fecha_salida,
+      p_adultos: Number(body.adultos || body.huespedes || 1),
+      p_ninos: Number(body.ninos || 0),
+    });
+    if (availabilityError) throw availabilityError;
+    const available = (availability?.rooms || []).map((room: any) => ({
+      id: room.habitacion_id,
+      numero: room.room_number,
+      tipo: room.room_type,
+      descripcion: room.description,
+      amenidades: room.amenities,
+      capacidad: room.capacity,
+      precio_noche: Number(room.nightly_rate),
+      total: Number(room.total),
+      price_breakdown: room.breakdown,
     }));
     if (body.action === "availability") return Response.json({ rooms: available, extras: [] }, { headers: corsHeaders });
     if (body.action !== "create") return errorResponse("Unsupported action", 400);

@@ -1,7 +1,17 @@
 export interface AIGatewayRequest {
+  action?: 'bootstrap' | 'message' | 'delivery_status' | 'pull_outbound';
   hotel_id: string;
-  session_id: string;
-  message: string;
+  session_id?: string;
+  session_token?: string;
+  message?: string;
+  channel?: 'web' | 'whatsapp' | 'instagram' | 'facebook' | 'guest_portal';
+  external_account_id?: string;
+  external_contact_id?: string;
+  external_message_id?: string;
+  delivery_message_id?: string;
+  delivery_status?: 'sent' | 'delivered' | 'read' | 'failed';
+  error_code?: string;
+  limit?: number;
 }
 
 export interface AIGatewayResponse {
@@ -22,6 +32,11 @@ export interface AIHotelConfig {
   languages: string[];
   operating_hours: any;
   handoff_message: string;
+  response_delay_seconds?: number;
+  quote_validity_minutes?: number;
+  hold_minutes?: number;
+  deposit_type?: 'full' | 'percentage' | 'fixed';
+  deposit_value?: number;
 }
 
 export interface AIKnowledge {
@@ -42,4 +57,6 @@ export interface AIConversation {
   status: string;
   intent?: string;
   metadata: any;
+  journey_stage?: string;
+  human_controlled?: boolean;
 }

@@ -80,6 +80,8 @@ Funciones disponibles:
 
 ```text
 configure-hotel-secrets
+ai-gateway
+expire-ai-booking-artifacts
 expire-loyalty-points
 facturacion
 generate-payment
@@ -104,6 +106,9 @@ Configurar con `supabase secrets set`, según los módulos habilitados:
 - credenciales de pagos;
 - credenciales OTA;
 - secretos para validar webhooks.
+- `AI_SESSION_SECRET` para firmar sesiones del chat público;
+- `CHANNEL_GATEWAY_SECRET` para autenticar los conectores normalizados de WhatsApp, Instagram y Facebook;
+- `CRON_SECRET` para ejecutar la expiración programada de cotizaciones, holds y pagos.
 
 Las claves privadas, `service_role`, contraseñas SOL y certificados nunca deben ser variables `VITE_*`. Pagos y OTA deben permanecer deshabilitados si no existe un proveedor real configurado.
 
