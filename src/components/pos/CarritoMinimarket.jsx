@@ -14,7 +14,7 @@ const EMOJI_DEFAULT = {
  * @param {(id: string, dir: 'inc' | 'dec') => void} props.onCambiarCantidad
  * @param {(id: string) => void} props.onEliminar
  */
-const CarritoMinimarket = memo(function CarritoMinimarket({ items, onCambiarCantidad, onEliminar }) {
+const CarritoMinimarket = memo(function CarritoMinimarket(/** @type {any} */ { items, onCambiarCantidad, onEliminar }) {
     const listRef = useRef(null);
     const prevLengthRef = useRef(0);
 

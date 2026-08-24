@@ -15,7 +15,7 @@ import { cn } from '@/lib/utils';
  * Diálogo de confirmación reutilizable basado en AlertDialog de Radix.
  * Reemplaza todos los confirm() nativos del navegador.
  *
- * @param {Object} props
+ * @param {any} props
  * @param {boolean} props.open - Controla la visibilidad del diálogo
  * @param {(open: boolean) => void} props.onOpenChange - Callback de cambio de estado
  * @param {string} props.title - Título del diálogo
@@ -26,7 +26,7 @@ import { cn } from '@/lib/utils';
  * @param {string} [props.cancelText='Cancelar'] - Texto del botón de cancelar
  * @param {boolean} [props.isPending=false] - Si el proceso está en curso
  */
-const ConfirmDialog = memo(function ConfirmDialog({
+const ConfirmDialog = memo(function ConfirmDialog(/** @type {any} */ {
     open,
     onOpenChange,
     title,

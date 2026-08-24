@@ -4,8 +4,8 @@ import JSZip from "pnpm:jszip@3.10.1";
 
 import { buildUblXml } from "./xmlGenerator.ts";
 import { getOrCreateTestPfx, signXmlDocument } from "./xmlSigner.ts";
-import { sendSunatSoap } from "./sunatSoapClient.ts";
 import { authenticateRequest, errorResponse, createAdminClient, corsHeaders } from "../_shared/auth-middleware.ts";
+import { logEvent, noStoreJson, requestId } from "../_shared/runtime.ts";
 
 declare const Deno: any;
 
@@ -17,6 +17,7 @@ serve(async (req: Request) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
   if (req.method !== "POST") return errorResponse("Method not allowed", 405);
 
+  const traceId = requestId(req);
   try {
     const auth = await authenticateRequest(req);
     if (auth.error || !auth.user) return errorResponse(auth.error || "Unauthorized", auth.status);
@@ -33,12 +34,16 @@ serve(async (req: Request) => {
 
     const supabase = createAdminClient();
     const { data: existing } = await supabase
-      .from("comprobantes").select("id, estado")
+      .from("comprobantes").select("*")
       .eq("source_table", sourceTable).eq("source_id", ventaId).maybeSingle();
     if (existing && existing.estado === 'aceptado') {
-      return new Response(JSON.stringify({ comprobante_id: existing.id, estado: existing.estado, idempotent: true }), {
-        status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      return noStoreJson({ comprobante_id: existing.id, estado: existing.estado, idempotent: true, request_id: traceId }, 200, corsHeaders);
+    }
+    if (existing && existing.estado === 'procesando') {
+      return noStoreJson({ comprobante_id: existing.id, estado: existing.estado, queued: true, idempotent: true, request_id: traceId }, 202, corsHeaders);
+    }
+    if (existing && existing.estado === 'fallido') {
+      return noStoreJson({ error: 'Fiscal document exhausted automatic retries and requires review', comprobante_id: existing.id, request_id: traceId }, 409, corsHeaders);
     }
 
     const { data: venta, error: ventaError } = await supabase
@@ -102,21 +107,37 @@ serve(async (req: Request) => {
     const subtotal = hotel.aplica_igv === false ? total : Number((total / 1.18).toFixed(2));
     const igv = hotel.aplica_igv === false ? 0 : Number((total - subtotal).toFixed(2));
 
-    const { data: formattedNumber, error: numberError } = await supabase.rpc("next_comprobante_number", {
-      p_hotel_id: venta.hotel_id, p_tipo: tipo, p_serie: serie,
-    });
-    if (numberError || !formattedNumber) throw numberError || new Error("Could not allocate fiscal number");
-
-    const { data: comp, error: insertError } = await supabase.from("comprobantes").insert({
-      hotel_id: venta.hotel_id, tipo, serie, numero: formattedNumber,
-      cliente_tipo: clienteTipo, cliente_documento: clienteDocumento, cliente_nombre: clienteNombre,
-      subtotal, igv, total, estado: "pendiente", source_table: sourceTable, source_id: ventaId,
-    }).select().single();
-    if (insertError) {
-      if (insertError.code === "23505") return errorResponse("Fiscal document already exists", 409);
-      throw insertError;
+    let comp = existing;
+    if (comp && ['rechazado', 'pendiente'].includes(comp.estado)) {
+      const { data: requeued, error: requeueError } = await supabase.from('comprobantes').update({
+        estado: 'pendiente', next_attempt_at: new Date().toISOString(), last_error: null,
+      }).eq('id', comp.id).select().single();
+      if (requeueError) throw requeueError;
+      comp = requeued;
+    }
+    if (!comp) {
+      const { data: formattedNumber, error: numberError } = await supabase.rpc("next_comprobante_number", {
+        p_hotel_id: venta.hotel_id, p_tipo: tipo, p_serie: serie,
+      });
+      if (numberError || !formattedNumber) throw numberError || new Error("Could not allocate fiscal number");
+      const { data: inserted, error: insertError } = await supabase.from("comprobantes").insert({
+        hotel_id: venta.hotel_id, tipo, serie, numero: formattedNumber,
+        cliente_tipo: clienteTipo, cliente_documento: clienteDocumento, cliente_nombre: clienteNombre,
+        subtotal, igv, total, estado: "pendiente", source_table: sourceTable, source_id: ventaId,
+      }).select().single();
+      if (insertError?.code === "23505") {
+        const { data: raced, error: racedError } = await supabase.from("comprobantes").select("*")
+          .eq("source_table", sourceTable).eq("source_id", ventaId).single();
+        if (racedError) throw racedError;
+        comp = raced;
+      } else if (insertError) {
+        throw insertError;
+      } else {
+        comp = inserted;
+      }
     }
 
+    const formattedNumber = comp.numero;
     const unsignedXml = buildUblXml(comp, credentials, formattedNumber);
     const signedXml = signXmlDocument(unsignedXml, signingMaterial);
     const zip = new JSZip();
@@ -124,34 +145,21 @@ serve(async (req: Request) => {
     zip.file(`${fileName}.xml`, signedXml);
     const zipBytes: Uint8Array = await zip.generateAsync({ type: "uint8array" });
     const hash = forge.md.sha256.create().update(signedXml, "utf8").digest().toHex();
-    const { error: xmlError } = await supabase.from("comprobante_xml").insert({
-      comprobante_id: comp.id, xml: unsignedXml, hash, xml_firmado: signedXml, zip: zipBytes,
-    });
+    const { data: existingXml } = await supabase.from("comprobante_xml").select("id")
+      .eq("comprobante_id", comp.id).maybeSingle();
+    const xmlMutation = existingXml
+      ? supabase.from("comprobante_xml").update({ xml: unsignedXml, hash, xml_firmado: signedXml, zip: zipBytes }).eq("id", existingXml.id)
+      : supabase.from("comprobante_xml").insert({ comprobante_id: comp.id, xml: unsignedXml, hash, xml_firmado: signedXml, zip: zipBytes });
+    const { error: xmlError } = await xmlMutation;
     if (xmlError) throw xmlError;
 
-    const base64Zip = forge.util.encode64(Array.from(zipBytes).map((b) => String.fromCharCode(b)).join(""));
-    const result = await sendSunatSoap(credentials, fileName, base64Zip);
-    if (result.base64Cdr) {
-      const { error } = await supabase.from("cdr").insert({
-        comprobante_id: comp.id, codigo: "0", descripcion: result.messageResult, archivo_xml: result.base64Cdr,
-      });
-      if (error) throw error;
-    }
-    const { error: statusError } = await supabase.from("comprobantes")
-      .update({ estado: result.estadoFinal }).eq("id", comp.id);
-    if (statusError) throw statusError;
-    const { error: sendLogError } = await supabase.from("sunat_envios").insert({
-      comprobante_id: comp.id, ticket: result.ticket, estado: result.estadoFinal,
-      respuesta: JSON.stringify({ detalle: result.messageResult, status: result.soapResponseStatus }),
+    logEvent("info", "fiscal_document_queued", {
+      request_id: traceId, comprobante_id: comp.id, hotel_id: venta.hotel_id,
+      final_state: "pendiente",
     });
-    if (sendLogError) throw sendLogError;
-
-    if (result.estadoFinal !== "aceptado") return errorResponse(result.messageResult, 502);
-    return new Response(JSON.stringify({ comprobante_id: comp.id, estado: result.estadoFinal }), {
-      status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
+    return noStoreJson({ comprobante_id: comp.id, estado: "pendiente", queued: true, request_id: traceId }, 202, corsHeaders);
   } catch (error) {
-    console.error("[FACTURACION] Failed:", error);
-    return errorResponse("Fiscal document processing failed", 500);
+    logEvent("error", "fiscal_document_failed", { request_id: traceId, error: error instanceof Error ? error.message : String(error) });
+    return noStoreJson({ error: "Fiscal document processing failed", request_id: traceId }, 500, corsHeaders);
   }
 });

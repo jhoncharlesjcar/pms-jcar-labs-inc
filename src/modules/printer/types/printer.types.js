@@ -50,6 +50,7 @@
  * @property {string} phone
  * @property {string} ruc
  * @property {string} guestName
+ * @property {string} [guestDocument]
  * @property {string} date
  * @property {string} receiptType - e.g., 'BOLETA', 'FACTURA', 'TICKET'
  * @property {string} receiptNumber

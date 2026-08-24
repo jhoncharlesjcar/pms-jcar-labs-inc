@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { useState, memo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { db } from '@/api/db';
@@ -214,7 +213,7 @@ const GestionHotelesAdmin = memo(function GestionHotelesAdmin({ onClose }) {
                                 <button onClick={() => { 
                                     toast(`¿Eliminar "${h.nombre}"?`, {
                                         action: { label: 'Eliminar', onClick: () => deleteHotel.mutate(h.id) },
-                                        cancel: { label: 'Cancelar' }
+                                        cancel: { label: 'Cancelar', onClick: () => undefined }
                                     });
                                 }} className="p-2 rounded-lg hover:bg-red-50 hover:text-red-600">
                                     <Trash2 className="w-4 h-4 text-muted-foreground" />

@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="PMS JCAR LABS">
+  <rect width="512" height="512" fill="#1d4ed8"/>
+  <circle cx="256" cy="256" r="184" fill="#0f172a"/>
+  <path d="M152 168h208v208H152z" fill="#1d4ed8"/>
+  <path d="M184 208h144v40H184zm0 72h56v40h-56zm88 0h56v40h-56z" fill="#fff"/>
+  <path d="M224 376v-64h64v64" fill="#0f172a"/>
+</svg>

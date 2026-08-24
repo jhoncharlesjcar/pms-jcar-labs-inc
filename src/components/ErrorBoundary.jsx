@@ -13,7 +13,10 @@ class ErrorBoundary extends React.Component { // Componente de clase — memo no
     }
 
     componentDidCatch(error, errorInfo) {
-        logger.error("ErrorBoundary caught an error", error, errorInfo);
+        logger.error('ui.error_boundary', {
+            error,
+            componentStack: errorInfo?.componentStack,
+        });
     }
 
     render() {

@@ -1,4 +1,3 @@
-// @ts-nocheck
 import React, { useState, useEffect, useRef, memo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Save, CheckCircle, Settings } from 'lucide-react';
@@ -212,18 +211,18 @@ const Configuracion = memo(function Configuracion() {
                 )}
                 {activeTab === 'distribucion' && (
                     <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                        <ConfigSection><ConfigMotorReservas hotelId={hotelId} /></ConfigSection>
+                        <ConfigSection><ConfigMotorReservas /></ConfigSection>
                     </div>
                 )}
                 {activeTab === 'integraciones' && (
                     <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                        <ConfigSection><ConfigChannelManager hotelId={hotelId} /></ConfigSection>
-                        <ConfigSection><ConfigYield hotelId={hotelId} /></ConfigSection>
+                        <ConfigSection><ConfigChannelManager /></ConfigSection>
+                        <ConfigSection><ConfigYield /></ConfigSection>
                     </div>
                 )}
                 {activeTab === 'api' && (
                     <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                        <ConfigSection><ConfigApiWebhooks hotelId={hotelId} /></ConfigSection>
+                        <ConfigSection><ConfigApiWebhooks /></ConfigSection>
                     </div>
                 )}
                 {activeTab === 'avanzado' && (
@@ -231,7 +230,7 @@ const Configuracion = memo(function Configuracion() {
                         <ConfigSection><ConfigPersonal hotelId={hotelId} /></ConfigSection>
                         <ConfigSection><ConfigTarifas hotelId={hotelId} /></ConfigSection>
                         <ConfigSection><ConfigImportadorExcel hotelId={hotelId} /></ConfigSection>
-                        <ConfigSection><ConfigZonaPeligrosa hotelId={hotelId} /></ConfigSection>
+                        <ConfigSection><ConfigZonaPeligrosa /></ConfigSection>
                     </div>
                 )}
             </div>

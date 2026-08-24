@@ -1,7 +1,7 @@
 import React, { memo } from 'react';
 import { ReceiptText } from 'lucide-react';
 
-export const ResumenCuenta = memo(function ResumenCuenta({ reserva, totalConsumos, totalCalc, igvCalc }) {
+export const ResumenCuenta = memo(function ResumenCuenta(/** @type {any} */ { reserva, totalConsumos, totalCalc, igvCalc }) {
     return (
         <section aria-labelledby="checkout-resumen" className="space-y-3">
             <div className="flex items-center gap-2">

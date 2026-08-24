@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { useRef, memo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Printer, Share2 } from 'lucide-react';
@@ -7,8 +6,8 @@ import { generatePlainTextTicket } from '@/modules/printer/services/thermalPrint
 import { toast } from 'sonner';
 import ComprobanteStatus from '@/components/comprobantes/ComprobanteStatus';
 
-const TicketPDF = memo(function TicketPDF({ venta, config }) {
-    const ticketRef = useRef();
+const TicketPDF = memo(function TicketPDF(/** @type {any} */ { venta, config }) {
+    const ticketRef = useRef(null);
 
     const rucEmisor = config.ruc || '20000000000';
     const tipoComp = venta.tipo_comprobante === 'factura' ? '01' : '03'; // Factura o Boleta
@@ -30,7 +29,8 @@ const TicketPDF = memo(function TicketPDF({ venta, config }) {
     const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=110x110&data=${encodeURIComponent(qrString)}`;
 
     const imprimir = () => {
-        const contenido = ticketRef.current.innerHTML;
+        const contenido = ticketRef.current?.innerHTML;
+        if (!contenido) return;
         const ventana = window.open('', '_blank', 'width=400,height=700');
         if (!ventana) {
             toast.error('El navegador bloqueó la ventana de impresión. Habilita las ventanas emergentes e intenta nuevamente.');
@@ -66,7 +66,8 @@ const TicketPDF = memo(function TicketPDF({ venta, config }) {
     };
 
     const handleCompartir = async () => {
-        const contenido = ticketRef.current.innerHTML;
+        const contenido = ticketRef.current?.innerHTML;
+        if (!contenido) return;
 
         // Data estructurada para generar texto plano perfecto
         const rawData = {

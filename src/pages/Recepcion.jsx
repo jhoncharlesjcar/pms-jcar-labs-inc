@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Plus, Search, CalendarDays, CheckCircle2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -105,8 +105,9 @@ export default function Recepcion() {
             }
 
             // 2. Si no hay historial, usar el Identity Service (SUNAT/RENIEC)
-            const docType = form.tipo_documento === 'RUC' ? 'RUC' : 'DNI';
-            const res = await fetchIdentity(docType, dni);
+            if (!['DNI', 'RUC'].includes(form.tipo_documento)) return;
+            const docType = form.tipo_documento;
+            const res = await fetchIdentity(/** @type {'DNI' | 'RUC'} */ (docType), dni);
             if (res?.data) {
                 const nombreEncontrado = res.data.nombreCompleto || res.data.razonSocial;
                 if (nombreEncontrado) {
@@ -150,11 +151,28 @@ export default function Recepcion() {
         enabled: !!hotelId,
     });
 
+    const availabilityQuery = useQuery({
+        queryKey: ['staff-availability', hotelId, form.fecha_entrada, form.fecha_salida, form.num_adultos, form.num_ninos],
+        queryFn: async () => {
+            const { data, error } = await supabase.rpc('staff_search_availability', {
+                p_hotel_id: hotelId, p_fecha_entrada: form.fecha_entrada, p_fecha_salida: form.fecha_salida,
+                p_adultos: Number(form.num_adultos || 1), p_ninos: Number(form.num_ninos || 0),
+            });
+            if (error) throw error;
+            return data;
+        },
+        enabled: Boolean(open && hotelId && form.fecha_entrada && form.fecha_salida && form.fecha_salida > form.fecha_entrada),
+        retry: false,
+    });
+
     // Las ventas se cargan on-demand al hacer check-out para mejorar rendimiento
 
     const saveReserva = useMutation({
         /** @param {any} data */
         mutationFn: async (data) => {
+            if (data.estado === 'activa' && data.fecha_entrada > format(new Date(), 'yyyy-MM-dd')) {
+                throw new Error('No se puede iniciar hoy una estancia cuya fecha de entrada es futura');
+            }
             const { data: nueva, error } = await supabase.rpc('create_reservation_atomic', {
                 p_hotel_id: hotelId,
                 p_habitacion_id: data.habitacion_id || null,
@@ -190,13 +208,6 @@ export default function Recepcion() {
                 throw new Error(error.message || 'Error al guardar reserva');
             }
 
-            if (nueva.estado !== 'activa') {
-                const { data: tokens, error: tokenError } = await supabase.rpc('generate_reservation_tokens', { p_reserva_id: nueva.id });
-                if (!tokenError && tokens) {
-                    nueva.checkin_token = tokens.checkin_token;
-                }
-            }
-
             return nueva;
         },
         onSuccess: (nueva) => {
@@ -220,6 +231,10 @@ export default function Recepcion() {
     const actualizarEstado = useMutation({
         /** @param {any} params */
         mutationFn: async ({ id, estado, hab_id, estadoAnterior }) => {
+            const currentReservation = reservas.find(reserva => reserva.id === id);
+            if (estado === 'activa' && currentReservation?.fecha_entrada > format(new Date(), 'yyyy-MM-dd')) {
+                throw new Error('La estancia no puede activarse antes de su fecha de entrada');
+            }
             const nextRoomStatus = roomStatusForReservationTransition(estadoAnterior, estado);
             const { error } = await supabase.rpc('update_reservation_status_atomic', {
                 p_reserva_id: id,
@@ -267,7 +282,7 @@ export default function Recepcion() {
             if (context?.previousHabitaciones) {
                 qc.setQueryData(['habitaciones', hotelId], context.previousHabitaciones);
             }
-            toast.error('Error al actualizar el estado de la reserva');
+            toast.error(err.message || 'Error al actualizar el estado de la reserva');
         },
         onSettled: () => {
             qc.invalidateQueries({ queryKey: ['reservas', hotelId] });
@@ -284,7 +299,7 @@ export default function Recepcion() {
         return diff > 0 ? diff : 1;
     }, [form.fecha_entrada, form.fecha_salida]);
 
-    const total = noches * (form.precio_noche || 0);
+    const total = form.habitacion_id && Number(form.total) > 0 ? Number(form.total) : noches * (form.precio_noche || 0);
 
     const seleccionarHab = (hab) => {
         setForm({
@@ -292,7 +307,8 @@ export default function Recepcion() {
             habitacion_id: hab.id,
             habitacion_numero: hab.numero,
             habitacion_tipo: hab.tipo,
-            precio_noche: hab.precio_noche
+            precio_noche: Number(hab.precio_noche || 0),
+            total: Number(hab.total || 0),
         });
     };
 
@@ -316,8 +332,12 @@ export default function Recepcion() {
     }, [reservas, filtro, busqueda]);
 
     const habitacionesDisp = useMemo(() => {
-        return habitaciones
-            .filter(h => h.estado === 'disponible')
+        return (availabilityQuery.data?.rooms || [])
+            .map(room => ({
+                ...room, id: room.habitacion_id || room.id, numero: room.room_number || room.numero,
+                tipo: room.room_type || room.tipo, precio_noche: Number(room.nightly_rate || room.precio_noche || 0),
+                total: Number(room.total || 0),
+            }))
             .sort((a, b) => {
                 const pisoA = parseInt(a.piso, 10);
                 const pisoB = parseInt(b.piso, 10);
@@ -337,7 +357,14 @@ export default function Recepcion() {
                 if (!isNaN(numA) && !isNaN(numB)) return numA - numB;
                 return String(a.numero).localeCompare(String(b.numero));
             });
-    }, [habitaciones]);
+    }, [availabilityQuery.data]);
+
+    useEffect(() => {
+        if (!form.habitacion_id || availabilityQuery.isFetching) return;
+        if (!habitacionesDisp.some(room => room.id === form.habitacion_id)) {
+            setForm(current => ({ ...current, habitacion_id: '', habitacion_numero: '', habitacion_tipo: '', precio_noche: 0, total: 0 }));
+        }
+    }, [availabilityQuery.isFetching, form.habitacion_id, habitacionesDisp]);
 
     // Stagger 2D wave para el grid de habitaciones en el Sheet (5 columnas en desktop)
     // NOTA: debe ir DESPUÉS de habitacionesDisp para evitar temporal dead zone
@@ -426,6 +453,8 @@ export default function Recepcion() {
                 form={form}
                 setForm={setForm}
                 habitacionesDisp={habitacionesDisp}
+                availabilityLoading={availabilityQuery.isFetching}
+                availabilityError={availabilityQuery.error?.message}
                 roomGridRef={roomGridRef}
                 seleccionarHab={seleccionarHab}
                 loadingIdentity={loadingIdentity}

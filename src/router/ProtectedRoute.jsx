@@ -5,7 +5,7 @@ import { ShieldAlert, LogOut, ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { canAccessPath, getRoleHome } from '@/constants/permissions';
 
-const ProtectedRoute = memo(function ProtectedRoute({ children }) {
+const ProtectedRoute = memo(function ProtectedRoute(/** @type {any} */ { children }) {
     const { user, auth } = useAuth();
     const location = useLocation();
 

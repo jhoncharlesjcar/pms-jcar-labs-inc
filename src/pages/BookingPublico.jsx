@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { addDays, format } from 'date-fns';
@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import ChatBubble from '@/components/ai/ChatBubble';
+import { validarDocumento } from '@/services/recepcion.service';
 
 async function invokeBooking(body) {
     const { data, error } = await supabase.functions.invoke('public-booking', { body });
@@ -33,7 +34,66 @@ export default function BookingPublico() {
     const [options, setOptions] = useState([]);
     const [selected, setSelected] = useState(null);
     const [completed, setCompleted] = useState(null);
-    const [isSearchingDoc, setIsSearchingDoc] = useState(false);
+    const [challengeToken, setChallengeToken] = useState('');
+    const [paymentMethod, setPaymentMethod] = useState('yape');
+    const turnstileRef = useRef(null);
+    const turnstileSiteKey = import.meta.env.VITE_TURNSTILE_SITE_KEY;
+    const sessionId = useMemo(() => {
+        const key = `jcar_booking_session:${hotelId}`;
+        const existing = sessionStorage.getItem(key);
+        if (existing) return existing;
+        const generated = crypto.randomUUID();
+        sessionStorage.setItem(key, generated);
+        return generated;
+    }, [hotelId]);
+    const idempotencyKey = useMemo(() => {
+        const key = `jcar_booking_idempotency:${hotelId}`;
+        const existing = sessionStorage.getItem(key);
+        if (existing) return existing;
+        const generated = crypto.randomUUID();
+        sessionStorage.setItem(key, generated);
+        return generated;
+    }, [hotelId]);
+
+    useEffect(() => {
+        if (!turnstileSiteKey || !turnstileRef.current) return undefined;
+        let widgetId;
+        const render = () => {
+            const turnstile = /** @type {any} */ (window).turnstile;
+            if (!turnstile || !turnstileRef.current || widgetId !== undefined) return;
+            widgetId = turnstile.render(turnstileRef.current, {
+                sitekey: turnstileSiteKey,
+                callback: setChallengeToken,
+                'expired-callback': () => setChallengeToken(''),
+                'error-callback': () => setChallengeToken(''),
+            });
+        };
+        const existing = document.querySelector('script[data-jcar-turnstile]');
+        if (existing) render();
+        else {
+            const script = document.createElement('script');
+            script.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit';
+            script.async = true;
+            script.defer = true;
+            script.dataset.jcarTurnstile = 'true';
+            script.addEventListener('load', render);
+            document.head.appendChild(script);
+        }
+        const timer = window.setInterval(render, 250);
+        return () => {
+            window.clearInterval(timer);
+            const turnstile = /** @type {any} */ (window).turnstile;
+            if (widgetId !== undefined && turnstile) turnstile.remove(widgetId);
+        };
+    }, [turnstileSiteKey, selected]);
+
+    const updateDates = (field, value) => {
+        setDates(current => ({ ...current, [field]: value }));
+        setOptions([]);
+        setSelected(null);
+        search.reset();
+        create.reset();
+    };
 
     const context = useQuery({
         queryKey: ['public-booking-context', hotelId],
@@ -43,7 +103,12 @@ export default function BookingPublico() {
     });
 
     const search = useMutation({
-        mutationFn: () => invokeBooking({ action: 'availability', hotel_id: hotelId, ...dates }),
+        mutationFn: () => {
+            if (!dates.fecha_entrada || !dates.fecha_salida || dates.fecha_salida <= dates.fecha_entrada) {
+                throw new Error('La salida debe ser posterior a la entrada.');
+            }
+            return invokeBooking({ action: 'availability', hotel_id: hotelId, ...dates, adultos: 1, ninos: 0 });
+        },
         onSuccess: data => { setOptions(data.rooms || []); setSelected(null); },
     });
 
@@ -55,58 +120,43 @@ export default function BookingPublico() {
             fecha_entrada: dates.fecha_entrada,
             fecha_salida: dates.fecha_salida,
             huesped: guest,
+            adultos: 1,
+            ninos: 0,
+            session_id: sessionId,
+            idempotency_key: idempotencyKey,
+            challenge_token: challengeToken,
+            payment_method: paymentMethod,
         }),
-        onSuccess: data => setCompleted(data.reservation || data),
+        onSuccess: data => {
+            sessionStorage.removeItem(`jcar_booking_idempotency:${hotelId}`);
+            setCompleted(data);
+        },
+        onError: () => {
+            setChallengeToken('');
+            /** @type {any} */ (window).turnstile?.reset();
+        },
     });
 
-    const searchIdentity = async (e) => {
-        e.preventDefault();
-        if (!guest.documento || guest.documento.length < 8) return;
-        setIsSearchingDoc(true);
-        try {
-            const data = await invokeBooking({
-                action: 'identity',
-                document_type: guest.tipo_documento,
-                document_number: guest.documento,
-                hotel_id: hotelId
-            });
-            if (data?.success && data.data) {
-                if (guest.tipo_documento === 'DNI') {
-                    setGuest(prev => ({ ...prev, nombre: data.data.nombreCompleto }));
-                } else if (guest.tipo_documento === 'RUC') {
-                    setGuest(prev => ({ ...prev, nombre: data.data.razonSocial }));
-                }
-            }
-        } catch (error) {
-            console.error('Error fetching identity:', error);
-        } finally {
-            setIsSearchingDoc(false);
-        }
-    };
+    const documentValidation = validarDocumento({ tipo: /** @type {import('@/services/recepcion.service').TipoDocumento} */ (guest.tipo_documento), documento: guest.documento });
 
     if (!hotelId) return <PublicError message="El enlace de reserva es incompleto." />;
+    if (!turnstileSiteKey) return <PublicError message="Las reservas en línea están temporalmente deshabilitadas. Contacta directamente al hotel." />;
     if (context.isPending) return <PublicLoading />;
     if (context.isError) return <PublicError message={context.error.message} />;
 
     if (completed) {
+        const reservation = completed.reservation || null;
+        const payment = completed.payment || completed.payment_intent || null;
+        const hold = completed.hold || null;
         return (
             <main id="main-content" className="min-h-screen grid place-items-center bg-background p-6">
                 <section className="max-w-lg rounded-3xl border bg-card p-8 text-center shadow-lg">
-                    <h1 className="text-2xl font-black">¡Reserva solicitada!</h1>
-                    <p className="mt-3 text-sm text-muted-foreground">Hemos recibido tu solicitud de reserva.</p>
-                    {completed.numero_reserva && <p className="mt-4 font-mono font-bold text-lg">Código: {completed.numero_reserva}</p>}
+                    <h1 className="text-2xl font-black">Reserva pendiente de pago</h1>
+                    <p className="mt-3 text-sm text-muted-foreground">Guardamos temporalmente la habitación. Completa el pago antes del vencimiento para confirmarla.</p>
+                    {(reservation?.numero_reserva || completed.numero_reserva) && <p className="mt-4 font-mono font-bold text-lg">Código: {reservation?.numero_reserva || completed.numero_reserva}</p>}
+                    {payment && <div className="mt-6 rounded-2xl border bg-muted/40 p-5 text-left"><p className="font-bold">Monto: {payment.currency || 'PEN'} {Number(payment.amount || payment.amount_due || 0).toFixed(2)}</p>{payment.instructions && <p className="mt-2 whitespace-pre-wrap text-sm text-muted-foreground">{payment.instructions}</p>}</div>}
+                    {hold?.expires_at && <p className="mt-3 text-xs text-muted-foreground">El bloqueo vence: {new Date(hold.expires_at).toLocaleString('es-PE')}</p>}
                     
-                    {completed.links && completed.links.checkin_token && (
-                        <div className="mt-8 p-6 bg-primary/10 rounded-2xl border border-primary/20">
-                            <h2 className="font-bold text-primary mb-2">Paso 2: Auto-registro</h2>
-                            <p className="text-sm text-foreground/80 mb-4">
-                                Agiliza tu check-in completando tus datos ahora mismo. ¡No hagas filas en recepción!
-                            </p>
-                            <Button className="w-full" onClick={() => window.location.href = `/public-checkin/${completed.links.checkin_token}`}>
-                                Completar Auto-registro
-                            </Button>
-                        </div>
-                    )}
                 </section>
             </main>
         );
@@ -123,8 +173,8 @@ export default function BookingPublico() {
                 <section aria-labelledby="dates-title" className="space-y-4 rounded-3xl border bg-card p-6">
                     <h2 id="dates-title" className="flex items-center gap-2 font-black"><CalendarDays className="h-5 w-5" /> Fechas de estadía</h2>
                     <div className="grid gap-4 sm:grid-cols-2">
-                        <Field id="booking-in" label="Entrada"><Input id="booking-in" type="date" value={dates.fecha_entrada} onChange={e => setDates({ ...dates, fecha_entrada: e.target.value })} /></Field>
-                        <Field id="booking-out" label="Salida"><Input id="booking-out" type="date" value={dates.fecha_salida} onChange={e => setDates({ ...dates, fecha_salida: e.target.value })} /></Field>
+                        <Field id="booking-in" label="Entrada"><Input id="booking-in" type="date" min={format(new Date(), 'yyyy-MM-dd')} value={dates.fecha_entrada} onChange={e => updateDates('fecha_entrada', e.target.value)} /></Field>
+                        <Field id="booking-out" label="Salida"><Input id="booking-out" type="date" min={dates.fecha_entrada} value={dates.fecha_salida} onChange={e => updateDates('fecha_salida', e.target.value)} /></Field>
                     </div>
                     <Button className="w-full" disabled={search.isPending} onClick={() => search.mutate()}>Buscar disponibilidad</Button>
                     {search.isError && <InlineError message={search.error.message} />}
@@ -163,14 +213,14 @@ export default function BookingPublico() {
                         </div>
 
                         <div className="grid gap-4 sm:grid-cols-2 items-end">
-                            <Field id="guest-doc" label={guest.tipo_reserva === 'corporativa' ? 'RUC' : 'DNI / Pasaporte'}>
+                            <Field id="guest-doc-type" label="Tipo de documento">
+                                <select id="guest-doc-type" value={guest.tipo_documento} disabled={guest.tipo_reserva === 'corporativa'} onChange={e => setGuest({ ...guest, tipo_documento: e.target.value, documento: '' })} className="flex h-10 w-full rounded-md border bg-background px-3">
+                                    {guest.tipo_reserva === 'corporativa' ? <option value="RUC">RUC</option> : <><option value="DNI">DNI</option><option value="CE">Carnet de extranjería</option><option value="pasaporte">Pasaporte</option></>}
+                                </select>
+                            </Field>
+                            <Field id="guest-doc" label="Número de documento">
                                 <div className="flex gap-2">
-                                    <Input id="guest-doc" inputMode="numeric" value={guest.documento} onChange={e => setGuest({ ...guest, documento: e.target.value })} placeholder={guest.tipo_reserva === 'corporativa' ? 'Ingresa RUC' : 'Ingresa Documento'} />
-                                    {(guest.tipo_documento === 'DNI' || guest.tipo_documento === 'RUC') && (
-                                        <Button type="button" variant="secondary" onClick={searchIdentity} disabled={isSearchingDoc || guest.documento.length < 8}>
-                                            {isSearchingDoc ? 'Buscando...' : 'Buscar'}
-                                        </Button>
-                                    )}
+                                    <Input id="guest-doc" inputMode={['DNI', 'RUC'].includes(guest.tipo_documento) ? 'numeric' : 'text'} value={guest.documento} onChange={e => setGuest({ ...guest, documento: e.target.value })} placeholder="Ingresa el documento" />
                                 </div>
                             </Field>
                             <Field id="guest-name" label={guest.tipo_reserva === 'corporativa' ? 'Razón Social' : 'Nombre completo'}>
@@ -181,7 +231,14 @@ export default function BookingPublico() {
                             <Field id="guest-phone" label="Teléfono"><Input id="guest-phone" type="tel" autoComplete="tel" value={guest.telefono} onChange={e => setGuest({ ...guest, telefono: e.target.value })} /></Field>
                             <Field id="guest-email" label="Correo (opcional)"><Input id="guest-email" type="email" autoComplete="email" value={guest.email} onChange={e => setGuest({ ...guest, email: e.target.value })} /></Field>
                         </div>
-                        <Button className="w-full mt-4" disabled={create.isPending || !guest.nombre || !guest.documento || !guest.telefono} onClick={() => create.mutate()}>Solicitar reserva</Button>
+                        <Field id="payment-method" label="Método de pago">
+                            <select id="payment-method" value={paymentMethod} onChange={e => setPaymentMethod(e.target.value)} className="flex h-10 w-full rounded-md border bg-background px-3">
+                                <option value="yape">Yape</option><option value="plin">Plin</option><option value="transferencia">Transferencia bancaria</option>
+                            </select>
+                        </Field>
+                        <div ref={turnstileRef} aria-label="Verificación de seguridad" />
+                        {!documentValidation.valido && guest.documento && <InlineError message={documentValidation.error} />}
+                        <Button className="w-full mt-4" disabled={create.isPending || !guest.nombre || !documentValidation.valido || !guest.telefono || !challengeToken} onClick={() => create.mutate()}>Crear reserva pendiente de pago</Button>
                         {create.isError && <InlineError message={create.error.message} />}
                     </section>
                 )}

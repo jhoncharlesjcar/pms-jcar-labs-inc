@@ -189,7 +189,7 @@ const Login = memo(function Login() {
                 >
                     <h2 className="text-xl font-bold text-white mb-6 text-center">Iniciar Sesión</h2>
 
-                    <form onSubmit={handleEmailLogin} className="space-y-5" ref={formRef} noValidate>
+                    <form onSubmit={handleEmailLogin} className="space-y-5" ref={/** @type {any} */ (formRef)} noValidate>
                         <div className="space-y-1.5">
                             <label htmlFor="login_email" className="text-xs font-semibold text-slate-300 ml-1">
                                 Email

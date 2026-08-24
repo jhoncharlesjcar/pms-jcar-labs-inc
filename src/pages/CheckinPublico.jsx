@@ -6,9 +6,10 @@ import { supabase } from '@/config/supabase';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { validarDocumento } from '@/services/recepcion.service';
 
 async function invokeCheckin(body) {
-    const { data, error } = await supabase.functions.invoke('guest-portal', { body: { ...body, type: 'checkin' } });
+    const { data, error } = await supabase.functions.invoke('public-checkin', { body });
     if (error) throw new Error('El pre check-in seguro no está disponible. Completa el registro en recepción.');
     if (!data || data.error) throw new Error(data?.error || 'El enlace es inválido o expiró.');
     return data;
@@ -43,7 +44,11 @@ export default function CheckinPublico() {
     });
     
     const submit = useMutation({
-        mutationFn: () => invokeCheckin({ action: 'submit', token, payload: form }),
+        mutationFn: () => {
+            const validation = validarDocumento({ tipo: /** @type {any} */ (form.tipo_documento), documento: form.huesped_dni });
+            if (!validation.valido) throw new Error(validation.error);
+            return invokeCheckin({ action: 'submit', token, payload: form });
+        },
         onSuccess: () => setDone(true),
     });
 
@@ -67,8 +72,8 @@ export default function CheckinPublico() {
                     <>
                         <Field id="checkin-name" label="Nombre completo"><Input id="checkin-name" required autoComplete="name" value={form.huesped_nombre} onChange={e => setForm({ ...form, huesped_nombre: e.target.value })} /></Field>
                         <div className="grid gap-4 sm:grid-cols-2">
-                            <Field id="checkin-doc-type" label="Tipo de documento"><select id="checkin-doc-type" className="flex h-10 w-full rounded-md border bg-background px-3" value={form.tipo_documento} onChange={e => setForm({ ...form, tipo_documento: e.target.value })}><option>DNI</option><option>Pasaporte</option><option>CE</option></select></Field>
-                            <Field id="checkin-doc" label="Número de documento"><Input id="checkin-doc" required value={form.huesped_dni} onChange={e => setForm({ ...form, huesped_dni: e.target.value })} /></Field>
+                            <Field id="checkin-doc-type" label="Tipo de documento"><select id="checkin-doc-type" className="flex h-10 w-full rounded-md border bg-background px-3" value={form.tipo_documento} onChange={e => setForm({ ...form, tipo_documento: e.target.value, huesped_dni: '' })}><option value="DNI">DNI</option><option value="pasaporte">Pasaporte</option><option value="CE">CE</option></select></Field>
+                            <Field id="checkin-doc" label="Número de documento"><Input id="checkin-doc" required inputMode={form.tipo_documento === 'DNI' ? 'numeric' : 'text'} value={form.huesped_dni} onChange={e => setForm({ ...form, huesped_dni: e.target.value })} /></Field>
                         </div>
                     </>
                 )}

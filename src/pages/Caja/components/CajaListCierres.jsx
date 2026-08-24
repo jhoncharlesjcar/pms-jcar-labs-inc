@@ -5,7 +5,7 @@ import { es } from 'date-fns/locale';
 import { gsap } from 'gsap';
 import EmptyState from '@/components/common/EmptyState';
 
-export const CajaListCierres = memo(function CajaListCierres({ cierres }) {
+export const CajaListCierres = memo(function CajaListCierres(/** @type {any} */ { cierres }) {
     const listRef = useRef(null);
 
     // GSAP stagger en cierres — solo cuando hay datos reales

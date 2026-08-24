@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Camera, Info, MapPin, Sparkles, User, UsersIcon } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
@@ -7,6 +7,8 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { cn } from '@/lib/utils';
+import { validarDocumento } from '@/services/recepcion.service';
+import { supabase } from '@/config/supabase';
 
 export const NuevaReservaSheet = ({
     open,
@@ -14,6 +16,8 @@ export const NuevaReservaSheet = ({
     form,
     setForm,
     habitacionesDisp,
+    availabilityLoading,
+    availabilityError,
     roomGridRef,
     seleccionarHab,
     loadingIdentity,
@@ -26,6 +30,28 @@ export const NuevaReservaSheet = ({
     createdReserva,
     onCloseSuccess
 }) => {
+    const [guestAccess, setGuestAccess] = useState(null);
+    const [issuingAccess, setIssuingAccess] = useState(false);
+
+    useEffect(() => setGuestAccess(null), [createdReserva?.id]);
+
+    const issueGuestAccess = async () => {
+        if (!createdReserva?.id) return;
+        setIssuingAccess(true);
+        try {
+            const { data, error } = await supabase.functions.invoke('issue-guest-access', {
+                body: { reservation_id: createdReserva.id },
+            });
+            if (error || !data?.checkin_url) throw error || new Error('No se recibió el enlace');
+            setGuestAccess(data);
+            toast.success('Enlace seguro generado. El anterior quedó revocado.');
+        } catch (error) {
+            toast.error(error?.message || 'No se pudo generar el enlace seguro');
+        } finally {
+            setIssuingAccess(false);
+        }
+    };
+
     return (
         <Sheet open={open} onOpenChange={setOpen}>
             <SheetContent side="right" className="w-full sm:max-w-3xl bg-card border-l border-border shadow-xl p-0 overflow-hidden flex flex-col h-full">
@@ -50,7 +76,7 @@ export const NuevaReservaSheet = ({
                                     </p>
                                 </div>
                                 
-                                {createdReserva.checkin_token ? (
+                                {guestAccess?.checkin_url ? (
                                     <div className="w-full max-w-sm space-y-3 bg-muted/30 p-4 rounded-xl border">
                                         <p className="text-sm font-medium text-foreground mb-1">Compartir Enlace de Check-in</p>
                                         <p className="text-xs text-muted-foreground mb-4">Envía este enlace al huésped para que complete sus datos antes de llegar.</p>
@@ -59,7 +85,7 @@ export const NuevaReservaSheet = ({
                                             variant="default" 
                                             className="w-full bg-[#25D366] hover:bg-[#25D366]/90 text-white gap-2"
                                             onClick={() => {
-                                                const url = `${window.location.origin}/checkin/${createdReserva.checkin_token}`;
+                                                const url = guestAccess.checkin_url;
                                                 const text = `Hola ${createdReserva.huesped_nombre}, gracias por tu reserva. Por favor completa tu check-in digital aquí antes de tu llegada:\n\n${url}`;
                                                 window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
                                             }}
@@ -70,8 +96,7 @@ export const NuevaReservaSheet = ({
                                             variant="outline" 
                                             className="w-full gap-2"
                                             onClick={() => {
-                                                const url = `${window.location.origin}/checkin/${createdReserva.checkin_token}`;
-                                                navigator.clipboard.writeText(url);
+                                                navigator.clipboard.writeText(guestAccess.checkin_url);
                                                 toast.success('Enlace copiado al portapapeles');
                                             }}
                                         >
@@ -79,9 +104,9 @@ export const NuevaReservaSheet = ({
                                         </Button>
                                     </div>
                                 ) : (
-                                    <div className="w-full max-w-sm p-4 text-sm text-yellow-600 bg-yellow-50 rounded-xl border border-yellow-200">
-                                        No se pudo generar el enlace de auto-registro en este momento.
-                                    </div>
+                                    <Button type="button" variant="outline" disabled={issuingAccess} onClick={issueGuestAccess}>
+                                        {issuingAccess ? 'Generando…' : 'Generar enlace seguro de pre check-in'}
+                                    </Button>
                                 )}
                             </div>
                         ) : (
@@ -93,7 +118,8 @@ export const NuevaReservaSheet = ({
                                         <h3 className="text-xs font-semibold text-muted-foreground/90 uppercase tracking-wider">1. Selección de Habitación</h3>
                                     </div>
                             <div ref={roomGridRef} className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
-                                {habitacionesDisp.map(h => (
+                                {availabilityLoading && <p role="status" className="col-span-full py-4 text-center text-sm text-muted-foreground">Consultando disponibilidad y tarifas del PMS…</p>}
+                                {!availabilityLoading && habitacionesDisp.map(h => (
                                     <button key={h.id} onClick={() => seleccionarHab(h)}
                                         type="button"
                                         className={cn(
@@ -112,7 +138,8 @@ export const NuevaReservaSheet = ({
                                         )}
                                     </button>
                                 ))}
-                                {habitacionesDisp.length === 0 && <p className="col-span-full py-8 text-center text-sm font-bold text-muted-foreground bg-secondary/20 rounded-2xl border border-dashed border-border/60">No hay habitaciones disponibles</p>}
+                                {!availabilityLoading && habitacionesDisp.length === 0 && <p className="col-span-full py-8 text-center text-sm font-bold text-muted-foreground bg-secondary/20 rounded-2xl border border-dashed border-border/60">No hay habitaciones disponibles para esas fechas</p>}
+                                {availabilityError && <p role="alert" className="col-span-full text-sm text-destructive">No se pudo consultar disponibilidad: {availabilityError}</p>}
                             </div>
                         </div>
 
@@ -132,13 +159,13 @@ export const NuevaReservaSheet = ({
                                 </div>
                                 <div className="space-y-1.5">
                                     <Label className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider ml-1">Tipo de Doc.</Label>
-                                    <Select value={form.tipo_documento} onValueChange={v => setForm({ ...form, tipo_documento: v })}>
+                                    <Select value={form.tipo_documento} onValueChange={v => setForm({ ...form, tipo_documento: v, huesped_dni: '' })}>
                                         <SelectTrigger className="h-9 bg-background rounded-md border border-input text-sm"><SelectValue /></SelectTrigger>
                                         <SelectContent className="rounded-md">
                                             <SelectItem value="DNI">DNI (Documento Nacional)</SelectItem>
                                             <SelectItem value="RUC">RUC (Registro Único)</SelectItem>
                                             <SelectItem value="CE">Carnet de Extranjería</SelectItem>
-                                            <SelectItem value="PASAPORTE">Pasaporte</SelectItem>
+                                            <SelectItem value="pasaporte">Pasaporte</SelectItem>
                                         </SelectContent>
                                     </Select>
                                 </div>
@@ -159,11 +186,11 @@ export const NuevaReservaSheet = ({
                                         <Input 
                                             id="huesped_dni" 
                                             type="text"
-                                            inputMode="numeric"
-                                            pattern="[0-9]*"
+                                            inputMode={['DNI', 'RUC'].includes(form.tipo_documento) ? 'numeric' : 'text'}
+                                            pattern={['DNI', 'RUC'].includes(form.tipo_documento) ? '[0-9]*' : undefined}
                                             value={form.huesped_dni} 
                                             onChange={e => setForm({ ...form, huesped_dni: e.target.value })} 
-                                            onBlur={e => handleDniBlur(e.target.value)} 
+                                            onBlur={e => { if (['DNI', 'RUC'].includes(form.tipo_documento)) handleDniBlur(e.target.value); }}
                                             placeholder="Número de Documento" 
                                             className="bg-background h-9 flex-1 rounded-md text-sm border border-input focus:ring-1 focus:ring-primary font-mono" 
                                         />
@@ -173,6 +200,7 @@ export const NuevaReservaSheet = ({
                                             size="icon" 
                                             className="h-9 w-9 shrink-0 border-primary/20 text-primary hover:bg-primary/10 rounded-md"
                                             onClick={() => setScannerOpen(true)}
+                                            disabled={form.tipo_documento !== 'DNI'}
                                             title="Escanear DNI con cámara"
                                         >
                                             <Camera className="w-4 h-4" />
@@ -241,7 +269,7 @@ export const NuevaReservaSheet = ({
                                     <Select value={form.estado} onValueChange={v => setForm({ ...form, estado: v })}>
                                         <SelectTrigger className="h-9 bg-background rounded-md border border-input text-sm"><SelectValue /></SelectTrigger>
                                         <SelectContent className="rounded-md">
-                                            <SelectItem value="activa">Check-in (Entrada Inmediata)</SelectItem>
+                                            <SelectItem value="activa" disabled={form.fecha_entrada > new Date().toLocaleDateString('sv-SE')}>Check-in (Entrada Inmediata)</SelectItem>
                                             <SelectItem value="pendiente">Reserva (Pendiente)</SelectItem>
                                         </SelectContent>
                                     </Select>
@@ -275,11 +303,11 @@ export const NuevaReservaSheet = ({
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                                 <div className="space-y-1.5">
                                     <Label htmlFor="fecha_entrada" className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider ml-1">Fecha Entrada</Label>
-                                    <Input id="fecha_entrada" type="date" value={form.fecha_entrada} onChange={e => setForm({ ...form, fecha_entrada: e.target.value })} className="bg-background h-9 rounded-md text-sm border border-input focus:ring-1 focus:ring-primary" />
+                                    <Input id="fecha_entrada" type="date" min={new Date().toLocaleDateString('sv-SE')} value={form.fecha_entrada} onChange={e => setForm({ ...form, fecha_entrada: e.target.value, habitacion_id: '', precio_noche: 0, total: 0, estado: e.target.value > new Date().toLocaleDateString('sv-SE') ? 'pendiente' : form.estado })} className="bg-background h-9 rounded-md text-sm border border-input focus:ring-1 focus:ring-primary" />
                                 </div>
                                 <div className="space-y-1.5">
                                     <Label htmlFor="fecha_salida" className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider ml-1">Fecha Salida</Label>
-                                    <Input id="fecha_salida" type="date" value={form.fecha_salida} onChange={e => setForm({ ...form, fecha_salida: e.target.value })} className="bg-background h-9 rounded-md text-sm border border-input focus:ring-1 focus:ring-primary" />
+                                    <Input id="fecha_salida" type="date" min={form.fecha_entrada} value={form.fecha_salida} onChange={e => setForm({ ...form, fecha_salida: e.target.value, habitacion_id: '', precio_noche: 0, total: 0 })} className="bg-background h-9 rounded-md text-sm border border-input focus:ring-1 focus:ring-primary" />
                                 </div>
                                 <div className="space-y-1.5">
                                     <Label htmlFor="noches" className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider ml-1">Noches</Label>
@@ -305,12 +333,12 @@ export const NuevaReservaSheet = ({
                                     <Label htmlFor="num_adultos" className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider ml-1">Adultos</Label>
                                     <div className="relative">
                                         <UsersIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
-                                        <Input id="num_adultos" type="number" min={1} value={form.num_adultos} onChange={e => setForm({ ...form, num_adultos: Number(e.target.value) })} className="pl-9 bg-background h-9 rounded-md text-sm border border-input focus:ring-1 focus:ring-primary" />
+                                        <Input id="num_adultos" type="number" min={1} value={form.num_adultos} onChange={e => setForm({ ...form, num_adultos: Number(e.target.value), habitacion_id: '', precio_noche: 0, total: 0 })} className="pl-9 bg-background h-9 rounded-md text-sm border border-input focus:ring-1 focus:ring-primary" />
                                     </div>
                                 </div>
                                 <div className="space-y-1.5">
                                     <Label htmlFor="num_ninos" className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider ml-1">Niños</Label>
-                                    <Input id="num_ninos" type="number" min={0} value={form.num_ninos} onChange={e => setForm({ ...form, num_ninos: Number(e.target.value) })} className="bg-background h-9 rounded-md text-sm border border-input focus:ring-1 focus:ring-primary" />
+                                    <Input id="num_ninos" type="number" min={0} value={form.num_ninos} onChange={e => setForm({ ...form, num_ninos: Number(e.target.value), habitacion_id: '', precio_noche: 0, total: 0 })} className="bg-background h-9 rounded-md text-sm border border-input focus:ring-1 focus:ring-primary" />
                                 </div>
                                 <div className="md:col-span-3 space-y-1.5">
                                     <Label htmlFor="observaciones" className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider ml-1">Observaciones</Label>
@@ -339,8 +367,13 @@ export const NuevaReservaSheet = ({
                             </Button>
                             <Button className="order-1 flex-1 shadow-sm sm:order-2"
                                 onClick={() => {
-                                    if (form.huesped_dni && form.huesped_dni.length !== 8 && form.huesped_dni.length !== 11 && form.huesped_dni.length !== 12) {
-                                        toast.error('El documento ingresado no tiene un formato válido (DNI 8, RUC 11, CE 12)');
+                                    const documentValidation = validarDocumento({ tipo: form.tipo_documento, documento: form.huesped_dni });
+                                    if (!documentValidation.valido) {
+                                        toast.error(documentValidation.error);
+                                        return;
+                                    }
+                                    if (form.fecha_salida <= form.fecha_entrada) {
+                                        toast.error('La fecha de salida debe ser posterior a la entrada');
                                         return;
                                     }
                                     saveReserva.mutate({ ...form, noches, total });

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { AlertCircle, Save } from 'lucide-react';
 import { toast } from 'sonner';
@@ -6,16 +6,24 @@ import { AIService } from '@/services/ai.service';
 
 const inputClass = 'w-full rounded-md border border-input bg-background px-3 py-2 text-sm';
 
-export default function AIConfigPanel({ hotelId }) {
+export default function AIConfigPanel(/** @type {any} */ { hotelId }) {
     const queryClient = useQueryClient();
-    const { data: config, isLoading } = useQuery({
+    const [draft, setDraft] = useState(/** @type {any} */ ({}));
+    const { data: config, isLoading, isError, error } = useQuery({
         queryKey: ['ai-config', hotelId],
         queryFn: () => AIService.getConfig(hotelId),
         enabled: Boolean(hotelId),
     });
 
+    useEffect(() => {
+        if (config) setDraft({ ...config });
+        else setDraft({});
+    }, [hotelId, config]);
+
+    const setField = (name, value) => setDraft(current => ({ ...current, [name]: value }));
+
     const updateMutation = useMutation({
-        mutationFn: (updates) => AIService.updateConfig(hotelId, updates),
+        mutationFn: (/** @type {any} */ updates) => AIService.updateConfig(hotelId, updates),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['ai-config', hotelId] });
             toast.success('Configuración actualizada correctamente');
@@ -25,23 +33,18 @@ export default function AIConfigPanel({ hotelId }) {
 
     const handleSubmit = (event) => {
         event.preventDefault();
-        const form = new FormData(event.currentTarget);
         updateMutation.mutate({
-            agent_name: form.get('agent_name')?.toString() || '',
-            agent_personality: form.get('agent_personality')?.toString() || '',
-            welcome_message: form.get('welcome_message')?.toString() || '',
-            handoff_message: form.get('handoff_message')?.toString() || '',
-            response_delay_seconds: Number(form.get('response_delay_seconds') || 0),
-            quote_validity_minutes: Number(form.get('quote_validity_minutes') || 30),
-            hold_minutes: Number(form.get('hold_minutes') || 15),
-            deposit_type: form.get('deposit_type')?.toString() || 'full',
-            deposit_value: Number(form.get('deposit_value') || 100),
-            max_discount_percent: Number(form.get('max_discount_percent') || 0),
-            abandoned_followup_minutes: Number(form.get('abandoned_followup_minutes') || 60),
+            agent_name: draft.agent_name || '', agent_personality: draft.agent_personality || '',
+            welcome_message: draft.welcome_message || '', handoff_message: draft.handoff_message || '',
+            response_delay_seconds: Number(draft.response_delay_seconds || 0),
+            quote_validity_minutes: Number(draft.quote_validity_minutes || 30), hold_minutes: Number(draft.hold_minutes || 15),
+            deposit_type: draft.deposit_type || 'full', deposit_value: Number(draft.deposit_value ?? 100),
+            max_discount_percent: Number(draft.max_discount_percent || 0), abandoned_followup_minutes: Number(draft.abandoned_followup_minutes || 60),
         });
     };
 
     if (isLoading) return <div className="p-8 text-center text-muted-foreground">Cargando configuración…</div>;
+    if (isError) return <div role="alert" className="rounded-xl border border-destructive/30 bg-destructive/5 p-6 text-destructive">No se pudo cargar la configuración de este hotel: {error?.message}</div>;
 
     return (
         <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
@@ -55,33 +58,36 @@ export default function AIConfigPanel({ hotelId }) {
                         <input
                             type="checkbox"
                             className="peer sr-only"
-                            checked={Boolean(config?.agent_enabled)}
-                            onChange={(event) => updateMutation.mutate({ agent_enabled: event.target.checked })}
+                            checked={Boolean(draft.agent_enabled)}
+                            onChange={(event) => {
+                                setField('agent_enabled', event.target.checked);
+                                updateMutation.mutate({ agent_enabled: event.target.checked });
+                            }}
                         />
                         <span className="h-7 w-14 rounded-full bg-muted after:absolute after:left-[2px] after:top-[2px] after:h-6 after:w-6 after:rounded-full after:border after:bg-white after:transition-all peer-checked:bg-primary peer-checked:after:translate-x-full" />
                     </label>
                 </div>
 
-                <form onSubmit={handleSubmit} className="space-y-6 rounded-xl border border-border bg-card p-6">
+                <form key={`${hotelId}:${config?.updated_at || 'new'}`} onSubmit={handleSubmit} className="space-y-6 rounded-xl border border-border bg-card p-6">
                     <section className="space-y-4">
                         <h3 className="text-lg font-semibold">Personalidad y mensajes</h3>
                         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                             <label className="space-y-2 text-sm font-medium">Nombre del agente
-                                <input name="agent_name" defaultValue={config?.agent_name} className={inputClass} placeholder="Ej. Lucía" />
+                                <input name="agent_name" value={draft.agent_name || ''} onChange={e => setField('agent_name', e.target.value)} className={inputClass} placeholder="Ej. Lucía" />
                             </label>
                             <label className="space-y-2 text-sm font-medium">Tono y personalidad
-                                <input name="agent_personality" defaultValue={config?.agent_personality} className={inputClass} placeholder="Amable, profesional y persuasiva" />
+                                <input name="agent_personality" value={draft.agent_personality || ''} onChange={e => setField('agent_personality', e.target.value)} className={inputClass} placeholder="Amable, profesional y persuasiva" />
                             </label>
                         </div>
                         <label className="block space-y-2 text-sm font-medium">Mensaje de bienvenida
-                            <textarea name="welcome_message" defaultValue={config?.welcome_message} rows={2} className={inputClass} />
+                            <textarea name="welcome_message" value={draft.welcome_message || ''} onChange={e => setField('welcome_message', e.target.value)} rows={2} className={inputClass} />
                         </label>
                         <label className="block space-y-2 text-sm font-medium">Mensaje de transferencia
-                            <textarea name="handoff_message" defaultValue={config?.handoff_message} rows={2} className={inputClass} />
+                            <textarea name="handoff_message" value={draft.handoff_message || ''} onChange={e => setField('handoff_message', e.target.value)} rows={2} className={inputClass} />
                         </label>
                         <label className="block space-y-2 text-sm font-medium">Ritmo de respuesta del canal
                             <div className="flex items-center gap-3">
-                                <input name="response_delay_seconds" type="number" min="0" max="30" defaultValue={config?.response_delay_seconds || 0} className="w-24 rounded-md border border-input bg-background px-3 py-2" />
+                                <input name="response_delay_seconds" type="number" min="0" max="30" value={draft.response_delay_seconds ?? 0} onChange={e => setField('response_delay_seconds', e.target.value)} className="w-24 rounded-md border border-input bg-background px-3 py-2" />
                                 <span className="text-sm text-muted-foreground">segundos</span>
                             </div>
                             <span className="block text-xs font-normal text-muted-foreground">Ordena la cola y ofrece una conversación con ritmo natural.</span>
@@ -94,18 +100,18 @@ export default function AIConfigPanel({ hotelId }) {
                             <p className="text-xs text-muted-foreground">Se aplican en PostgreSQL; el modelo no puede alterarlas.</p>
                         </div>
                         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                            <NumberField name="quote_validity_minutes" label="Vigencia de cotización" suffix="minutos" min="5" max="1440" value={config?.quote_validity_minutes || 30} />
-                            <NumberField name="hold_minutes" label="Duración del hold" suffix="minutos" min="5" max="120" value={config?.hold_minutes || 15} />
+                            <NumberField name="quote_validity_minutes" label="Vigencia de cotización" suffix="minutos" min="5" max="1440" value={draft.quote_validity_minutes ?? 30} onChange={e => setField('quote_validity_minutes', e.target.value)} />
+                            <NumberField name="hold_minutes" label="Duración del hold" suffix="minutos" min="5" max="120" value={draft.hold_minutes ?? 15} onChange={e => setField('hold_minutes', e.target.value)} />
                             <label className="space-y-2 text-sm font-medium">Tipo de adelanto
-                                <select name="deposit_type" defaultValue={config?.deposit_type || 'full'} className={inputClass}>
+                                <select name="deposit_type" value={draft.deposit_type || 'full'} onChange={e => setField('deposit_type', e.target.value)} className={inputClass}>
                                     <option value="full">Pago completo</option>
                                     <option value="percentage">Porcentaje</option>
                                     <option value="fixed">Monto fijo</option>
                                 </select>
                             </label>
-                            <NumberField name="deposit_value" label="Valor del adelanto" suffix="% o S/" min="0" step="0.01" value={config?.deposit_value ?? 100} />
-                            <NumberField name="max_discount_percent" label="Descuento máximo" suffix="%" min="0" max="100" step="0.1" value={config?.max_discount_percent || 0} />
-                            <NumberField name="abandoned_followup_minutes" label="Seguimiento de abandono" suffix="minutos" min="5" max="10080" value={config?.abandoned_followup_minutes || 60} />
+                            <NumberField name="deposit_value" label="Valor del adelanto" suffix="% o S/" min="0" step="0.01" value={draft.deposit_value ?? 100} onChange={e => setField('deposit_value', e.target.value)} />
+                            <NumberField name="max_discount_percent" label="Descuento máximo" suffix="%" min="0" max="100" step="0.1" value={draft.max_discount_percent ?? 0} onChange={e => setField('max_discount_percent', e.target.value)} />
+                            <NumberField name="abandoned_followup_minutes" label="Seguimiento de abandono" suffix="minutos" min="5" max="10080" value={draft.abandoned_followup_minutes ?? 60} onChange={e => setField('abandoned_followup_minutes', e.target.value)} />
                         </div>
                     </section>
 
@@ -137,10 +143,10 @@ export default function AIConfigPanel({ hotelId }) {
     );
 }
 
-function NumberField({ name, label, suffix, value, ...inputProps }) {
+function NumberField(/** @type {any} */ { name, label, suffix, value, ...inputProps }) {
     return (
         <label className="space-y-2 text-sm font-medium">{label}
-            <input name={name} type="number" defaultValue={value} className={inputClass} {...inputProps} />
+            <input name={name} type="number" value={value} className={inputClass} {...inputProps} />
             <span className="block text-xs font-normal text-muted-foreground">{suffix}</span>
         </label>
     );

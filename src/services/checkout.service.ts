@@ -324,8 +324,8 @@ export function validarComprobante(params: ValidarComprobanteParams): ValidarCom
       errors.push('La razón social es obligatoria (mín. 3 caracteres)');
     }
   } else if (tipo === 'boleta') {
-    if (!dni || !/^\d{8}$/.test(dni.trim())) {
-      errors.push('El DNI debe tener exactamente 8 dígitos numéricos');
+    if (!dni || !/^[A-Za-z0-9-]{4,15}$/.test(dni.trim())) {
+      errors.push('El documento debe tener entre 4 y 15 caracteres alfanuméricos');
     }
     if (!nombre || nombre.trim().length < 3) {
       errors.push('El nombre del cliente es obligatorio (mín. 3 caracteres)');

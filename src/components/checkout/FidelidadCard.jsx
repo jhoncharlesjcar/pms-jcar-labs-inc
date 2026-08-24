@@ -4,7 +4,7 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { isSimpleRoomType, calculateEarnedPoints } from '@/services/loyalty.service';
 
-export const FidelidadCard = memo(function FidelidadCard({ 
+export const FidelidadCard = memo(function FidelidadCard(/** @type {any} */ {
     isLoyaltyEnabled, 
     loyaltyAccount, 
     canRedeem, 

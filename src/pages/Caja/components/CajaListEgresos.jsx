@@ -6,7 +6,7 @@ import { cn } from '@/lib/utils';
 import { gsap } from 'gsap';
 import EmptyState from '@/components/common/EmptyState';
 
-export const CajaListEgresos = memo(function CajaListEgresos({ egresos }) {
+export const CajaListEgresos = memo(function CajaListEgresos(/** @type {any} */ { egresos }) {
     const [filterTab, setFilterTab] = useState('hoy');
     const listRef = useRef(null);
 

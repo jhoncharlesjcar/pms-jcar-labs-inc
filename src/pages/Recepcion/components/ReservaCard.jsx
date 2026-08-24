@@ -44,7 +44,6 @@ export const ReservaCard = React.memo((/** @type {any} */ { r, hotelActual, hote
                     <div className="min-w-0 flex flex-col gap-0.5">
                         <div className="flex items-center gap-2 flex-wrap mb-0.5">
                             <p className="font-bold text-sm text-foreground tracking-tight leading-none">{r.huesped_nombre}</p>
-                            {/* @ts-ignore */}
                             <StatusBadge status={r.estado} className="text-[10px] px-1.5 py-0.5 rounded-sm" />
                             {(r.huesped_fecha_nacimiento || (r.tipo_documento === 'RUC' && r.huesped_email)) && r.estado === 'pendiente' && (
                                 <span className="rounded-sm border border-emerald-500/20 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 px-1.5 py-0.5 text-[10px] font-semibold flex items-center gap-1" title="El huésped ya completó sus datos digitalmente">
@@ -157,7 +156,6 @@ export const ReservaCard = React.memo((/** @type {any} */ { r, hotelActual, hote
                     </div>
                 </div>
             </div>
-            {/* @ts-ignore */}
             <ConfirmDialog {...confirmProps} isPending={actualizarEstado.isPending} />
         </article>
     );

@@ -1,5 +1,16 @@
 declare const Deno: any;
 
+import { fetchWithPolicy, logEvent } from "../_shared/runtime.ts";
+
+function escapeXml(value: unknown): string {
+  return String(value ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&apos;");
+}
+
 export async function sendSunatSoap(
   hotel: any, 
   fileName: string, 
@@ -10,7 +21,7 @@ export async function sendSunatSoap(
   // Default to sandbox (true) when flag is undefined — fail safe.
   const isSandbox = hotel.sunat_modo_prueba !== false;
   if (hotel.sunat_modo_prueba === undefined || hotel.sunat_modo_prueba === null) {
-    console.warn(`[SUNAT] sunat_modo_prueba is not set for hotel ${hotel.ruc} — defaulting to SANDBOX for safety`);
+    logEvent("warn", "sunat_mode_defaulted", { sandbox: true });
   }
   const sunatSoapUrl = isSandbox
     ? "https://e-beta.sunat.gob.pe/ol-ti-itcpfegem-beta/billService"
@@ -20,29 +31,29 @@ export async function sendSunatSoap(
     `<soapenv:Header>` +
     `<wsse:Security>` +
     `<wsse:UsernameToken>` +
-    `<wsse:Username>${hotel.ruc}${hotel.sunat_usuario_sol.toUpperCase()}</wsse:Username>` +
-    `<wsse:Password>${hotel.sunat_clave_sol}</wsse:Password>` +
+    `<wsse:Username>${escapeXml(hotel.ruc)}${escapeXml(String(hotel.sunat_usuario_sol).toUpperCase())}</wsse:Username>` +
+    `<wsse:Password>${escapeXml(hotel.sunat_clave_sol)}</wsse:Password>` +
     `</wsse:UsernameToken>` +
     `</wsse:Security>` +
     `</soapenv:Header>` +
     `<soapenv:Body>` +
     `<ser:sendBill>` +
-    `<fileName>${fileName}.zip</fileName>` +
+    `<fileName>${escapeXml(fileName)}.zip</fileName>` +
     `<contentFile>${base64Zip}</contentFile>` +
     `</ser:sendBill>` +
     `</soapenv:Body>` +
     `</soapenv:Envelope>`;
 
-  console.log(`Sending invoice ${fileName} to SUNAT SOAP endpoint: ${sunatSoapUrl}`);
+  logEvent("info", "sunat_send_started", { file_name: fileName, sandbox: isSandbox });
 
-  const soapResponse = await fetch(sunatSoapUrl, {
+  const soapResponse = await fetchWithPolicy(sunatSoapUrl, {
     method: "POST",
     headers: {
       "Content-Type": "text/xml;charset=utf-8",
       "SOAPAction": "urn:sendBill",
     },
     body: soapEnvelope,
-  });
+  }, { timeoutMs: 15_000, attempts: 2 });
 
   const responseText = await soapResponse.text();
   let estadoFinal = "rechazado";
@@ -76,5 +87,12 @@ export async function sendSunatSoap(
     }
   }
 
+  logEvent(estadoFinal === "aceptado" ? "info" : "warn", "sunat_send_finished", {
+    file_name: fileName,
+    sandbox: isSandbox,
+    http_status: soapResponse.status,
+    final_state: estadoFinal,
+    received_cdr: Boolean(base64Cdr),
+  });
   return { estadoFinal, messageResult, ticket, base64Cdr, soapResponseStatus: soapResponse.status, responseText };
 }

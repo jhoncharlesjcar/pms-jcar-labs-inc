@@ -2,6 +2,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
 import { authenticateRequest, errorResponse, createAdminClient } from '../_shared/auth-middleware.ts';
+import { fetchWithPolicy, logEvent, requestId } from '../_shared/runtime.ts';
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -46,13 +47,13 @@ async function fetchFromApisNetPe(type: "DNI" | "RUC", num: string) {
     ? `https://api.decolecta.com/api/dni/${num}`
     : `https://api.decolecta.com/api/ruc/${num}`;
 
-  const res = await fetch(endpoint, {
+  const res = await fetchWithPolicy(endpoint, {
     method: "GET",
     headers: {
       "Authorization": `Bearer ${token}`,
       "Accept": "application/json"
     }
-  });
+  }, { timeoutMs: 8_000, attempts: 2 });
 
   if (!res.ok) {
     if (res.status === 404) throw new Error("Documento no encontrado");
@@ -98,6 +99,7 @@ serve(async (req: Request) => {
   let type: "DNI" | "RUC" = "DNI";
   let document_number = "";
   const startTime = Date.now();
+  const correlationId = requestId(req);
   let source = "CACHE";
 
   // Hallazgo #4: Validar JWT y resolver usuario/hotel desde BD
@@ -143,7 +145,7 @@ serve(async (req: Request) => {
       .single();
 
     if (cacheErr && cacheErr.code !== "PGRST116") {
-      console.error("Cache check error:", cacheErr);
+      logEvent('warn', 'identity_cache_read_failed', { request_id: correlationId, code: cacheErr.code });
     }
 
     let resultData = null;
@@ -187,14 +189,18 @@ serve(async (req: Request) => {
       success: true
     });
 
-    return new Response(JSON.stringify({ success: true, data: resultData, source }), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    return new Response(JSON.stringify({ success: true, data: resultData, source, request_id: correlationId }), {
+      headers: { ...corsHeaders, "Content-Type": "application/json", "Cache-Control": "no-store", "X-Request-Id": correlationId },
       status: 200,
     });
 
   // deno-lint-ignore no-explicit-any
   } catch (err: any) {
-    console.error("Identity Service Error:", err);
+    logEvent('warn', 'identity_request_failed', {
+      request_id: correlationId,
+      document_type: type,
+      error: err instanceof Error ? err.message.slice(0, 160) : 'unknown_error',
+    });
     const responseTime = Date.now() - startTime;
     
     if (hotel_id && usuario_id && document_number) {
@@ -210,9 +216,13 @@ serve(async (req: Request) => {
       });
     }
 
-    return new Response(JSON.stringify({ success: false, error: err.message }), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-      status: 200, // Cambiado a 200 para que supabase-js pueda leer el JSON de error
+    const status = err?.name === 'AbortError' ? 504
+      : /no encontrado/i.test(err?.message || '') ? 404
+      : /inv[aÃ¡]lido|debe tener|document_type/i.test(err?.message || '') ? 400
+      : 502;
+    return new Response(JSON.stringify({ success: false, error: err.message, request_id: correlationId }), {
+      headers: { ...corsHeaders, "Content-Type": "application/json", "Cache-Control": "no-store", "X-Request-Id": correlationId },
+      status,
     });
   }
 });

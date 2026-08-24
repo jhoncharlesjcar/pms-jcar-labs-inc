@@ -43,6 +43,9 @@ pnpm-debug.log*
 node_modules
 dist
 dist-ssr
+coverage
+playwright-report
+test-results
 *.local
 
 # Editor directories
@@ -60,6 +63,7 @@ dist-ssr
 .vercel
 .supabase/
 .pnpm-store/
+.tmp-pg-*/
 
 # Repository-local AI tooling
 .github/prompts/

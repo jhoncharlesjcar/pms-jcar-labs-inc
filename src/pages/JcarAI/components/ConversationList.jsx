@@ -47,6 +47,8 @@ export default function ConversationList({ hotelId }) {
             <div className="overflow-hidden rounded-xl border border-border/50 bg-card/50 shadow-sm">
                 {conversationsQuery.isLoading ? (
                     <div className="p-8 text-center text-muted-foreground">Cargando conversaciones…</div>
+                ) : conversationsQuery.isError ? (
+                    <div role="alert" className="p-8 text-center text-destructive">No se pudieron cargar las conversaciones. {conversationsQuery.error?.message}<button type="button" onClick={() => conversationsQuery.refetch()} className="ml-2 underline">Reintentar</button></div>
                 ) : !conversationsQuery.data?.length ? (
                     <div className="flex flex-col items-center p-12 text-center text-muted-foreground">
                         <Bot className="mb-4 h-12 w-12 opacity-20" />

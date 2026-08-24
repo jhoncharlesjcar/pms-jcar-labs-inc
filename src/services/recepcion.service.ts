@@ -195,13 +195,13 @@ export function validarDocumento(params: ValidarDocumentoParams): ValidarDocumen
       }
       break;
     case 'pasaporte':
-      if (doc.length < 6 || doc.length > 15) {
-        return { valido: false, error: 'El pasaporte debe tener entre 6 y 15 caracteres' };
+      if (!/^[A-Za-z0-9-]{6,15}$/.test(doc)) {
+        return { valido: false, error: 'El pasaporte debe tener entre 6 y 15 caracteres alfanuméricos' };
       }
       break;
     case 'CE':
-      if (doc.length < 4) {
-        return { valido: false, error: 'La CE debe tener al menos 4 caracteres' };
+      if (!/^[A-Za-z0-9-]{4,15}$/.test(doc)) {
+        return { valido: false, error: 'La CE debe tener entre 4 y 15 caracteres alfanuméricos' };
       }
       break;
     default:

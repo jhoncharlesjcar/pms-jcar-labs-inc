@@ -46,7 +46,7 @@ export const STATUS_CONFIG = {
     },
 };
 
-export function StatusBadge({ status, label, showIcon = true, className = '', children }) {
+export function StatusBadge(/** @type {any} */ { status, label, showIcon = true, className = '', children }) {
     const key = (status || '').toLowerCase();
     const config = STATUS_CONFIG[key] || {
         label: label || status || 'General',

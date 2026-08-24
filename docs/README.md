@@ -15,6 +15,8 @@ Este directorio contiene las guías operativas y técnicas permanentes. Las regl
 | [Flujo de negocio](FLUJO_NEGOCIO.md) | Ciclo operativo desde reserva hasta cierre |
 | [Sistema de diseño](DESIGN_SYSTEM.md) | UX/UI, responsive, accesibilidad y componentes |
 | [Despliegue](DEPLOYMENT.md) | Quality gate, Supabase, Vercel, smoke check y reversión |
+| [Runbook operativo](OPERATIONS_RUNBOOK.md) | RPO/RTO, backups, retención, crons, alertas e incidentes |
+| [Remediación de auditoría 2026-08](AUDIT_REMEDIATION_2026-08.md) | Matriz de hallazgos, evidencia y pruebas de cierre |
 
 ## Contratos de dominio
 

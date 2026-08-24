@@ -13,7 +13,7 @@ export const METODOS_UI = [
     { value: 'tarjeta', label: 'Tarjeta', icon: TarjetaIcon },
 ];
 
-export const FormaPagoSelector = memo(function FormaPagoSelector({
+export const FormaPagoSelector = memo(function FormaPagoSelector(/** @type {any} */ {
     metodo,
     setMetodo,
     descuento,

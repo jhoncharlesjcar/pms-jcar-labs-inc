@@ -1,4 +1,3 @@
-// @ts-nocheck
 import React, { memo } from 'react';
 import {
     AlertCircle, CheckCircle2, DollarSign, FileText, Landmark, MinusCircle,
@@ -17,7 +16,7 @@ const METHOD_META = [
     { key: 'tarjeta', label: 'Tarjeta', icon: FileText, className: 'text-amber-600 bg-amber-500/10 border-amber-500/20' },
 ];
 
-export const CajaOverview = memo(function CajaOverview({ stats = {} }) {
+export const CajaOverview = memo(function CajaOverview(/** @type {any} */ { stats = {} }) {
     const overviewRef = useGsapStaggerList([
         stats?.ingresos, stats?.egresos, stats?.balance, stats?.balanceEfectivo,
     ], { stagger: 0.06, direction: 'scale' });

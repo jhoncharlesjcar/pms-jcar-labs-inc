@@ -47,7 +47,7 @@ Durante la estancia:
 - los pagos inmediatos se incorporan a ventas y caja;
 - los cargos asociados a la estancia se consideran en la liquidación;
 - Realtime mantiene actualizadas las vistas operativas;
-- las mutaciones offline se conservan por usuario y hotel hasta sincronizarse.
+- las mutaciones de negocio requieren conexión y fallan de forma explícita si el servidor no está disponible; no se reproducen desde el navegador.
 
 Medios de pago admitidos: efectivo, Yape, Plin, transferencia y tarjeta. Los pagos digitales pueden exigir una referencia.
 
@@ -136,8 +136,8 @@ Las métricas siempre se calculan dentro del hotel activo.
 
 ## 9. Excepciones operativas
 
-- **Sin conexión:** mostrar estado offline y conservar solamente mutaciones soportadas por la cola.
-- **Error de sincronización:** trasladar el cambio a dead letter y exigir revisión.
+- **Sin conexión:** mostrar estado offline y bloquear mutaciones; la PWA solo conserva activos y consultas públicas allowlist.
+- **Error de sincronización de canales:** usar leases y dead letter del servidor; nunca reproducir una mutación PMS desde IndexedDB.
 - **Usuario u hotel inactivo:** impedir la operación.
 - **RLS denegado:** mostrar error sin intentar evadir el control.
 - **Proveedor externo no configurado:** devolver un error explícito; nunca simular éxito.

@@ -1,0 +1,90 @@
+project_id = "pms-jcar-labs-local"
+
+[api]
+enabled = true
+port = 54321
+schemas = ["public", "graphql_public"]
+extra_search_path = ["public", "extensions"]
+max_rows = 1000
+
+[db]
+port = 54322
+shadow_port = 54320
+major_version = 17
+
+[db.pooler]
+enabled = false
+
+[studio]
+enabled = true
+port = 54323
+
+[inbucket]
+enabled = true
+port = 54324
+
+[storage]
+enabled = true
+file_size_limit = "50MiB"
+
+[auth]
+enabled = true
+site_url = "http://127.0.0.1:5173"
+additional_redirect_urls = ["http://127.0.0.1:5173/**"]
+enable_signup = false
+
+# Las funciones de sesión Supabase conservan la verificación JWT del gateway.
+# Las rutas públicas, cron y webhooks verifican su propio token/challenge/firma.
+[functions.configure-hotel-secrets]
+verify_jwt = true
+
+[functions.facturacion]
+verify_jwt = true
+
+[functions.facturacion-worker]
+verify_jwt = false
+
+[functions.generate-payment]
+verify_jwt = true
+
+[functions.identity]
+verify_jwt = true
+
+[functions.invite-user]
+verify_jwt = true
+
+[functions.issue-guest-access]
+verify_jwt = true
+
+[functions.ota-sync-inventory]
+verify_jwt = true
+
+[functions.ota-sync-rates]
+verify_jwt = true
+
+[functions.validate-gateway]
+verify_jwt = true
+
+[functions.ai-gateway]
+verify_jwt = false
+
+[functions.expire-ai-booking-artifacts]
+verify_jwt = false
+
+[functions.expire-loyalty-points]
+verify_jwt = false
+
+[functions.guest-portal]
+verify_jwt = false
+
+[functions.public-booking]
+verify_jwt = false
+
+[functions.public-checkin]
+verify_jwt = false
+
+[functions.review-payment-evidence]
+verify_jwt = true
+
+[functions.webhook-gateway]
+verify_jwt = false

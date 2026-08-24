@@ -6,7 +6,7 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-export const HuespedProfile = memo(function HuespedProfile({ huesped: h, onBack }) {
+export const HuespedProfile = memo(function HuespedProfile(/** @type {any} */ { huesped: h, onBack }) {
     if (!h) return null;
     const initials = h.nombre.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
 
@@ -131,7 +131,7 @@ export const HuespedProfile = memo(function HuespedProfile({ huesped: h, onBack 
                         </h3>
                     </div>
                     <div className="space-y-2.5">
-                        {h.reservas.sort((a, b) => new Date(b.fecha_entrada) - new Date(a.fecha_entrada)).map((res, i) => (
+                        {h.reservas.sort((a, b) => new Date(b.fecha_entrada).getTime() - new Date(a.fecha_entrada).getTime()).map((res, i) => (
                             <div key={i} className="flex items-center justify-between p-3 bg-background/50 rounded-lg border border-border/40 hover:bg-muted/50 hover:border-border/60 transition-all shadow-xs group">
                                 <div className="flex items-center gap-3">
                                     <div className="w-1 h-8 bg-primary/30 group-hover:bg-primary/70 rounded-full transition-colors" />

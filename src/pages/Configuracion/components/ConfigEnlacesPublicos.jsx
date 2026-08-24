@@ -2,7 +2,7 @@ import React, { useState, memo } from 'react';
 import { Globe, CheckCircle, Copy, ExternalLink, Share2, QrCode } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
-export const ConfigEnlacesPublicos = memo(function ConfigEnlacesPublicos({ hotelId, setShowQrModal }) {
+export const ConfigEnlacesPublicos = memo(function ConfigEnlacesPublicos(/** @type {any} */ { hotelId, setShowQrModal }) {
     const [copiedBooking, setCopiedBooking] = useState(false);
     const [copiedCheckin, setCopiedCheckin] = useState(false);
 

@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { useState, useEffect, useMemo, memo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Sparkles, Wrench, CheckCircle2, User, CalendarDays, Filter, Search, Clock } from 'lucide-react';
@@ -77,7 +76,7 @@ const Limpieza = memo(function Limpieza() {
             await qc.cancelQueries({ queryKey: ['habitaciones', hotelId] });
             const previousHabitaciones = qc.getQueryData(['habitaciones', hotelId]);
 
-            qc.setQueryData(['habitaciones', hotelId], (old) => {
+            qc.setQueryData(['habitaciones', hotelId], (/** @type {any[]} */ old) => {
                 if (!old) return [];
                 return old.map(hab => {
                     if (hab.id === id) {

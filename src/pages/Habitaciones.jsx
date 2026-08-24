@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { useState, memo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Plus, BedDouble, Wrench, CheckCircle2, CalendarDays, User, Sparkles, Pencil, Trash2, Wifi, Tv, Droplets, Bath } from 'lucide-react';
@@ -163,7 +162,7 @@ const Habitaciones = memo(function Habitaciones() {
             numero: form.numero,
             precio_noche: precioFinal,
             capacidad: Number(form.capacidad) || 1,
-            tipo: form.tipo,
+            tipo: /** @type {any} */ (form.tipo),
         });
 
         if (!validation.valido) {
@@ -193,8 +192,8 @@ const Habitaciones = memo(function Habitaciones() {
             hotel_id: hotelId,
             numero: form.numero,
             piso: form.piso,
-            tipo: form.tipo,
-            estado: form.estado || 'disponible',
+            tipo: /** @type {any} */ (form.tipo),
+            estado: /** @type {any} */ (form.estado || 'disponible'),
             precio_noche: precioFinal,
             precio: precioFinal,
             capacidad: Number(form.capacidad) || 1,
@@ -203,7 +202,7 @@ const Habitaciones = memo(function Habitaciones() {
         save.mutate(dataToSave);
     };
 
-    const filtradas = (filtroEstado === 'todos' ? habitaciones : filtrarPorEstado(habitaciones, filtroEstado))
+    const filtradas = (filtroEstado === 'todos' ? habitaciones : filtrarPorEstado(habitaciones, /** @type {any} */ (filtroEstado)))
         .sort((a, b) => {
             const numA = parseInt(a.numero, 10);
             const numB = parseInt(b.numero, 10);

@@ -4,7 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
-export const ComprobanteSelector = memo(function ComprobanteSelector({
+export const ComprobanteSelector = memo(function ComprobanteSelector(/** @type {any} */ {
     requiereComprobante,
     setRequiereComprobante,
     tipoComprobante,
@@ -61,7 +61,7 @@ export const ComprobanteSelector = memo(function ComprobanteSelector({
                         <>
                             <div className="space-y-1">
                                 <Label className="text-xs font-semibold text-muted-foreground/80 uppercase tracking-wider ml-1">DNI / Documento del cliente</Label>
-                                <Input value={dniCliente} onChange={e => setDniCliente(e.target.value)} inputMode="numeric" pattern="[0-9]*" placeholder="DNI, CE o Pasaporte" className="h-10 rounded-lg bg-background/50 font-mono" />
+                                <Input value={dniCliente} onChange={e => setDniCliente(e.target.value)} inputMode="text" placeholder="DNI, CE o Pasaporte" className="h-10 rounded-lg bg-background/50 font-mono" />
                             </div>
                             <div className="space-y-1">
                                 <Label className="text-xs font-semibold text-muted-foreground/80 uppercase tracking-wider ml-1">Nombre completo</Label>

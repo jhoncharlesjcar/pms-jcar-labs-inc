@@ -1,6 +1,9 @@
 export interface AIGatewayRequest {
-  action?: 'bootstrap' | 'message' | 'delivery_status' | 'pull_outbound';
-  hotel_id: string;
+  action?: 'bootstrap' | 'message' | 'delivery_status' | 'pull_outbound' | 'ack_outbound' | 'nack_outbound'
+    | 'pull_events' | 'ack_event' | 'nack_event' | 'submit_payment_evidence'
+    | 'channel_healthcheck' | 'provision_channel_credential';
+  hotel_id?: string;
+  connection_id?: string;
   session_id?: string;
   session_token?: string;
   message?: string;
@@ -9,8 +12,19 @@ export interface AIGatewayRequest {
   external_contact_id?: string;
   external_message_id?: string;
   delivery_message_id?: string;
+  event_id?: string;
   delivery_status?: 'sent' | 'delivered' | 'read' | 'failed';
   error_code?: string;
+  provider_message_id?: string;
+  worker_id?: string;
+  permanent?: boolean;
+  payment_intent_id?: string;
+  evidence?: {
+    content_base64?: string;
+    mime_type?: string;
+    observed_amount?: number;
+    observed_at?: string;
+  };
   limit?: number;
 }
 

@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { useState, useEffect, useRef, memo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { db } from '@/api/db';
@@ -40,9 +39,9 @@ const RegistrarVentaModal = memo(function RegistrarVentaModal(/** @type {any} */
     const [requiereComprobante, setRequiereComprobante] = useState(false);
     const [redimirPuntos, setRedimirPuntos] = useState(false);
 
-    const initialMetodo = 'efectivo';
+    const initialMetodo = /** @type {import('@/constants/paymentMethods').MetodoPago} */ ('efectivo');
     const [metodo, setMetodo] = useState(initialMetodo);
-    const initialTipoComprobante = 'boleta';
+    const initialTipoComprobante = /** @type {import('@/constants/comprobantes').TipoComprobante} */ ('boleta');
     const [tipoComprobante, setTipoComprobante] = useState(initialTipoComprobante);
     const [rucCliente, setRucCliente] = useState('');
     const [razonSocial, setRazonSocial] = useState('');

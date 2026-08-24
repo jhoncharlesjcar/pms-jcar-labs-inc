@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { useState, useMemo, memo } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Receipt, Search, ExternalLink, Printer, TrendingUp, ShoppingCart, Hotel, CalendarDays, Wallet } from 'lucide-react';
@@ -205,7 +204,7 @@ const Ventas = memo(function Ventas() {
                                 <th className="px-4 py-3 font-medium text-muted-foreground text-xs text-center">Acciones</th>
                             </tr>
                         </thead>
-                        <tbody ref={tableBodyRef} className="divide-y divide-border/20">
+                        <tbody ref={/** @type {any} */ (tableBodyRef)} className="divide-y divide-border/20">
                                 {filtradas.map((v) => {
                                     const comp = estadoComp[v.estado_comprobante] || estadoComp.ticket_interno;
                                     return (

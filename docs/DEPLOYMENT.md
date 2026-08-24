@@ -1,199 +1,123 @@
-# Despliegue a producción
+# Despliegue reproducible
 
-**Última revisión:** 16 de agosto de 2026
-**Frontend:** SPA/PWA en Vercel
+**Última revisión:** 24 de agosto de 2026
+**Frontend:** Vercel SPA/PWA
 **Backend:** Supabase PostgreSQL, Auth y Edge Functions
 
-## 1. Responsabilidades del pipeline
+## Quality Gate
 
-El workflow `.github/workflows/deploy.yml`, llamado **Production Quality Gate**, se ejecuta en pushes y pull requests hacia `main` o `master`.
+`.github/workflows/deploy.yml` se ejecuta en cada push/PR a `main` o `master` y bloquea por:
 
-Valida:
+- instalación `pnpm` con lockfile congelado;
+- secret scan, higiene de migraciones, auditoría de dependencias y Actions fijadas por SHA;
+- ESLint, TypeScript y línea base JS con `checkJs`;
+- Vitest con umbrales de cobertura;
+- `deno check --frozen` de todas las Edge Functions;
+- reconstrucción completa de Supabase, pgTAP/RLS y lint de base;
+- build y smoke E2E Playwright en escritorio/móvil.
 
-1. instalación con lockfile;
-2. ESLint;
-3. TypeScript;
-4. dependencias con vulnerabilidades de nivel alto;
-5. build de Vite;
-6. carga del artefacto `dist`.
-
-El workflow no publica automáticamente en Vercel ni aplica cambios en Supabase. La promoción a producción sigue siendo una acción controlada.
-
-Variables requeridas en GitHub Actions:
-
-- `VITE_SUPABASE_URL`;
-- `VITE_SUPABASE_ANON_KEY`.
-
-## 2. Requisitos
-
-- Node.js 22 y pnpm 9.
-- Supabase CLI autenticado.
-- Proyectos Supabase separados para staging y producción.
-- Acceso al proyecto Vercel.
-- Backup reciente y restauración verificada antes de cambios de esquema.
-- Secretos de Edge Functions disponibles fuera del repositorio.
-
-## 3. Validación local
+Validación local sin Docker:
 
 ```bash
 pnpm install --frozen-lockfile
 pnpm lint
 pnpm typecheck
+pnpm typecheck:js
+pnpm test:coverage
+pnpm check:edge
+pnpm check:migrations
+pnpm check:secrets
 pnpm build
 ```
 
-El único directorio publicable del frontend es `dist/`. Los reportes de bundle y archivos `.env` permanecen locales.
-
-## 4. Base de datos
-
-`supabase/migrations/` contiene 13 migraciones ordenadas cronológicamente a la fecha de esta revisión. Esa carpeta es la fuente de verdad del esquema y de RLS.
+Validación local completa con Docker:
 
 ```bash
-supabase link --project-ref <staging-ref>
-supabase db push --dry-run
-supabase db push
+pnpm exec supabase start
+pnpm exec supabase db reset --local
+pnpm exec supabase test db
+pnpm exec supabase db lint --local --level warning
+pnpm test:e2e:install
+pnpm test:e2e
+pnpm exec supabase stop --no-backup
 ```
 
-Procedimiento:
+## Entornos y promoción
 
-1. Ejecutar primero contra staging.
-2. Revisar el plan y cualquier operación destructiva.
-3. Validar las rutas y roles descritos en el smoke check.
-4. Crear un backup de producción.
-5. Cambiar el vínculo al proyecto productivo y repetir el dry run.
-6. Aplicar las migraciones en orden.
+Staging y producción deben ser proyectos Supabase/Vercel separados. El workflow manual `Promote release` recibe un commit/tag inmutable y un GitHub Environment `staging` o `production`. Nunca promueve el working tree ni una rama cambiante.
 
-Controles mínimos:
+Cada GitHub Environment debe contener, sin valores en el repositorio:
 
-- `usuarios.activo` y `hoteles.activo`;
-- aislamiento RLS de hoteles, habitaciones, reservas, ventas y caja;
-- acceso administrativo limitado al tenant correspondiente;
-- funciones públicas sin exposición directa de tablas sensibles;
-- esquema privado para credenciales por hotel;
-- transiciones de habitación y reserva.
+- `SUPABASE_ACCESS_TOKEN`, `SUPABASE_PROJECT_REF`, `SUPABASE_DB_PASSWORD`;
+- `VERCEL_TOKEN`, `VERCEL_ORG_ID`, `VERCEL_PROJECT_ID`.
 
-Nunca ejecutar `supabase db reset --linked` en producción ni modificar una migración ya aplicada.
+Producción debe exigir aprobación humana y branch/tag protegido. El workflow valida el plan, aplica migraciones, despliega funciones usando `supabase/config.toml`, construye con el entorno de Vercel y publica el artefacto precompilado.
 
-## 5. Edge Functions
+## Variables públicas
 
-Funciones disponibles:
-
-```text
-configure-hotel-secrets
-ai-gateway
-expire-ai-booking-artifacts
-expire-loyalty-points
-facturacion
-generate-payment
-guest-portal
-identity
-invite-user
-ota-sync-inventory
-ota-sync-rates
-public-booking
-public-checkin
-validate-gateway
-webhook-gateway
-```
-
-Desplegar solamente las funciones utilizadas en el entorno. Las operaciones autenticadas comparten `supabase/functions/_shared/auth-middleware.ts`.
-
-Configurar con `supabase secrets set`, según los módulos habilitados:
-
-- URL de redirección de invitaciones;
-- credenciales de identidad;
-- claves y certificados de facturación;
-- credenciales de pagos;
-- credenciales OTA;
-- secretos para validar webhooks.
-- `AI_SESSION_SECRET` para firmar sesiones del chat público;
-- `CHANNEL_GATEWAY_SECRET` para autenticar los conectores normalizados de WhatsApp, Instagram y Facebook;
-- `CRON_SECRET` para ejecutar la expiración programada de cotizaciones, holds y pagos.
-
-Las claves privadas, `service_role`, contraseñas SOL y certificados nunca deben ser variables `VITE_*`. Pagos y OTA deben permanecer deshabilitados si no existe un proveedor real configurado.
-
-## 6. Frontend en Vercel
-
-`vercel.json` reescribe todas las rutas hacia `/` para que React Router resuelva la SPA.
-
-| Ajuste | Valor |
-| --- | --- |
-| Framework | Vite |
-| Node.js | 22 |
-| Install command | `pnpm install --frozen-lockfile` |
-| Build command | `pnpm build` |
-| Output directory | `dist` |
-
-Variables de Vercel:
+Configurar por entorno en Vercel:
 
 - `VITE_SUPABASE_URL`;
-- `VITE_SUPABASE_ANON_KEY`.
+- `VITE_SUPABASE_ANON_KEY`;
+- `VITE_TURNSTILE_SITE_KEY`;
+- `VITE_ENVIRONMENT` (`staging` o `production`);
+- `VITE_RELEASE` (commit/tag promovido).
 
-La URL de Supabase debe corresponder al mismo entorno cuyas migraciones y funciones se desplegaron.
+Ninguna variable `VITE_*` puede contener `service_role`, contraseñas, certificados, secretos de proveedor, tokens de cron ni claves HMAC.
 
-## 7. Orden de promoción
+## Secretos de Edge Functions
 
-1. Quality gate local.
-2. Migraciones en staging.
-3. Edge Functions y secretos en staging.
-4. Smoke check de staging.
-5. Backup de producción.
-6. Migraciones de producción.
-7. Edge Functions y secretos de producción.
-8. Publicación de `dist/`.
-9. Smoke check productivo.
-10. Monitoreo reforzado después del despliegue.
+Configurar con `supabase secrets set` o el gestor del entorno, nunca en Git:
 
-## 8. Smoke check
+- `GEMINI_API_KEY` (y opcionalmente `GEMINI_MODEL`);
+- `CHANNEL_CREDENTIAL_MASTER_KEY` (32 bytes aleatorios codificados base64url) para cifrar credenciales individuales de conectores JcarAI;
+- `PUBLIC_APP_URL` HTTPS para que `issue-guest-access` emita enlaces de portal/pre-check-in fuera del modelo;
+- `CRON_SECRET`;
+- `TURNSTILE_SECRET_KEY`;
+- secretos de webhooks/proveedor de pagos;
+- credenciales y certificados SUNAT/identidad/OTA solo cuando el adaptador real esté habilitado.
 
-### Identidad y permisos
+Tras desplegar, crear y monitorizar los schedules de `expire-ai-booking-artifacts` y `facturacion-worker` cada minuto, y `expire-loyalty-points` diariamente. Los tres usan `CRON_SECRET`; desplegar la función sin schedule/alerta no completa la operación.
 
-- Login y logout con limpieza de caché.
-- Usuario inactivo sin acceso.
-- Redirección inicial de admin, recepcionista y limpieza.
-- Bloqueo de rutas no autorizadas.
+`supabase/config.toml` mantiene `verify_jwt=true` para funciones de usuario y `false` únicamente para rutas que aplican autenticación propia: sesión pública firmada, token opaco, challenge Turnstile, HMAC de webhook o secreto de cron. Cambiar ese archivo requiere revisión de seguridad.
 
-### Multi-tenant
+### Contrato de conectores JcarAI
 
-- Cambio de propiedad para developer o usuario multi-hotel.
-- Ausencia de datos cruzados entre dos hoteles.
-- Alta, edición, activación y desactivación de hotel.
-- Invitación de personal al hotel correcto.
+Cada conexión obtiene un `key-id` y un secreto individual una sola vez mediante la acción administrativa de aprovisionamiento. Toda llamada del conector a `ai-gateway` envía:
 
-### Operación
+- `X-Jcar-Key-Id`;
+- `X-Jcar-Timestamp`: tiempo Unix en segundos dentro de la ventana admitida;
+- `X-Jcar-Nonce`: valor aleatorio no reutilizable;
+- `X-Jcar-Signature`: HMAC-SHA256 base64url de `timestamp.nonce.rawBody` con el secreto de esa conexión.
 
-- Crear y editar una habitación.
-- Crear reserva y completar check-in.
-- Registrar una venta y un movimiento de caja.
-- Ejecutar checkout y confirmar transición a limpieza.
-- Completar limpieza y liberar la habitación.
-- Generar ticket interno y comprobar el estado fiscal.
+El cuerpo debe firmarse byte por byte antes de enviarlo; reserializar JSON cambia la firma. `channel_healthcheck`, recepción de mensajes y acciones de cola (`pull_outbound`, `ack_outbound`, `nack_outbound`) usan la misma firma. ACK/NACK exige el mismo `worker_id` propietario del lease. Un timestamp vencido, nonce repetido, firma incorrecta o conexión de otro hotel debe fallar cerrado.
 
-### Rutas públicas y PWA
+## Orden de despliegue
 
-- Booking público para un hotel activo.
-- Pre-check-in y portal con token válido, vencido e inválido.
-- Navegación directa a una ruta interna.
-- Instalación, recarga y actualización de la PWA.
-- Confirmación de que respuestas autenticadas de Supabase no quedan en el Service Worker.
+1. Quality Gate verde sobre el ref exacto.
+2. Backup y restore drill vigente.
+3. Promover a staging.
+4. Configurar secretos, Turnstile, credenciales por canal y crons de staging.
+5. Ejecutar recorridos multi-tenant, reserva, pago sandbox, reconciliación, pre-check-in y handoff.
+6. Revisar CSP, headers, PWA y telemetría redactada en preview.
+7. Aprobar GitHub Environment de producción.
+8. Promover el mismo ref a producción.
+9. Ejecutar smoke productivo sin cobro real y monitorizar errores, leases, DLQ y crons.
 
-## 9. Observabilidad y reversión
+Las migraciones aplicadas no se editan. Nunca ejecutar `supabase db reset --linked` en staging o producción.
 
-Monitorear:
+## Vercel, CSP y PWA
 
-- errores de Edge Functions;
-- respuestas 401/403 y rechazos RLS;
-- errores PostgREST;
-- colas offline y dead letters;
-- comprobantes pendientes o rechazados;
-- fallos de Realtime;
-- errores del navegador.
+`vercel.json` fija build/output, reescritura SPA, HSTS, CSP, anti-framing, Permissions Policy y cache inmutable solo para assets con hash. `sw.js` y el manifest no se cachean de forma permanente. La CSP permite Supabase y Turnstile; cualquier dominio adicional requiere revisión explícita.
 
-Ante un incidente:
+La PWA usa iconos `any`/`maskable`, idioma `es-PE`, no cachea APIs y solicita confirmación antes de activar una versión nueva. Validar instalación, modo offline estático y actualización sin interrumpir checkout/caja.
 
-1. detener la integración o ruta pública afectada;
-2. rotar secretos o revocar tokens si existe riesgo de exposición;
-3. restaurar el frontend o la Edge Function anterior;
-4. corregir el esquema mediante una migración nueva;
-5. restaurar un backup solamente cuando la reversión lógica no sea suficiente y el alcance esté aprobado;
-6. documentar causa, impacto y validación posterior.
+## Reversión
+
+- Frontend: volver a promover el último ref verde; no reconstruirlo con dependencias distintas.
+- Edge Function: desplegar la versión anterior compatible con el esquema.
+- Base: migración compensatoria revisada y probada en staging.
+- Datos: restaurar backup solo con alcance aprobado cuando la compensación no sea suficiente.
+- Integración: desactivar proveedor/canal y activar handoff; nunca reintentar cobros a ciegas.
+
+El procedimiento de incidentes, RPO/RTO, retención y crons está en [OPERATIONS_RUNBOOK.md](OPERATIONS_RUNBOOK.md).

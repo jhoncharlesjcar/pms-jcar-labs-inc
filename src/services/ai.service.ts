@@ -142,21 +142,16 @@ export const AIService = {
   },
 
   async saveChannelConnection(hotelId: string, channel: string, updates: Record<string, unknown>) {
-    const { data: existing, error: findError } = await supabase
-      .from('ai_channel_connections')
-      .select('id')
-      .eq('hotel_id', hotelId)
-      .eq('channel', channel)
-      .order('created_at', { ascending: true })
-      .limit(1)
-      .maybeSingle();
-    if (findError) throw findError;
-
-    const payload = { ...updates, hotel_id: hotelId, channel, updated_at: new Date().toISOString() };
-    const query = existing
-      ? supabase.from('ai_channel_connections').update(payload).eq('id', existing.id)
-      : supabase.from('ai_channel_connections').insert(payload);
-    const { data, error } = await query.select('*').single();
+    const { data, error } = await supabase.rpc('ai_upsert_channel_connection', {
+      p_hotel_id: hotelId,
+      p_channel: channel,
+      p_name: String(updates.name || channel),
+      p_external_account_id: updates.external_account_id ? String(updates.external_account_id) : null,
+      p_enabled: updates.enabled === true,
+      p_response_delay_seconds: Number(updates.response_delay_seconds || 0),
+      p_max_concurrent_messages: Number(updates.max_concurrent_messages || 1),
+      p_public_config: updates.public_config || {},
+    });
     if (error) throw error;
     return data;
   },
@@ -189,11 +184,17 @@ export const AIService = {
     return data as AIMessage[];
   },
 
+  async getConversation(conversationId: string): Promise<AIConversation> {
+    const { data, error } = await supabase.from('ai_conversations').select('*').eq('id', conversationId).single();
+    if (error) throw error;
+    return data as AIConversation;
+  },
+
   async takeoverConversation(conversationId: string, userId: string): Promise<void> {
     const { error } = await supabase
       .from('ai_conversations')
       .update({
-        status: 'handed_off', journey_stage: 'handed_off',
+        status: 'handed_off',
         human_controlled: true, assigned_user_id: userId
       })
       .eq('id', conversationId);
@@ -205,11 +206,40 @@ export const AIService = {
     const { error } = await supabase
       .from('ai_conversations')
       .update({
-        status: 'active', journey_stage: 'lead',
+        status: 'active',
         human_controlled: false, assigned_user_id: null
       })
       .eq('id', conversationId);
     if (error) throw error;
+  },
+
+  async sendHumanMessage(conversationId: string, content: string): Promise<AIMessage> {
+    const { data, error } = await supabase.rpc('ai_send_human_message', {
+      p_conversation_id: conversationId,
+      p_content: content.trim(),
+    });
+    if (error) throw error;
+    return (data?.message || data) as AIMessage;
+  },
+
+  async checkChannelHealth(connectionId: string) {
+    const { data, error } = await supabase.functions.invoke('ai-gateway', {
+      body: { action: 'channel_healthcheck', connection_id: connectionId },
+    });
+    if (error) throw error;
+    if (!data || data.error) throw new Error(data?.error || 'El conector no respondió');
+    return data;
+  },
+
+  async provisionChannelCredential(connectionId: string) {
+    const { data, error } = await supabase.functions.invoke('ai-gateway', {
+      body: { action: 'provision_channel_credential', connection_id: connectionId },
+    });
+    if (error) throw error;
+    if (!data || data.error || !data.credential_id || !data.secret) {
+      throw new Error(data?.error || 'No se pudo provisionar la credencial');
+    }
+    return data as { credential_id: string; secret: string; credential_version?: number };
   },
 
   async getBookingContext(conversationId: string) {
@@ -221,20 +251,40 @@ export const AIService = {
     if (intents.error) throw intents.error;
     if (holds.error) throw holds.error;
     if (payments.error) throw payments.error;
+    const payment = payments.data?.[0] || null;
+    let evidence: any[] = [];
+    if (payment?.id) {
+      const { data, error } = await supabase.from('ai_manual_payment_evidence')
+        .select('id,object_path,content_sha256,observed_amount,observed_at,submitted_by,verified_at,created_at')
+        .eq('payment_intent_id', payment.id).order('created_at', { ascending: false });
+      if (error) throw error;
+      evidence = data || [];
+    }
     return {
       intent: intents.data?.[0] || null,
       hold: holds.data?.[0] || null,
-      payment: payments.data?.[0] || null,
+      payment,
+      evidence,
     };
   },
 
-  async verifyManualPayment(paymentIntentId: string, reference: string): Promise<string> {
+  async verifyManualPayment(paymentIntentId: string, reference: string, evidenceId: string): Promise<string> {
     const { data, error } = await supabase.rpc('ai_verify_manual_payment', {
       p_payment_intent_id: paymentIntentId,
       p_reference: reference,
+      p_evidence: { evidence_id: evidenceId },
     });
     if (error) throw error;
     return data as string;
+  },
+
+  async getPaymentEvidenceReview(evidenceId: string) {
+    const { data, error } = await supabase.functions.invoke('review-payment-evidence', {
+      body: { evidence_id: evidenceId },
+    });
+    if (error) throw error;
+    if (!data?.signed_url) throw new Error('No se pudo obtener la evidencia');
+    return data as { signed_url: string; expires_in_seconds: number };
   },
 
   // --- MÉTRICAS ---

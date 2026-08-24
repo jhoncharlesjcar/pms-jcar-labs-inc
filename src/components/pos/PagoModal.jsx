@@ -31,7 +31,7 @@ const METODOS = [
  * @param {any} props.reservaSeleccionada
  * @param {function} props.onExito
  */
-const PagoModal = memo(function PagoModal({ open, onClose, resumen, reservaSeleccionada, onExito }) {
+const PagoModal = memo(function PagoModal(/** @type {any} */ { open, onClose, resumen, reservaSeleccionada, onExito }) {
     const qc = useQueryClient();
     const { db: hotelDb, hotelId } = useHotelData();
     const [metodoPago, setMetodoPago] = useState('efectivo');

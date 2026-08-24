@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { useState, useEffect, useRef, memo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Plus, Settings2, Pencil, Trash2, FolderPlus, Loader2, ShoppingBag } from 'lucide-react';
@@ -26,7 +25,7 @@ const emptyProd = { nombre: '', categoria_id: '', precio: '', emoji: '', activo:
 /**
  * @param {{ onAgregar?: (prod: any) => void, itemsEnCarrito?: any[] }} props
  */
-const CatalogoMinimarket = memo(function CatalogoMinimarket({ onAgregar, itemsEnCarrito = [] }) {
+const CatalogoMinimarket = memo(function CatalogoMinimarket(/** @type {any} */ { onAgregar, itemsEnCarrito = [] }) {
     const qc = useQueryClient();
     const { db: hotelDb, hotelId } = useHotelData();
     const [catActiva, setCatActiva] = useState('todos');

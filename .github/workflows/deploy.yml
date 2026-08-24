@@ -1,4 +1,4 @@
-name: Production Quality Gate
+name: Quality Gate
 
 permissions:
   contents: read
@@ -9,53 +9,115 @@ concurrency:
 
 on:
   push:
-    branches: [ main, master ]
+    branches: [main, master]
   pull_request:
-    branches: [ main, master ]
+    branches: [main, master]
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
 jobs:
-  build:
+  application:
+    name: Application, security and unit tests
     runs-on: ubuntu-latest
-    env:
-      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
-
+    timeout-minutes: 20
     steps:
-      - uses: actions/checkout@v4
-
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
       - name: Setup pnpm
-        uses: pnpm/action-setup@v3
+        uses: pnpm/action-setup@f40ffcd9367d9f12939873eb1018b921a783ffaa # v4
         with:
           version: 9.15.9
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version: '22'
-          cache: 'pnpm'
-
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-
-      # ── Quality Gates (Hallazgo #11 de auditoría) ──────────────────
-      - name: Lint
-        run: pnpm run lint
-
-      - name: Type Check
-        run: pnpm run typecheck
-
-      - name: Dependency Audit
-        run: pnpm audit --audit-level=high
-
-      - name: Build
-        # Estas variables son requeridas por Vite para compilar los assets.
-        # Deben configurarse en GitHub -> Settings -> Secrets -> Actions
-        run: pnpm run build
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm check:secrets
+      - run: pnpm check:migrations
+      - run: pnpm lint
+      - run: pnpm typecheck
+      - run: pnpm typecheck:js
+      - run: pnpm check:ts-suppressions
+      - run: pnpm test:coverage
+      - run: pnpm audit --prod --audit-level=high
+      - name: Build production artifact
+        run: pnpm build
         env:
-          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
-          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
-
-      - name: Upload Build Artifact
-        uses: actions/upload-artifact@v4
+          VITE_SUPABASE_URL: http://127.0.0.1:54321
+          VITE_SUPABASE_ANON_KEY: ci-build-placeholder-not-a-secret
+          VITE_ENVIRONMENT: ci
+          VITE_RELEASE: ${{ github.sha }}
+      - name: Upload frontend artifact
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
-          name: dist
+          name: frontend-dist-${{ github.sha }}
           path: dist
+          retention-days: 7
+          if-no-files-found: error
+
+  edge:
+    name: Deno Edge Functions
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+      - uses: pnpm/action-setup@f40ffcd9367d9f12939873eb1018b921a783ffaa # v4
+        with:
+          version: 9.15.9
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: '22'
+          cache: pnpm
+      - uses: denoland/setup-deno@11d5960a326750d5838078e36cf38b85af677262 # v2
+        with:
+          deno-version: v2.x
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm check:edge
+
+  database:
+    name: Rebuild and test local Supabase
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+      - uses: pnpm/action-setup@f40ffcd9367d9f12939873eb1018b921a783ffaa # v4
+        with:
+          version: 9.15.9
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: '22'
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm exec supabase start
+      - run: pnpm exec supabase db reset --local
+      - run: pnpm exec supabase test db
+      - run: pnpm exec supabase db lint --local --level warning
+      - if: always()
+        run: pnpm exec supabase stop --no-backup
+
+  browser:
+    name: Browser smoke tests
+    needs: application
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+      - uses: pnpm/action-setup@f40ffcd9367d9f12939873eb1018b921a783ffaa # v4
+        with:
+          version: 9.15.9
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: '22'
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm exec playwright install --with-deps chromium
+      - run: pnpm test:e2e
+      - name: Upload Playwright report on failure
+        if: failure()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: playwright-report-${{ github.sha }}
+          path: playwright-report
+          retention-days: 7

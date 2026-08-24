@@ -86,7 +86,7 @@ export function useCajaExport(hotelActual, user, stats) {
         });
 
         autoTable(doc, {
-            startY: doc.lastAutoTable.finalY + 8,
+            startY: /** @type {any} */ (doc).lastAutoTable.finalY + 8,
             head: [["Medio de pago", "Total"]],
             body: Object.entries(stats.metodos).map(([metodo, total]) => [
                 metodo.charAt(0).toUpperCase() + metodo.slice(1),
@@ -97,7 +97,7 @@ export function useCajaExport(hotelActual, user, stats) {
         });
 
         autoTable(doc, {
-            startY: doc.lastAutoTable.finalY + 8,
+            startY: /** @type {any} */ (doc).lastAutoTable.finalY + 8,
             head: [["Estado SUNAT", "Cantidad", "Total"]],
             body: [
                 ["Aceptados", stats.sunatDeclaradasCount, `S/ ${stats.sunatDeclaradasTotal.toFixed(2)}`],

@@ -39,20 +39,16 @@ export const WhatsAppService = {
         const win = window.open('about:blank', '_blank');
         
         try {
-            if (reserva.estado === 'pendiente') {
+            if (['pendiente', 'confirmada'].includes(reserva.estado)) {
                 let tokenLink = '';
-                // Intentar usar token pre-existente en el objeto reserva
-                if (reserva.checkin_token) {
-                    tokenLink = `${window.location.origin}/public-checkin/${reserva.checkin_token}`;
-                } else {
-                    // Generar/recuperar token usando la DB
-                    const { data: tokens, error } = await supabase.rpc('generate_reservation_tokens', { p_reserva_id: reserva.id });
-                    if (!error && tokens?.checkin_token) {
-                        tokenLink = `${window.location.origin}/public-checkin/${tokens.checkin_token}`;
-                    }
+                if (reserva.estado === 'confirmada') {
+                    const { data: access, error } = await supabase.functions.invoke('issue-guest-access', {
+                        body: { reservation_id: reserva.id },
+                    });
+                    if (!error && access?.checkin_url) tokenLink = access.checkin_url;
                 }
                 
-                mensaje = `¡Hola, ${reserva.huesped_nombre}! 👋\n\nGracias por elegir *${hotelNombre}*.\nConfirmamos tu reserva para la *Habitación #${reserva.habitacion_numero}* 🏨.\n\n📅 *Llegada:* ${entradaStr}\n📅 *Salida:* ${salidaStr}\n💵 *Monto Total:* S/ ${reserva.total?.toFixed(2)}\n\n`;
+                mensaje = `¡Hola, ${reserva.huesped_nombre}! 👋\n\nGracias por elegir *${hotelNombre}*.\n${reserva.estado === 'confirmada' ? 'Confirmamos' : 'Registramos como pendiente'} tu reserva para la *Habitación #${reserva.habitacion_numero}* 🏨.\n\n📅 *Llegada:* ${entradaStr}\n📅 *Salida:* ${salidaStr}\n💵 *Monto Total:* S/ ${reserva.total?.toFixed(2)}\n\n`;
                 
                 if (tokenLink) {
                     mensaje += `⚡ *Agiliza tu Check-in:*\nPor favor, completa tus datos de registro aquí para no hacer fila al llegar:\n${tokenLink}\n\n`;

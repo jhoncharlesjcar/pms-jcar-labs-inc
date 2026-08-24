@@ -23,27 +23,38 @@ export default defineConfig({
         }),
         VitePWA({
             disable: process.env.SKIP_PWA === 'true',
-            registerType: 'autoUpdate',
-            includeAssets: ['logo.jpg'],
+            registerType: 'prompt',
             manifest: {
                 name: 'PMS JCAR LABS',
                 short_name: 'PMS JCAR LABS',
                 description: 'Sistema de Gestión Hotelera - PMS JCAR LABS',
+                lang: 'es-PE',
                 theme_color: '#1d4ed8',
                 background_color: '#ffffff',
                 display: 'standalone',
                 start_url: '/',
+                scope: '/',
                 icons: [
                     {
-                        src: 'logo.jpg',
-                        sizes: '1024x897',
-                        type: 'image/jpeg',
+                        src: 'icon.svg',
+                        sizes: 'any',
+                        type: 'image/svg+xml',
                         purpose: 'any'
+                    },
+                    {
+                        src: 'icon-maskable.svg',
+                        sizes: 'any',
+                        type: 'image/svg+xml',
+                        purpose: 'maskable'
                     }
                 ]
             },
             workbox: {
-                globPatterns: ['**/*.{js,css,html,ico,png,svg,woff,woff2}'],
+                globPatterns: ['**/*.{js,css,html,ico,jpg,jpeg,png,svg,woff,woff2}'],
+                cleanupOutdatedCaches: true,
+                clientsClaim: false,
+                skipWaiting: false,
+                navigateFallbackDenylist: [/^\/api\//, /^\/functions\//],
                 // SECURITY: No cachear respuestas de Supabase REST API.
                 // Las respuestas autenticadas no deben sobrevivir al Service Worker
                 // porque pueden filtrar datos entre sesiones o servir estados de

@@ -69,6 +69,8 @@ export interface AIMessage {
   tool_name?: string;
   tool_result?: any;
   tokens_used?: number;
+  direction?: 'inbound' | 'outbound';
+  delivery_status?: 'queued' | 'processing' | 'sent' | 'delivered' | 'read' | 'failed';
   created_at: string;
 }
 

@@ -62,7 +62,7 @@ self.onmessage = async (e) => {
                 }
             });
 
-            const finalY = doc.lastAutoTable?.finalY || 160;
+            const finalY = /** @type {any} */ (doc).lastAutoTable?.finalY || 160;
             doc.setFont('helvetica', 'bold');
             doc.text('OBSERVACIONES / DATOS DE MENORES ACOMPAÑANTES:', 14, finalY + 10);
             doc.setFont('helvetica', 'normal');
@@ -126,7 +126,7 @@ self.onmessage = async (e) => {
             });
 
             autoTable(doc, {
-                startY: doc.lastAutoTable.finalY + 10,
+                startY: /** @type {any} */ (doc).lastAutoTable.finalY + 10,
                 head: [["Desglose por Métodos de Pago", "Monto"]],
                 body: summaryData.slice(4, 9).map(row => [row[0], row[2]]),
                 theme: 'grid',
@@ -134,7 +134,7 @@ self.onmessage = async (e) => {
             });
 
             autoTable(doc, {
-                startY: doc.lastAutoTable.finalY + 10,
+                startY: /** @type {any} */ (doc).lastAutoTable.finalY + 10,
                 body: summaryData.slice(9),
                 theme: 'plain',
                 styles: { fontStyle: 'bold', fontSize: 11, textColor: [0, 112, 65] }

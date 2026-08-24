@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Toaster } from "@/components/ui/sonner"
 import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client'
-import { queryClientInstance, idbPersister } from '@/lib/query-client'
+import { queryClientInstance, idbPersister, getCacheBuster, shouldPersistQuery } from '@/lib/query-client'
 import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
 import PageNotFound from './lib/PageNotFound';
 import { AuthProvider, useAuth } from '@/contexts/AuthContext';
@@ -149,7 +149,7 @@ function ApplicationRoutes() {
 
 function App() {
     return (
-        <PersistQueryClientProvider client={queryClientInstance} persistOptions={{ persister: idbPersister }}>
+        <PersistQueryClientProvider client={queryClientInstance} persistOptions={{ persister: idbPersister, buster: getCacheBuster(), dehydrateOptions: { shouldDehydrateQuery: shouldPersistQuery } }}>
             <AuthProvider>
                 <Router>
                     <SkipNavLink />

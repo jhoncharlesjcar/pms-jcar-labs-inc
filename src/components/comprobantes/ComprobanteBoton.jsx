@@ -9,7 +9,7 @@ import { getComprobanteStatus } from './ComprobanteStatus';
  * Supports different layout variants: 'default', 'compact', or 'icon'.
  * @param {{ventaPos: object, hotel: object, variant?: string, onEmitido?: function}} props
  */
-const ComprobanteBoton = memo(function ComprobanteBoton({ ventaPos, hotel, variant = 'default', onEmitido }) {
+const ComprobanteBoton = memo(function ComprobanteBoton(/** @type {any} */ { ventaPos, hotel, variant = 'default', onEmitido }) {
   const [open, setOpen] = useState(false);
 
   if (!ventaPos) return null;

@@ -19,7 +19,7 @@ export default function KnowledgeManager({ hotelId }) {
     const [searchTerm, setSearchTerm] = useState('');
     const [activeCategory, setActiveCategory] = useState('all');
 
-    const { data: knowledgeList, isLoading } = useQuery({
+    const { data: knowledgeList, isLoading, isError, error, refetch } = useQuery({
         queryKey: ['ai-knowledge', hotelId],
         queryFn: () => AIService.getKnowledge(hotelId)
     });
@@ -65,6 +65,7 @@ export default function KnowledgeManager({ hotelId }) {
 
     return (
         <div className="space-y-6">
+            {isError && <div role="alert" className="rounded-xl border border-destructive/30 bg-destructive/5 p-4 text-destructive">No se pudo cargar la base de conocimiento. {error?.message}<button type="button" onClick={() => refetch()} className="ml-2 underline">Reintentar</button></div>}
             <div className="flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center">
                 <p className="text-sm text-muted-foreground max-w-xl">
                     Lo que escribas aquí será utilizado por el asistente virtual para responder preguntas de los huéspedes. Sé claro y conciso.

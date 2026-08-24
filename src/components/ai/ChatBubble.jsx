@@ -12,6 +12,9 @@ export default function ChatBubble({ hotelId }) {
     const [sessionId, setSessionId] = useState('');
     const [sessionToken, setSessionToken] = useState('');
     const messagesEndRef = useRef(null);
+    const inputRef = useRef(null);
+    const openButtonRef = useRef(null);
+    const dialogRef = useRef(null);
 
     useEffect(() => {
         if (!hotelId) return;
@@ -30,10 +33,8 @@ export default function ChatBubble({ hotelId }) {
             setSessionId(bootstrap.session_id);
             setSessionToken(bootstrap.session_token);
             setHotelConfig(bootstrap.config);
-            setMessages([{
-                id: 'welcome', role: 'assistant',
-                content: bootstrap.config?.welcome_message || '¡Hola! ¿En qué puedo ayudarte?',
-            }]);
+            const transcript = Array.isArray(bootstrap.messages) ? bootstrap.messages.filter(message => ['user', 'assistant'].includes(message.role)) : [];
+            setMessages(transcript.length ? transcript : [{ id: 'welcome', role: 'assistant', content: bootstrap.config?.welcome_message || '¡Hola! ¿En qué puedo ayudarte?' }]);
         }).catch(() => {
             if (!cancelled) setHotelConfig({ agent_enabled: false });
         });
@@ -44,6 +45,31 @@ export default function ChatBubble({ hotelId }) {
     useEffect(() => {
         if (isOpen) messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     }, [messages, isOpen, isTyping]);
+
+    useEffect(() => {
+        if (!isOpen) return undefined;
+        inputRef.current?.focus();
+        const handleKeyDown = (event) => {
+            if (event.key === 'Escape') {
+                setIsOpen(false);
+                window.setTimeout(() => openButtonRef.current?.focus(), 0);
+            }
+            if (event.key === 'Tab' && dialogRef.current) {
+                const focusable = [...dialogRef.current.querySelectorAll('button:not([disabled]), input:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])')];
+                if (!focusable.length) return;
+                const first = focusable[0]; const last = focusable[focusable.length - 1];
+                if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
+                else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
+            }
+        };
+        document.addEventListener('keydown', handleKeyDown);
+        return () => document.removeEventListener('keydown', handleKeyDown);
+    }, [isOpen]);
+
+    const closeChat = () => {
+        setIsOpen(false);
+        window.setTimeout(() => openButtonRef.current?.focus(), 0);
+    };
 
     const handleSend = async (event) => {
         event?.preventDefault();
@@ -80,6 +106,7 @@ export default function ChatBubble({ hotelId }) {
         <div className="fixed bottom-6 right-6 z-50">
             {!isOpen && (
                 <button
+                    ref={openButtonRef}
                     type="button"
                     aria-label="Abrir conversación con JcarAI"
                     onClick={() => setIsOpen(true)}
@@ -97,7 +124,7 @@ export default function ChatBubble({ hotelId }) {
             )}
 
             {isOpen && (
-                <div className="flex h-[550px] max-h-[80vh] w-[350px] flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-2xl animate-in fade-in slide-in-from-bottom-8">
+                <div ref={dialogRef} role="dialog" aria-modal="true" aria-labelledby="jcar-chat-title" className="flex h-[550px] max-h-[80vh] w-[350px] flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-2xl animate-in fade-in slide-in-from-bottom-8">
                     <div className="flex items-center justify-between bg-primary p-4 text-primary-foreground shadow-md">
                         <div className="flex items-center gap-3">
                             <div className="relative flex h-10 w-10 items-center justify-center rounded-full bg-white/20">
@@ -105,16 +132,16 @@ export default function ChatBubble({ hotelId }) {
                                 <span className="absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-primary bg-emerald-500" />
                             </div>
                             <div>
-                                <h3 className="text-sm font-bold leading-tight">{hotelConfig.agent_name || 'JcarAI'}</h3>
+                                <h3 id="jcar-chat-title" className="text-sm font-bold leading-tight">{hotelConfig.agent_name || 'JcarAI'}</h3>
                                 <p className="text-[11px] font-medium text-primary-foreground/80">Vendedor y recepcionista digital</p>
                             </div>
                         </div>
-                        <button type="button" aria-label="Cerrar chat" onClick={() => setIsOpen(false)} className="rounded-full p-2 hover:bg-white/20">
+                        <button type="button" aria-label="Cerrar chat" onClick={closeChat} className="rounded-full p-2 hover:bg-white/20">
                             <X className="h-5 w-5" />
                         </button>
                     </div>
 
-                    <div className="custom-scrollbar flex-1 space-y-4 overflow-y-auto bg-muted/20 p-4">
+                    <div role="log" aria-live="polite" aria-relevant="additions text" className="custom-scrollbar flex-1 space-y-4 overflow-y-auto bg-muted/20 p-4">
                         {messages.map((message) => {
                             if (message.role === 'system') {
                                 return <div key={message.id} className="my-2 text-center text-xs font-medium text-destructive">{message.content}</div>;
@@ -144,6 +171,8 @@ export default function ChatBubble({ hotelId }) {
                     <div className="border-t border-border bg-card p-3">
                         <form onSubmit={handleSend} className="flex items-center gap-2 rounded-full border border-border/50 bg-muted/50 p-1.5 focus-within:border-primary/50">
                             <input
+                                ref={inputRef}
+                                aria-label="Mensaje para JcarAI"
                                 type="text"
                                 maxLength={2000}
                                 value={input}

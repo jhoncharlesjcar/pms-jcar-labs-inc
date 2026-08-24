@@ -6,7 +6,7 @@ import { MessageSquare, CalendarCheck, FileText, TrendingUp, RefreshCw, BarChart
 const formatCurrency = (value) => new Intl.NumberFormat('es-PE', { style: 'currency', currency: 'PEN' }).format(value || 0);
 
 export default function AIDashboard({ hotelId }) {
-    const { data: metrics, isLoading, refetch } = useQuery({
+    const { data: metrics, isLoading, isError, error, refetch } = useQuery({
         queryKey: ['ai-metrics', hotelId],
         queryFn: () => AIService.getMetrics(hotelId),
         refetchInterval: 30000 // refetch every 30s
@@ -24,6 +24,7 @@ export default function AIDashboard({ hotelId }) {
             </div>
         );
     }
+    if (isError) return <div role="alert" className="rounded-xl border border-destructive/30 bg-destructive/5 p-6 text-destructive">No se pudieron cargar las métricas. {error?.message}<button type="button" onClick={() => refetch()} className="ml-3 underline">Reintentar</button></div>;
 
     const m = metrics || {
         totalConversations: 0,

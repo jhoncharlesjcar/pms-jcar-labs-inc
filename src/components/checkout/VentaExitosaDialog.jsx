@@ -5,7 +5,7 @@ import { CheckCircle, BedDouble, ExternalLink } from 'lucide-react';
 import TicketPDF from '@/components/TicketPDF';
 import CheckoutProgress from '@/components/checkout/CheckoutProgress';
 
-export const VentaExitosaDialog = memo(function VentaExitosaDialog({ ventaCreada, config, reserva, onClose, onSuccess }) {
+export const VentaExitosaDialog = memo(function VentaExitosaDialog(/** @type {any} */ { ventaCreada, config, reserva, onClose, onSuccess }) {
     const abrirSunat = () => {
         window.open('https://e-menu.sunat.gob.pe/cl-ti-itmenu/MenuInternet.htm', '_blank');
     };

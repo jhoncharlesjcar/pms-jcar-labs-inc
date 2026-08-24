@@ -1,12 +1,13 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { logEvent, noStoreJson, requestId } from "../_shared/runtime.ts";
 
 declare const Deno: any;
 
 function jsonError(message: string, status: number) {
   return new Response(JSON.stringify({ error: message }), {
     status,
-    headers: { "Content-Type": "application/json" },
+    headers: { "Content-Type": "application/json", "Cache-Control": "no-store, max-age=0" },
   });
 }
 
@@ -27,6 +28,7 @@ async function computeHmac(secret: string, body: string): Promise<string> {
 }
 
 serve(async (req: Request) => {
+  const traceId = requestId(req);
   if (req.method !== "POST") return jsonError("Method not allowed", 405);
 
   const secret = Deno.env.get("WEBHOOK_SIGNING_SECRET");
@@ -79,25 +81,27 @@ serve(async (req: Request) => {
       Deno.env.get("SUPABASE_URL") ?? "",
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
     );
-    const { data: reservaId, error } = await supabase.rpc("confirm_reservation_payment", {
+    const { data: reservaId, error } = await supabase.rpc("ai_process_payment_event", {
       p_payment_intent_id: paymentUuid,
       p_event_id: String(eventId),
       p_amount: amount,
       p_currency: currency,
       p_provider: provider,
+      p_payload: payload,
     });
     if (error) {
       if (error.code === "23505") return jsonError("Event already processed", 409);
-      console.warn("[WEBHOOK] Confirmation rejected:", error.code);
+      logEvent("warn", "payment_webhook_rejected", { request_id: traceId, provider, code: error.code });
       return jsonError("Payment confirmation rejected", 409);
     }
 
-    return new Response(JSON.stringify({ status: "ok", reserva_id: reservaId }), {
-      status: 200,
-      headers: { "Content-Type": "application/json" },
+    logEvent("info", "payment_webhook_processed", {
+      request_id: traceId, provider, event_id: String(eventId), payment_intent_id: paymentUuid,
+      result: reservaId ? "reservation_confirmed" : "reconciliation_required",
     });
+    return noStoreJson({ status: "ok", reserva_id: reservaId, reconciliation_required: !reservaId, request_id: traceId });
   } catch (error) {
-    console.error("[WEBHOOK] Invalid request:", error);
+    logEvent("error", "payment_webhook_failed", { request_id: traceId, error: error instanceof Error ? error.message : String(error) });
     return jsonError("Invalid webhook request", 400);
   }
 });

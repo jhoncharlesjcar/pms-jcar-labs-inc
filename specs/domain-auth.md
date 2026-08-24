@@ -104,18 +104,11 @@ Roles invitables: `admin`, `recepcionista` y `limpieza`. La creación de develop
 
 ```mermaid
 flowchart TD
-    A["Solicitar logout"] --> B["Contar mutaciones pendientes"]
-    B --> C{"Hay pendientes y existe conexión"}
-    C -->|Sí| D["Procesar cola"]
-    C -->|No| E["Revisar resultado"]
-    D --> E
-    E --> F{"Quedan pendientes o dead letters"}
-    F -->|Sí| G["Bloquear logout y pedir revisión"]
-    F -->|No| H["supabase.auth.signOut"]
-    H --> I["Limpiar auth.store"]
-    I --> J["Purgar caché y cola de la identidad"]
-    J --> K["Eliminar claves sb-* y sessionStorage"]
-    K --> L["Recargar origen"]
+    A["Solicitar logout"] --> B["supabase.auth.signOut"]
+    B --> C["Limpiar auth.store"]
+    C --> D["Purgar caché allowlist de la identidad"]
+    D --> E["Eliminar claves sb-* y sessionStorage"]
+    E --> F["Recargar origen"]
 ```
 
 El logout no elimina preferencias independientes como el tema. No se permite cerrar sesión silenciosamente si eso dejaría cambios operativos sin revisar.
@@ -162,9 +155,9 @@ Estos escenarios son contratos de aceptación; no afirman la existencia de una s
 - [ ] Admin no puede invitar personal a otro hotel.
 - [ ] Invitación fallida no deja un perfil huérfano.
 - [ ] Cambio de hotel no conserva datos operativos del tenant anterior.
-- [ ] Logout limpia sesión, caché persistida y cola de la identidad.
-- [ ] Logout se bloquea si existen pendientes o dead letters.
-- [ ] Reconexión procesa la cola correspondiente al usuario y hotel.
+- [ ] Logout limpia sesión y caché persistida de la identidad.
+- [ ] Una mutación sin conexión falla cerrada y no se almacena en IndexedDB.
+- [ ] La reconexión refresca consultas, pero no reproduce mutaciones del navegador.
 
 ## 11. Criterios de aceptación
 

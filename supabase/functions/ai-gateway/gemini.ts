@@ -1,103 +1,80 @@
-export async function callGemini(
-  systemPrompt: string, 
-  history: any[], 
-  newMessage: string, 
+import { fetchWithPolicy, logEvent } from '../_shared/runtime.ts';
+
+declare const Deno: { env: { get(name: string): string | undefined } };
+
+export interface GeminiSession {
+  contents: Array<{ role: string; parts: Array<Record<string, unknown>> }>;
+  response: any;
+}
+
+function endpoint(): string {
+  const configured = Deno.env.get('GEMINI_MODEL') || 'gemini-2.0-flash';
+  const model = /^[A-Za-z0-9._-]{3,80}$/.test(configured) ? configured : 'gemini-2.0-flash';
+  return `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`;
+}
+
+async function generate(
+  systemPrompt: string,
+  contents: GeminiSession['contents'],
   toolsDefinition: any[],
-  apiKey: string
+  apiKey: string,
 ): Promise<any> {
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
-
-  // Formatear historial al formato de Gemini
-  // Gemini usa 'user' y 'model' como roles
-  const contents = history.map(msg => ({
-    role: msg.role === 'assistant' ? 'model' : msg.role,
-    parts: [{ text: msg.content }]
-  }));
-
-  // Añadir nuevo mensaje
-  contents.push({
-    role: 'user',
-    parts: [{ text: newMessage }]
-  });
-
-  const payload = {
-    systemInstruction: {
-      parts: [{ text: systemPrompt }]
-    },
-    contents,
-    tools: toolsDefinition,
-    generationConfig: {
-      temperature: 0.2,
-      maxOutputTokens: 800,
-    }
-  };
-
-  const response = await fetch(url, {
+  const response = await fetchWithPolicy(endpoint(), {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(payload)
-  });
+    headers: {
+      'Content-Type': 'application/json',
+      'x-goog-api-key': apiKey,
+    },
+    body: JSON.stringify({
+      systemInstruction: { parts: [{ text: systemPrompt }] },
+      contents,
+      tools: toolsDefinition,
+      generationConfig: { temperature: 0.2, maxOutputTokens: 800 },
+    }),
+  }, { timeoutMs: 12_000, attempts: 2 });
 
   if (!response.ok) {
-    const errorTxt = await response.text();
-    console.error('[Gemini API Error]', errorTxt);
-    throw new Error(`Gemini API error: ${response.status} ${response.statusText}`);
+    logEvent('warn', 'gemini_request_failed', { status: response.status });
+    throw new Error(`Gemini API error: ${response.status}`);
   }
+  return response.json();
+}
 
-  return await response.json();
+export async function callGemini(
+  systemPrompt: string,
+  history: any[],
+  newMessage: string,
+  toolsDefinition: any[],
+  apiKey: string,
+): Promise<GeminiSession> {
+  const contents: GeminiSession['contents'] = history.map((message) => ({
+    role: message.role === 'assistant' ? 'model' : 'user',
+    parts: [{ text: String(message.content || '') }],
+  }));
+  contents.push({ role: 'user', parts: [{ text: newMessage }] });
+  return { contents, response: await generate(systemPrompt, contents, toolsDefinition, apiKey) };
 }
 
 export async function submitToolResponseToGemini(
   systemPrompt: string,
-  history: any[],
-  toolResponses: any[],
+  session: GeminiSession,
+  modelParts: Array<Record<string, unknown>>,
+  toolResponses: Array<{ name: string; result: unknown }>,
   toolsDefinition: any[],
-  apiKey: string
-): Promise<any> {
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
-
-  // Formatear historial
-  const contents = history.map(msg => ({
-    role: msg.role === 'assistant' ? 'model' : msg.role,
-    parts: msg._functionCall ? [{ functionCall: msg._functionCall }] : [{ text: msg.content }]
-  }));
-
-  // Añadir tool call functionResponse
-  // NOTA: Para simplificar el MVP y evitar complejidades de formateo de multi-turn tool calls en Gemini, 
-  // simulamos el toolResult inyectándolo como un mensaje de sistema o user para que Gemini evalúe y responda.
-  // La API de Gemini requiere que un 'functionCall' del modelo sea seguido por un 'functionResponse' del usuario.
-
-  // Añadir el function response
-  const functionResponsesParts = toolResponses.map(tr => ({
-    functionResponse: {
-      name: tr.name,
-      response: { result: tr.result }
-    }
-  }));
-
-  contents.push({
-    role: 'user', // En Gemini el usuario devuelve el functionResponse
-    parts: functionResponsesParts as any
-  });
-
-  const payload = {
-    systemInstruction: { parts: [{ text: systemPrompt }] },
-    contents,
-    tools: toolsDefinition,
-    generationConfig: { temperature: 0.2 }
-  };
-
-  const response = await fetch(url, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(payload)
-  });
-
-  if (!response.ok) {
-    const errorTxt = await response.text();
-    console.error('[Gemini API ToolResponse Error]', errorTxt);
-    throw new Error(`Gemini API error: ${response.status}`);
-  }
-
-  return await response.json();
+  apiKey: string,
+): Promise<GeminiSession> {
+  const contents: GeminiSession['contents'] = [
+    ...session.contents,
+    { role: 'model', parts: modelParts },
+    {
+      role: 'user',
+      parts: toolResponses.map((toolResponse) => ({
+        functionResponse: {
+          name: toolResponse.name,
+          response: { result: toolResponse.result },
+        },
+      })),
+    },
+  ];
+  return { contents, response: await generate(systemPrompt, contents, toolsDefinition, apiKey) };
 }

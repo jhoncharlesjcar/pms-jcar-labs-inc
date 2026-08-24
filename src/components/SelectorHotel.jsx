@@ -4,7 +4,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Building2, Check } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-const SelectorHotel = memo(function SelectorHotel({ mobile = false }) {
+const SelectorHotel = memo(function SelectorHotel(/** @type {any} */ { mobile = false }) {
     const { hotelActual, hoteles, cambiarHotel } = useHotel();
     const { user } = useAuth();
     const [open, setOpen] = useState(false);

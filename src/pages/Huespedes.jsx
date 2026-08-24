@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { useState, memo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { 
@@ -220,8 +219,8 @@ const Huespedes = memo(function Huespedes() {
                             </div>
                             <DialogFooter>
                                 <Button variant="outline" onClick={() => setExportDialogOpen(false)} className="">Cancelar</Button>
-                                <Button onClick={() => exportarDircetur('pdf')} variant="secondary" className="gap-2"><FileText className="w-4 h-4" /> PDF</Button>
-                                <Button onClick={() => exportarDircetur('excel')} className="gap-2"><Download className="w-4 h-4" /> CSV</Button>
+                                <Button onClick={() => exportarDircetur(reservas, 'pdf', /** @type {any} */ (periodoExport), fechaExport)} variant="secondary" className="gap-2"><FileText className="w-4 h-4" /> PDF</Button>
+                                <Button onClick={() => exportarDircetur(reservas, 'excel', /** @type {any} */ (periodoExport), fechaExport)} className="gap-2"><Download className="w-4 h-4" /> CSV</Button>
                             </DialogFooter>
                         </DialogContent>
                     </Dialog>

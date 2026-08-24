@@ -121,23 +121,36 @@ export class ToolExecutor {
   constructor(
     private supabase: any,
     private hotelId: string,
-    private conversationId: string
+    private conversationId: string,
+    private piiVault: Record<string, string> = {},
   ) {}
+
+  private restoreProtectedValues(value: any): any {
+    if (Array.isArray(value)) return value.map((item) => this.restoreProtectedValues(item));
+    if (value && typeof value === 'object') {
+      return Object.fromEntries(Object.entries(value).map(([key, item]) => [key, this.restoreProtectedValues(item)]));
+    }
+    if (typeof value === 'string' && Object.prototype.hasOwnProperty.call(this.piiVault, value)) {
+      return this.piiVault[value];
+    }
+    return value;
+  }
 
   async executeTool(name: string, args: any): Promise<any> {
     console.log(`[ToolExecutor] Executing ${name}`);
     try {
+      const resolvedArgs = this.restoreProtectedValues(args);
       switch (name) {
-        case 'search_availability': return await this.searchAvailability(args);
-        case 'create_quote': return await this.createQuote(args);
-        case 'create_reservation_hold': return await this.createReservationHold(args);
-        case 'create_payment_request': return await this.createPaymentRequest(args);
-        case 'check_payment_status': return await this.checkPaymentStatus(args);
-        case 'submit_payment_proof': return await this.submitPaymentProof(args);
-        case 'get_hotel_policies': return await this.getHotelPolicies(args);
+        case 'search_availability': return await this.searchAvailability(resolvedArgs);
+        case 'create_quote': return await this.createQuote(resolvedArgs);
+        case 'create_reservation_hold': return await this.createReservationHold(resolvedArgs);
+        case 'create_payment_request': return await this.createPaymentRequest(resolvedArgs);
+        case 'check_payment_status': return await this.checkPaymentStatus(resolvedArgs);
+        case 'submit_payment_proof': return await this.submitPaymentProof(resolvedArgs);
+        case 'get_hotel_policies': return await this.getHotelPolicies(resolvedArgs);
         case 'get_reservation': return await this.getReservation();
         case 'start_pre_checkin': return await this.startPreCheckin();
-        case 'handoff_to_human': return await this.handoffToHuman(args);
+        case 'handoff_to_human': return await this.handoffToHuman(resolvedArgs);
         default: return { error: `Tool ${name} no encontrada` };
       }
     } catch (error: any) {
@@ -272,26 +285,14 @@ export class ToolExecutor {
   }
 
   private async startPreCheckin() {
-    const { data: conversation, error: conversationError } = await this.supabase
-      .from('ai_conversations').select('reserva_id,status')
-      .eq('id', this.conversationId).eq('hotel_id', this.hotelId).single();
-    if (conversationError) throw conversationError;
-    if (!conversation.reserva_id || conversation.status !== 'booked') {
-      return { success: false, error: 'La reserva aun no esta confirmada' };
-    }
-    const { data: event, error: eventError } = await this.supabase.from('ai_domain_events')
-      .select('payload').eq('hotel_id', this.hotelId).eq('aggregate_id', conversation.reserva_id)
-      .eq('event_type', 'reservation.confirmed').order('created_at', { ascending: false }).limit(1).single();
-    if (eventError) throw eventError;
-    await this.supabase.from('ai_conversations').update({
-      journey_stage: 'pre_checkin', updated_at: new Date().toISOString()
-    }).eq('id', this.conversationId).eq('hotel_id', this.hotelId);
-    return {
-      success: true,
-      reservation_id: conversation.reserva_id,
-      checkin_path: `/public-checkin/${event.payload.checkin_token}`,
-      portal_path: `/portal/${event.payload.portal_token}`
-    };
+    const { data, error } = await this.supabase.rpc('ai_enqueue_precheckin_delivery', {
+      p_hotel_id: this.hotelId,
+      p_conversation_id: this.conversationId,
+    });
+    if (error) throw error;
+    // The database creates short-lived credentials only at delivery time. The model
+    // receives no raw guest token or URL that could be persisted in model history.
+    return data;
   }
 
   private async handoffToHuman(args: any) {

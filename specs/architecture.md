@@ -84,10 +84,9 @@ El filtro del cliente no es un control de seguridad. Una operación sigue siendo
 - TanStack Query administra consultas, mutaciones e invalidaciones.
 - La caché seleccionada persiste en IndexedDB.
 - Realtime invalida información operativa al recibir cambios de Supabase.
-- `sync-queue.js` particiona mutaciones offline por usuario y hotel.
-- `OfflineSyncManager` procesa la cola al recuperar conectividad.
-- El logout intenta sincronizar cambios pendientes y se bloquea si quedan pendientes o dead letters.
-- Al cerrar sesión se purgan la caché persistida y las colas de esa identidad.
+- Las mutaciones PMS requieren conexión y un contrato idempotente del servidor; la compatibilidad `sync-queue.js` falla cerrada y no persiste/reproduce operaciones.
+- `OfflineSyncManager` solo informa conectividad; no ejecuta mutaciones almacenadas.
+- El logout no depende de colas del navegador y purga la caché allowlist de esa identidad.
 - El Service Worker no almacena respuestas autenticadas de Supabase.
 
 ## Backend

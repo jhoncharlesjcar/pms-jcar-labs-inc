@@ -1,6 +1,5 @@
-import { db } from '@/api/db';
+import { supabase } from '@/config/supabase';
 import logger from '@/lib/logger';
-import { generateUUID } from '@/lib/utils';
 
 /**
  * Registra una acción en la bitácora de auditoría inmutable (Audit Log)
@@ -15,35 +14,23 @@ import { generateUUID } from '@/lib/utils';
 export async function registrarLog({ hotelId, user, accion, descripcion, modulo }) {
     if (!hotelId || !user) return;
     
-    const logData = {
-        hotel_id: hotelId,
-        usuario_id: user.id,
-        usuario_nombre: user.full_name || user.email || 'Staff',
-        usuario_role: user.role || 'user',
-        accion: accion.toUpperCase(),
-        descripcion,
-        modulo,
-    };
-
     try {
-        // Intentar escribir en Supabase
-        await db.entities.AuditLog.create(logData);
-        logger.info(`[AUDIT LOG] ${accion} registrado en Supabase.`);
+        const { error } = await supabase.rpc('write_audit_event', {
+            p_hotel_id: hotelId,
+            p_action: accion.toUpperCase(),
+            p_module: modulo,
+            p_entity_type: null,
+            p_entity_id: null,
+            p_description: descripcion,
+            p_metadata: {},
+            p_request_id: globalThis.crypto?.randomUUID?.() || null,
+        });
+        if (error) throw error;
+        logger.info('audit.event.persisted', { action: accion, module: modulo });
     } catch (err) {
-        logger.warn(`[AUDIT LOG FALLBACK] Fallo al guardar log en Supabase. Almacenando en LocalStorage fallback.`, err);
-        
-        // Fallback defensivo a LocalStorage para garantizar alta disponibilidad
-        try {
-            const fallbackLogs = JSON.parse(localStorage.getItem('audit_logs_fallback') || '[]');
-            fallbackLogs.unshift({
-                ...logData,
-                id: generateUUID(),
-                created_date: new Date().toISOString()
-            });
-            // Mantener solo los últimos 100 logs
-            localStorage.setItem('audit_logs_fallback', JSON.stringify(fallbackLogs.slice(0, 100)));
-        } catch (localErr) {
-            logger.error('[AUDIT LOG CRITICAL] Error escribiendo en LocalStorage:', localErr);
-        }
+        // Una auditoría no persistida no se sustituye por almacenamiento manipulable
+        // del navegador. El llamador decide si el flujo puede continuar.
+        logger.error('audit.event.persistence_failed', { action: accion, module: modulo, error: err });
+        throw err;
     }
 }

@@ -32,7 +32,7 @@ function parseCsv(text) {
     return rows.map(values => Object.fromEntries(headers.map((header, index) => [header, values[index] ?? ''])));
 }
 
-export const ConfigImportadorExcel = memo(function ConfigImportadorExcel({ hotelId }) {
+export const ConfigImportadorExcel = memo(function ConfigImportadorExcel(/** @type {any} */ { hotelId }) {
     const qc = useQueryClient();
     const { db: hotelDb } = useHotelData();
     const [fileData, setFileData] = useState([]);
@@ -225,7 +225,7 @@ export const ConfigImportadorExcel = memo(function ConfigImportadorExcel({ hotel
                                 ))}
                                 {fileData.length > 10 && (
                                     <tr>
-                                        <td colSpan="4" className="p-2 text-center text-muted-foreground font-black uppercase tracking-widest text-[9px] bg-background/30">
+                                        <td colSpan={4} className="p-2 text-center text-muted-foreground font-black uppercase tracking-widest text-[9px] bg-background/30">
                                             ... y {fileData.length - 10} habitaciones más
                                         </td>
                                     </tr>

@@ -64,6 +64,7 @@ Variables públicas requeridas:
 ```env
 VITE_SUPABASE_URL=https://<project-ref>.supabase.co
 VITE_SUPABASE_ANON_KEY=<anon-key>
+VITE_TURNSTILE_SITE_KEY=<turnstile-site-key>
 ```
 
 No se deben exponer mediante `VITE_*` claves `service_role`, contraseñas SOL, certificados, secretos de pasarela ni credenciales de proveedores.
@@ -75,6 +76,12 @@ No se deben exponer mediante `VITE_*` claves `service_role`, contraseñas SOL, c
 | `pnpm dev` | Iniciar el servidor local |
 | `pnpm lint` | Ejecutar ESLint sobre `src` sin aceptar advertencias |
 | `pnpm typecheck` | Validar TypeScript sin generar archivos |
+| `pnpm typecheck:js` | Validar la línea base JavaScript compartida |
+| `pnpm test:coverage` | Ejecutar unitarias con umbrales de cobertura |
+| `pnpm test:e2e` | Ejecutar smoke tests de escritorio y móvil |
+| `pnpm check:edge` | Validar todas las Edge Functions con Deno y lock congelado |
+| `pnpm check:migrations` | Verificar higiene y orden de migraciones |
+| `pnpm check:secrets` | Bloquear secretos y configuraciones peligrosas |
 | `pnpm build` | Generar el bundle de producción en `dist/` |
 | `pnpm preview` | Servir localmente el bundle compilado |
 | `ANALYZE=true pnpm build` | Generar `bundle-report.html` para análisis local |
@@ -119,6 +126,8 @@ La guía operativa completa está en [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md).
 - [Flujo de negocio](docs/FLUJO_NEGOCIO.md)
 - [Sistema de diseño](docs/DESIGN_SYSTEM.md)
 - [Despliegue](docs/DEPLOYMENT.md)
+- [Runbook operativo](docs/OPERATIONS_RUNBOOK.md)
+- [Matriz de remediación de auditoría](docs/AUDIT_REMEDIATION_2026-08.md)
 - [Especificaciones de dominio](specs/)
 
 ## Seguridad

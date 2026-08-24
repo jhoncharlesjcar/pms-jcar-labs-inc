@@ -15,7 +15,7 @@ import { evaluarArqueoEfectivo } from '@/services/caja.service';
 const money = (value) => `S/ ${Number(value || 0).toFixed(2)}`;
 
 /** @param {{closureModal: boolean, setClosureModal: Function, stats: any, user: any, hotelActual: any, addCierre: any, handlePrintHotel: Function, handlePrintPOS: Function, handleExportPDF: Function, handleExportExcel: Function, handlePrintTicket: Function}} props */
-export const CajaCierreModal = memo(function CajaCierreModal({
+export const CajaCierreModal = memo(function CajaCierreModal(/** @type {any} */ {
     closureModal, setClosureModal, stats, user, hotelActual, addCierre,
     handlePrintHotel, handlePrintPOS, handleExportPDF, handleExportExcel, handlePrintTicket,
 }) {
