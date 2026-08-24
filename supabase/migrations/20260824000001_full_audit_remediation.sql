@@ -4,6 +4,35 @@
 -- All monetary, inventory, identity and delivery transitions are server-side.
 -- ============================================================
 
+-- Fail before making any change when this file is pasted or applied out of
+-- order. The lifecycle migration creates the complete JcarAI booking schema.
+DO $$
+DECLARE
+  v_missing text[];
+BEGIN
+  SELECT array_agg(required.relation_name ORDER BY required.relation_name)
+  INTO v_missing
+  FROM (VALUES
+    ('public.ai_booking_intents'),
+    ('public.ai_channel_connections'),
+    ('public.ai_conversations'),
+    ('public.ai_hotel_config'),
+    ('public.ai_messages'),
+    ('public.ai_payment_intents'),
+    ('public.ai_quotes'),
+    ('public.ai_reservation_holds')
+  ) AS required(relation_name)
+  WHERE to_regclass(required.relation_name) IS NULL;
+
+  IF v_missing IS NOT NULL THEN
+    RAISE EXCEPTION USING
+      ERRCODE = '42P01',
+      MESSAGE = 'audit remediation prerequisites are missing: ' || array_to_string(v_missing, ', '),
+      HINT = 'Apply every migration in timestamp order through 20260823000001_jcar_ai_booking_lifecycle.sql before 20260824000001_full_audit_remediation.sql.';
+  END IF;
+END;
+$$;
+
 CREATE EXTENSION IF NOT EXISTS pgcrypto;
 CREATE EXTENSION IF NOT EXISTS btree_gist;
 
