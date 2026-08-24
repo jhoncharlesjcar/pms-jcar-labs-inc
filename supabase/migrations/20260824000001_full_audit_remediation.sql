@@ -156,11 +156,11 @@ BEGIN
   LIMIT 1;
 
   v_hash := encode(digest(
-    COALESCE(v_previous_hash, '') || '|' || v_id::text || '|' || p_hotel_id::text || '|' ||
+    (COALESCE(v_previous_hash, '') || '|' || v_id::text || '|' || p_hotel_id::text || '|' ||
     COALESCE(p_actor_id::text, '') || '|' || COALESCE(p_actor_role, '') || '|' ||
     p_action || '|' || p_module || '|' || COALESCE(p_entity_type, '') || '|' ||
     COALESCE(p_entity_id, '') || '|' || COALESCE(p_description, '') || '|' ||
-    COALESCE(p_metadata, '{}'::jsonb)::text || '|' || v_created_at::text,
+    COALESCE(p_metadata, '{}'::jsonb)::text || '|' || v_created_at::text)::bytea,
     'sha256'
   ), 'hex');
 
