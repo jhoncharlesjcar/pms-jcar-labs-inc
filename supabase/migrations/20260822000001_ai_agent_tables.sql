@@ -26,11 +26,13 @@ CREATE TABLE IF NOT EXISTS public.ai_hotel_config (
 
 ALTER TABLE public.ai_hotel_config ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "Permitir lectura ai_hotel_config solo para staff" ON public.ai_hotel_config;
 CREATE POLICY "Permitir lectura ai_hotel_config solo para staff" ON public.ai_hotel_config
     FOR SELECT TO authenticated USING (
         hotel_id = (SELECT hotel_id FROM public.usuarios WHERE id = auth.uid())
     );
 
+DROP POLICY IF EXISTS "Permitir mutaciones ai_hotel_config para staff" ON public.ai_hotel_config;
 CREATE POLICY "Permitir mutaciones ai_hotel_config para staff" ON public.ai_hotel_config
     FOR ALL TO authenticated USING (
         hotel_id = (SELECT hotel_id FROM public.usuarios WHERE id = auth.uid())
@@ -57,11 +59,13 @@ CREATE TABLE IF NOT EXISTS public.ai_hotel_knowledge (
 
 ALTER TABLE public.ai_hotel_knowledge ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "Permitir lectura ai_hotel_knowledge solo para staff" ON public.ai_hotel_knowledge;
 CREATE POLICY "Permitir lectura ai_hotel_knowledge solo para staff" ON public.ai_hotel_knowledge
     FOR SELECT TO authenticated USING (
         hotel_id = (SELECT hotel_id FROM public.usuarios WHERE id = auth.uid())
     );
 
+DROP POLICY IF EXISTS "Permitir mutaciones ai_hotel_knowledge para staff" ON public.ai_hotel_knowledge;
 CREATE POLICY "Permitir mutaciones ai_hotel_knowledge para staff" ON public.ai_hotel_knowledge
     FOR ALL TO authenticated USING (
         hotel_id = (SELECT hotel_id FROM public.usuarios WHERE id = auth.uid())
@@ -96,11 +100,13 @@ CREATE TABLE IF NOT EXISTS public.ai_conversations (
 
 ALTER TABLE public.ai_conversations ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "Permitir lectura ai_conversations solo para staff" ON public.ai_conversations;
 CREATE POLICY "Permitir lectura ai_conversations solo para staff" ON public.ai_conversations
     FOR SELECT TO authenticated USING (
         hotel_id = (SELECT hotel_id FROM public.usuarios WHERE id = auth.uid())
     );
 
+DROP POLICY IF EXISTS "Permitir mutaciones ai_conversations para staff" ON public.ai_conversations;
 CREATE POLICY "Permitir mutaciones ai_conversations para staff" ON public.ai_conversations
     FOR ALL TO authenticated USING (
         hotel_id = (SELECT hotel_id FROM public.usuarios WHERE id = auth.uid())
@@ -126,11 +132,13 @@ CREATE TABLE IF NOT EXISTS public.ai_messages (
 
 ALTER TABLE public.ai_messages ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "Permitir lectura ai_messages solo para staff" ON public.ai_messages;
 CREATE POLICY "Permitir lectura ai_messages solo para staff" ON public.ai_messages
     FOR SELECT TO authenticated USING (
         hotel_id = (SELECT hotel_id FROM public.usuarios WHERE id = auth.uid())
     );
 
+DROP POLICY IF EXISTS "Permitir mutaciones ai_messages para staff" ON public.ai_messages;
 CREATE POLICY "Permitir mutaciones ai_messages para staff" ON public.ai_messages
     FOR ALL TO authenticated USING (
         hotel_id = (SELECT hotel_id FROM public.usuarios WHERE id = auth.uid())
@@ -162,11 +170,13 @@ CREATE TABLE IF NOT EXISTS public.ai_quotes (
 
 ALTER TABLE public.ai_quotes ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "Permitir lectura ai_quotes solo para staff" ON public.ai_quotes;
 CREATE POLICY "Permitir lectura ai_quotes solo para staff" ON public.ai_quotes
     FOR SELECT TO authenticated USING (
         hotel_id = (SELECT hotel_id FROM public.usuarios WHERE id = auth.uid())
     );
 
+DROP POLICY IF EXISTS "Permitir mutaciones ai_quotes para staff" ON public.ai_quotes;
 CREATE POLICY "Permitir mutaciones ai_quotes para staff" ON public.ai_quotes
     FOR ALL TO authenticated USING (
         hotel_id = (SELECT hotel_id FROM public.usuarios WHERE id = auth.uid())
