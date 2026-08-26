@@ -116,7 +116,9 @@ interface Hotel {
   ciudad?: string;               // Ciudad de operaciones
   telefono?: string;             // Teléfono de contacto
   email?: string;                // Correo del establecimiento
-  logo_url?: string;             // URL del logo en Supabase Storage
+  logo_url?: string;             // URL del logo del hotel (branding)
+  qr_yape_url?: string;          // URL del QR oficial de Yape para pasarelas
+  qr_plin_url?: string;          // URL del QR oficial de Plin para pasarelas
   mensaje_ticket?: string;       // Pie de página del ticket (default "¡Gracias por su preferencia!")
   activo: boolean;               // Default true; desactivación lógica del tenant
 
@@ -129,7 +131,7 @@ interface Hotel {
   // Configuración operativa
   hora_checkin: string;          // Default "14:00"
   hora_checkout: string;         // Default "12:00"
-  numero_yape?: string;          // Número Yape/Plin para cobros digitales
+  numero_yape?: string;          // Número Yape/Plin para cobros digitales (legacy)
   tipo_cambio: number;           // Default 3.80 (USD → PEN)
 
   // Auditoría

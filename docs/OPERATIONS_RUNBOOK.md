@@ -44,13 +44,13 @@ El responsable de privacidad debe aprobar las ventanas legales del último rengl
 
 | Tarea | Frecuencia | Autenticación | Alerta |
 | --- | --- | --- | --- |
-| `expire-ai-booking-artifacts` | Cada minuto | `X-Cron-Secret` | Una falla o ausencia durante 5 minutos |
-| `facturacion-worker` | Cada minuto | `X-Cron-Secret` | Una falla, lease fiscal vencido o DLQ fiscal creciente |
-| `expire-loyalty-points` | Diaria 02:15 America/Lima | `X-Cron-Secret` | Una ejecución fallida |
+| `expire-ai-booking-artifacts` | Cada minuto | `Supabase Vault (service_role)` | Una falla o ausencia durante 5 minutos |
+| `facturacion-worker` | Cada minuto | `Supabase Vault (service_role)` | Una falla, lease fiscal vencido o DLQ fiscal creciente |
+| `expire-loyalty-points` | Diaria 02:15 America/Lima | `Supabase Vault (service_role)` | Una ejecución fallida |
 | Recuperar leases/retención | Incluido en `expire-ai-booking-artifacts` | RPC service-only desde cron | DLQ creciente o job ausente 5 minutos |
 | Restore drill | Mensual | Operador autorizado | Prueba no ejecutada o RTO incumplido |
 
-El scheduler se configura por entorno, fuera del repositorio, porque necesita una URL y un secreto reales. Desplegar una función sin crear y monitorizar su schedule no se considera terminado. Nunca colocar `CRON_SECRET` en la URL ni en variables `VITE_*`.
+El scheduler se configura por entorno mediante scripts SQL (`pg_cron`) inyectando directamente los endpoints. Las credenciales de autorización se extraen en tiempo real de **Supabase Vault** (`vault.decrypted_secrets`), eliminando la necesidad de gestionar secretos globales de Postgres. Nunca colocar el `service_role_key` en claro ni en variables `VITE_*`.
 
 ## Observabilidad sin PII
 

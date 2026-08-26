@@ -2,7 +2,12 @@
 
 Este documento registra los cambios más relevantes, mejoras arquitectónicas y soluciones a errores en el PMS JCAR LABS.
 
-## [3.0.0] - 24 de Agosto de 2026
+## [3.0.0] - 26 de Agosto de 2026 (Go-Live a Producción)
+
+### Infraestructura y Estabilización (Hotfixes de Producción)
+- **Supabase Vault para Tareas Cron:** Se refactorizaron los `pg_cron` jobs (`facturacion-worker`, `expire-ai-booking-artifacts`, `expire-loyalty-points`) para no depender de configuraciones de variables globales bloqueadas en instancias manejadas. Ahora el `service_role_key` se desencripta en tiempo real desde Supabase Vault (migración `20260825000003_setup_cron_jobs.sql`).
+- **Completado de Esquema:** Se inyectaron en producción las columnas faltantes (`logo_url`, `qr_yape_url`, `qr_plin_url`) requeridas por el frontend para las pasarelas de pago, mitigando fallos silenciosos HTTP 400 (migración `20260826000001_add_missing_hotel_columns.sql`).
+- **Remediación de Auditoría:** Se completaron exitosamente todas las observaciones de la matriz de remediación de agosto 2026, consolidando el soporte Multi-Tenant (RLS perfecto), idempotencia de IA y transacciones atómicas de Caja.
 
 ### Frontend Refactoring Masivo (Arquitectura React Hooks)
 - **Extracción de Lógica de UI (Separación Cerebro-Músculo):** Refactorización integral del 100% de las pantallas monolíticas (Dashboard, Habitaciones, Ventas, Limpieza, Recepción, Reportes, Huéspedes, Configuración, Booking Público, Revenue, POS y Login).

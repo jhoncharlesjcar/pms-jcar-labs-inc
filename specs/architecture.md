@@ -1,30 +1,33 @@
 # Arquitectura del PMS JCAR LABS
 
-**Versión:** 2.0.0
-**Última revisión:** 22 de agosto de 2026
+**Versión:** 3.0.0
+**Última revisión:** 26 de agosto de 2026
 
 ## Objetivo
 
-El sistema es una SPA/PWA multi-tenant para operación hotelera. El frontend organiza la experiencia y limita rutas por rol, pero la autorización efectiva se aplica en PostgreSQL RLS y en las Edge Functions.
+El sistema es una SPA/PWA multi-tenant para operación hotelera. El frontend organiza la experiencia y limita rutas por rol, pero la autorización efectiva se aplica en PostgreSQL RLS y en las Edge Functions. La versión 3.0 consolida el uso de Supabase Vault para seguridad en background y una estricta separación de "Cerebro-Músculo" en el frontend mediante Hooks de Negocio.
 
 ## Vista general
 
 ```mermaid
 flowchart LR
-    UI["React SPA / PWA"] --> ROUTER["React Router"]
-    ROUTER --> PROVIDERS["AuthProvider + HotelProvider"]
+    UI["React SPA / PWA (Componentes Presentacionales)"] --> ROUTER["React Router"]
+    ROUTER --> HOOKS["Hooks de Dominio (useQuery, Lógica)"]
+    HOOKS --> PROVIDERS["AuthProvider + HotelProvider"]
     PROVIDERS --> STORE["Zustand: sesión y hotel activo"]
     PROVIDERS --> QUERY["TanStack Query + IndexedDB"]
     QUERY --> DB["db.js y servicios de dominio"]
     DB --> API["Supabase API"]
     API --> AUTH["Supabase Auth"]
-    API --> PG["PostgreSQL + RLS"]
+    API --> PG["PostgreSQL + RLS (Vault)"]
     UI --> EDGE["Edge Functions (Deno)"]
     EDGE --> PG
     EDGE --> EXT["SUNAT, Gemini AI, identidad, OTA, pasarelas"]
 ```
 
 ## Frontend
+
+La versión 3.0 adopta una arquitectura de "Hooks de Negocio". Las pantallas monolíticas han sido refactorizadas separando la UI de la lógica.
 
 | Ruta o directorio | Responsabilidad |
 | --- | --- |
@@ -38,8 +41,9 @@ flowchart LR
 | `src/store/auth.store.ts` | Estado de sesión y `hotelId` |
 | `src/lib/query-client.js` | Caché React Query persistida |
 | `src/api/db.js` | Entidades y proxy con ámbito de hotel |
-| `src/services/` | Lógica de negocio reutilizable |
-| `src/pages/` | Módulos de la aplicación |
+| `src/services/` | Capa de abstracción de red pura |
+| `src/pages/<Dominio>/hooks/` | **(Nuevo v3.0)** "Cerebro": `useQuery`, validaciones, estados complejos y mutaciones de dominio. |
+| `src/pages/` | **(Nuevo v3.0)** "Músculo": Componentes 100% presentacionales e integración de animaciones. |
 
 Las páginas privadas se cargan mediante `React.lazy`. `ErrorBoundary`, los skeletons y el toaster se montan a nivel de aplicación.
 
