@@ -2,7 +2,7 @@
 
 PMS hotelero multi-tenant para gestionar recepción, habitaciones, huéspedes, limpieza, ventas, POS, caja, inventario, reportes, revenue y configuración de propiedades.
 
-**Versión del proyecto:** 2.0.0
+**Versión del proyecto:** 3.0.0
 **Documentación actualizada:** 22 de agosto de 2026
 **Rama productiva:** `main`
 

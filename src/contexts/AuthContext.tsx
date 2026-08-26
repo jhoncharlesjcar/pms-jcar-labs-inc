@@ -217,6 +217,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
         clearAuth();
 
+        // Purgar caché de proxies DB scoped por hotel
+        import('@/api/db').then(m => m.db.clearScopedCache());
+
         // Hallazgo #9: Purgar TODAS las caches y colas offline
         try {
           // Purgar colas de sincronización offline (particionadas por user+hotel)

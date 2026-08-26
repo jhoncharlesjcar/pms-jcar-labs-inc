@@ -2,7 +2,6 @@ import { useState, useRef, useEffect, useCallback, memo } from 'react';
 import { RefreshCw, X, Maximize, ScanLine } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
-import Tesseract from 'tesseract.js';
 import { toast } from 'sonner';
 import logger from '@/lib/logger';
 
@@ -77,7 +76,8 @@ const ScannerDNIModal = memo(function ScannerDNIModal({ open, onOpenChange, onSc
         setProgress(30);
 
         try {
-            // Reconocimiento óptico de caracteres
+            // Reconocimiento óptico de caracteres (Lazy load Tesseract)
+            const { default: Tesseract } = await import('tesseract.js');
             const result = await Tesseract.recognize(
                 imageData,
                 'spa', // Idioma español

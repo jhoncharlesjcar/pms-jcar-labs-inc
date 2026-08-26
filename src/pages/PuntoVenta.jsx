@@ -1,4 +1,5 @@
-import { useState, memo } from 'react';
+import { memo } from 'react';
+import { usePuntoVentaLogic } from './PuntoVenta/hooks/usePuntoVentaLogic';
 import { ShoppingCart, Receipt, RotateCcw, Store } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import CatalogoMinimarket from '@/components/pos/CatalogoMinimarket';
@@ -8,9 +9,18 @@ import { useGsapStaggerList } from '@/hooks/useGsapStaggerList';
 
 
 const PuntoVenta = memo(function PuntoVenta() {
-    const [items, setItems] = useState([]);
-    const [pagoOpen, setPagoOpen] = useState(false);
-    const [vistaMovil, setVistaMovil] = useState('catalogo'); // 'catalogo' | 'carrito'
+    const {
+        items,
+        pagoOpen, setPagoOpen,
+        vistaMovil, setVistaMovil,
+        agregarItem,
+        cambiarCantidad,
+        eliminarItem,
+        limpiarCarrito,
+        totalItems,
+        totalGeneral,
+        resumenPago
+    } = usePuntoVentaLogic();
 
     // ─── Stagger mount para secciones principales ───
     const pageRef = useGsapStaggerList([], {
@@ -18,43 +28,6 @@ const PuntoVenta = memo(function PuntoVenta() {
         direction: 'y',
         distance: 15,
     });
-
-    const agregarItem = (producto) => {
-        setItems(prev => {
-            const idx = prev.findIndex(i => i.id === producto.id);
-            if (idx >= 0) {
-                const itemActual = prev[idx];
-                // No agregar más de lo que hay en stock
-                if (itemActual.cantidad >= (producto.stock || 999)) return prev;
-                const copia = [...prev];
-                copia[idx] = { ...copia[idx], cantidad: copia[idx].cantidad + 1 };
-                return copia;
-            }
-            return [...prev, { ...producto, cantidad: 1 }];
-        });
-    };
-
-    const cambiarCantidad = (idx, nuevaCantidad) => {
-        if (nuevaCantidad <= 0) {
-            setItems(prev => prev.filter((_, i) => i !== idx));
-        } else {
-            setItems(prev => prev.map((item, i) => i === idx ? { ...item, cantidad: nuevaCantidad } : item));
-        }
-    };
-
-    const eliminarItem = (idx) => setItems(prev => prev.filter((_, i) => i !== idx));
-    const limpiarCarrito = () => { setItems([]); };
-
-    const totalItems = items.reduce((s, i) => s + i.cantidad, 0);
-    const totalGeneral = items.reduce((s, i) => s + i.precio * i.cantidad, 0);
-
-    // PagoModal espera este formato
-    const resumenPago = {
-        items,
-        subtotalEstadia: 0,
-        subtotalExtras: totalGeneral,
-        total: totalGeneral,
-    };
 
     return (
         <div className="-m-4 flex min-h-[calc(100dvh-4rem)] flex-col bg-background sm:-m-5 lg:-m-7 lg:min-h-screen lg:flex-row xl:-m-8">

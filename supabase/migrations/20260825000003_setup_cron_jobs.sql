@@ -12,9 +12,9 @@ SELECT cron.schedule(
   '* * * * *',
   $$
     SELECT net.http_post(
-      url := current_setting('app.settings.edge_api_url', true) || '/expire-ai-booking-artifacts',
+      url := 'https://nwprnycqplnmztpjicea.supabase.co/functions/v1/expire-ai-booking-artifacts',
       headers := jsonb_build_object(
-        'Authorization', 'Bearer ' || current_setting('app.settings.service_role_key', true),
+        'Authorization', 'Bearer ' || (SELECT decrypted_secret FROM vault.decrypted_secrets WHERE name = 'service_role_key'),
         'Content-Type', 'application/json'
       )
     );
@@ -27,9 +27,9 @@ SELECT cron.schedule(
   '* * * * *',
   $$
     SELECT net.http_post(
-      url := current_setting('app.settings.edge_api_url', true) || '/facturacion-worker',
+      url := 'https://nwprnycqplnmztpjicea.supabase.co/functions/v1/facturacion-worker',
       headers := jsonb_build_object(
-        'Authorization', 'Bearer ' || current_setting('app.settings.service_role_key', true),
+        'Authorization', 'Bearer ' || (SELECT decrypted_secret FROM vault.decrypted_secrets WHERE name = 'service_role_key'),
         'Content-Type', 'application/json'
       )
     );
@@ -42,9 +42,9 @@ SELECT cron.schedule(
   '0 0 * * *',
   $$
     SELECT net.http_post(
-      url := current_setting('app.settings.edge_api_url', true) || '/expire-loyalty-points',
+      url := 'https://nwprnycqplnmztpjicea.supabase.co/functions/v1/expire-loyalty-points',
       headers := jsonb_build_object(
-        'Authorization', 'Bearer ' || current_setting('app.settings.service_role_key', true),
+        'Authorization', 'Bearer ' || (SELECT decrypted_secret FROM vault.decrypted_secrets WHERE name = 'service_role_key'),
         'Content-Type', 'application/json'
       )
     );

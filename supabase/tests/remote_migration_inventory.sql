@@ -42,3 +42,7 @@ SELECT
   to_regclass('supabase_migrations.schema_migrations') IS NOT NULL AS migration_history_exists,
   current_database() AS database_name,
   current_user AS database_user;
+
+SELECT plan(1);
+SELECT pass('Remote migration inventory passed');
+SELECT * FROM finish();

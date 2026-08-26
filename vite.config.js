@@ -84,7 +84,6 @@ export default defineConfig({
                     ],
                     'vendor-libs': [
                         'date-fns',
-                        'gsap',
                     ],
                 },
             },

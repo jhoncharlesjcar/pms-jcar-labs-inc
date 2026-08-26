@@ -1,18 +1,20 @@
-import { useState, useRef, useEffect, memo } from 'react';
-import { supabase } from '@/config/supabase';
+import { useRef, useEffect, memo } from 'react';
 import { Mail, Lock, Eye, EyeOff, ShieldCheck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { gsap } from 'gsap';
 import { useGsapStaggerList } from '@/hooks/useGsapStaggerList';
+import { useLoginLogic } from './Login/hooks/useLoginLogic';
 
 const Login = memo(function Login() {
-    const [email, setEmail] = useState('');
-    const [password, setPassword] = useState('');
-    const [showPassword, setShowPassword] = useState(false);
-    const [loading, setLoading] = useState(false);
-    const [error, setError] = useState('');
-    const [fieldErrors, setFieldErrors] = useState({ email: '', password: '' });
-    const [touched, setTouched] = useState({ email: false, password: false });
+    const {
+        email, setEmail,
+        password, setPassword,
+        showPassword, setShowPassword,
+        loading, error,
+        fieldErrors,
+        handleBlur, handleFieldChange,
+        handleEmailLogin
+    } = useLoginLogic();
 
     const logoRef = useRef(null);
     const titleRef = useRef(null);
@@ -26,37 +28,6 @@ const Login = memo(function Login() {
         direction: 'y',
         distance: 15,
     });
-
-    // Validación inline
-    const validateField = (name, value) => {
-        if (name === 'email') {
-            if (!value) return 'El email es requerido';
-            if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) return 'Formato de email inválido';
-            return '';
-        }
-        if (name === 'password') {
-            if (!value) return 'La contraseña es requerida';
-            if (value.length < 6) return 'Mínimo 6 caracteres';
-            return '';
-        }
-        return '';
-    };
-
-    const handleBlur = (e) => {
-        const { name, value } = e.target;
-        setTouched(prev => ({ ...prev, [name]: true }));
-        const fieldError = validateField(name, value);
-        setFieldErrors(prev => ({ ...prev, [name]: fieldError }));
-    };
-
-    const handleFieldChange = (name, value, setter) => {
-        setter(value);
-        if (touched[name]) {
-            const fieldError = validateField(name, value);
-            setFieldErrors(prev => ({ ...prev, [name]: fieldError }));
-        }
-        if (error) setError('');
-    };
 
     // GSAP entrance animation
     useEffect(() => {
@@ -114,30 +85,6 @@ const Login = memo(function Login() {
         };
     }, []);
 
-    const handleEmailLogin = async (e) => {
-        e.preventDefault();
-        if (!email || !password) return;
-        setLoading(true);
-        setError('');
-
-        try {
-            const { error } = await supabase.auth.signInWithPassword({
-                email,
-                password,
-            });
-            if (error) throw error;
-        } catch (err) {
-            const msg = err.message || 'Error de autenticación';
-            if (msg.includes('Invalid login credentials')) {
-                setError('Email o contraseña incorrectos');
-            } else {
-                setError(msg);
-            }
-        } finally {
-            setLoading(false);
-        }
-    };
-
     return (
         <div className="relative flex min-h-dvh items-center justify-center overflow-hidden bg-black px-4 py-6 sm:py-10">
             {/* Background Layer (Cinematic) */}
@@ -148,150 +95,161 @@ const Login = memo(function Login() {
             >
                 {/* Dark OLED Overlay */}
                 <div className="absolute inset-0 bg-black/70 backdrop-blur-[6px]" />
-                <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-black/80" />
-
-                {/* Animated gradient orbs */}
-                <div className="absolute top-1/4 -left-32 w-96 h-96 bg-primary/5 rounded-full blur-[120px] animate-pulse" style={{ animationDuration: '8s' }} />
-                <div className="absolute bottom-1/4 -right-32 w-96 h-96 bg-secondary/5 rounded-full blur-[120px] animate-pulse" style={{ animationDuration: '10s', animationDelay: '2s' }} />
+                
+                {/* Accent Glows */}
+                <div className="absolute -top-1/2 -left-1/2 w-full h-full bg-primary/20 blur-[120px] rounded-full mix-blend-screen opacity-50" />
+                <div className="absolute -bottom-1/2 -right-1/2 w-full h-full bg-blue-600/20 blur-[120px] rounded-full mix-blend-screen opacity-50" />
             </div>
 
-            <div className="relative z-10 w-full max-w-md">
-                {/* Logo Section */}
-                <div className="text-center mb-6">
-                    <div
+            {/* Content Layer */}
+            <div className="relative z-10 w-full max-w-[420px] flex flex-col items-center">
+                
+                {/* Header */}
+                <div className="flex flex-col items-center mb-8 sm:mb-10 text-center">
+                    <div 
                         ref={logoRef}
-                        className="group relative mx-auto mb-4 flex h-24 w-24 items-center justify-center overflow-hidden rounded-2xl border border-white/20 bg-white p-2 shadow-[0_15px_40px_rgba(0,0,0,0.5)] sm:h-28 sm:w-28 opacity-0"
+                        className="relative mb-5"
                     >
-                        <img
-                            src="/logo.jpg"
-                            alt="PMS JCAR LABS Logo"
-                            className="w-full h-full object-contain rounded-2xl group-hover:scale-105 transition-transform duration-300 origin-center"
-                        />
+                        {/* Logo Glow */}
+                        <div className="absolute inset-0 bg-primary/30 blur-2xl rounded-full scale-150" />
+                        
+                        <div className="relative flex h-16 w-16 sm:h-20 sm:w-20 items-center justify-center rounded-[1.5rem] bg-gradient-to-b from-white/10 to-white/5 shadow-2xl border border-white/10 backdrop-blur-xl">
+                            <div className="absolute inset-0 bg-gradient-to-tr from-primary/20 to-transparent rounded-[1.5rem]" />
+                            <ShieldCheck className="h-8 w-8 sm:h-10 sm:w-10 text-primary drop-shadow-[0_0_15px_rgba(255,255,255,0.5)]" />
+                        </div>
                     </div>
-                    <h1
+                    <h1 
                         ref={titleRef}
-                        className="text-2xl font-black text-white uppercase tracking-wider opacity-0"
+                        className="text-3xl sm:text-4xl font-black tracking-tighter text-white drop-shadow-lg"
                     >
                         PMS JCAR LABS
                     </h1>
-                    <p
+                    <p 
                         ref={subtitleRef}
-                        className="text-slate-400 mt-1 text-xs tracking-wide font-medium opacity-0"
+                        className="mt-2 text-xs sm:text-sm font-bold uppercase tracking-[0.2em] text-white/50"
                     >
-                        Sistema de Gestión Hotelera
+                        Property Management System
                     </p>
                 </div>
 
-                {/* Login Card */}
-                <div
+                {/* Card */}
+                <div 
                     ref={cardRef}
-                    className="rounded-3xl border border-white/10 bg-white/[0.04] p-6 shadow-[0_20px_50px_rgba(0,0,0,0.5)] backdrop-blur-3xl sm:p-8 opacity-0"
+                    className="w-full rounded-[2rem] bg-white/5 p-6 sm:p-8 shadow-[0_8px_32px_rgba(0,0,0,0.4)] backdrop-blur-xl border border-white/10 relative overflow-hidden"
                 >
-                    <h2 className="text-xl font-bold text-white mb-6 text-center">Iniciar Sesión</h2>
+                    {/* Inner subtle glow */}
+                    <div className="absolute top-0 left-1/2 -translate-x-1/2 w-3/4 h-px bg-gradient-to-r from-transparent via-primary/50 to-transparent" />
+                    
+                    <div className="mb-6 sm:mb-8 text-center">
+                        <h2 className="text-xl sm:text-2xl font-extrabold text-white tracking-tight">Acceso Seguro</h2>
+                        <p className="text-xs sm:text-sm text-white/50 mt-1.5 font-medium">Ingresa tus credenciales para continuar</p>
+                    </div>
 
-                    <form onSubmit={handleEmailLogin} className="space-y-5" ref={/** @type {any} */ (formRef)} noValidate>
-                        <div className="space-y-1.5">
-                            <label htmlFor="login_email" className="text-xs font-semibold text-slate-300 ml-1">
-                                Email
+                    <form ref={formRef} onSubmit={handleEmailLogin} className="space-y-4 sm:space-y-5" noValidate>
+                        <div className="space-y-1.5 sm:space-y-2">
+                            <label className="text-[10px] sm:text-xs font-bold uppercase tracking-widest text-white/70 ml-1">
+                                Correo Electrónico
                             </label>
                             <div className="relative group">
-                                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground group-focus-within:text-primary transition-colors duration-300" />
+                                <Mail className={`absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 transition-colors ${fieldErrors.email ? 'text-red-400' : 'text-white/40 group-focus-within:text-primary'}`} />
                                 <input
-                                    id="login_email"
                                     name="email"
                                     type="email"
+                                    placeholder="admin@hotel.com"
                                     value={email}
-                                    onChange={e => handleFieldChange('email', e.target.value, setEmail)}
+                                    onChange={(e) => handleFieldChange('email', e.target.value, setEmail)}
                                     onBlur={handleBlur}
-                                    placeholder="ejemplo@hotel.com"
+                                    disabled={loading}
+                                    className={`w-full h-11 sm:h-12 rounded-xl bg-black/40 pl-10 pr-4 text-sm sm:text-base text-white placeholder:text-white/20 border transition-all focus:outline-none focus:ring-2 ${
+                                        fieldErrors.email 
+                                            ? 'border-red-500/50 focus:border-red-500 focus:ring-red-500/20' 
+                                            : 'border-white/10 focus:border-primary/50 focus:ring-primary/20 hover:border-white/20'
+                                    }`}
                                     required
-                                    aria-invalid={touched.email && fieldErrors.email ? 'true' : 'false'}
-                                    aria-describedby={fieldErrors.email ? 'email-error' : undefined}
-                                    className={`h-12 w-full rounded-xl border bg-white/[0.05] pl-12 pr-4 text-white placeholder-muted-foreground/50 focus:outline-none focus:ring-4 transition-all duration-300 font-medium ${touched.email && fieldErrors.email
-                                        ? 'border-red-500/50 focus:border-red-500/70 focus:ring-red-500/10'
-                                        : 'border-white/10 focus:border-primary/50 focus:ring-primary/10'
-                                        }`}
                                 />
                             </div>
-                            {touched.email && fieldErrors.email && (
-                                <p id="email-error" role="alert" className="text-[11px] font-semibold text-red-400 ml-3 mt-1">
+                            {fieldErrors.email && (
+                                <p className="text-[10px] sm:text-xs font-bold text-red-400 ml-1 mt-1 animate-in slide-in-from-top-1">
                                     {fieldErrors.email}
                                 </p>
                             )}
                         </div>
 
-                        <div className="space-y-1.5">
-                            <label htmlFor="login_password" className="text-xs font-semibold text-slate-300 ml-1">
-                                Contraseña
-                            </label>
+                        <div className="space-y-1.5 sm:space-y-2">
+                            <div className="flex items-center justify-between ml-1">
+                                <label className="text-[10px] sm:text-xs font-bold uppercase tracking-widest text-white/70">
+                                    Contraseña
+                                </label>
+                            </div>
                             <div className="relative group">
-                                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground group-focus-within:text-primary transition-colors duration-300" />
+                                <Lock className={`absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 transition-colors ${fieldErrors.password ? 'text-red-400' : 'text-white/40 group-focus-within:text-primary'}`} />
                                 <input
-                                    id="login_password"
                                     name="password"
                                     type={showPassword ? 'text' : 'password'}
-                                    value={password}
-                                    onChange={e => handleFieldChange('password', e.target.value, setPassword)}
-                                    onBlur={handleBlur}
                                     placeholder="••••••••"
+                                    value={password}
+                                    onChange={(e) => handleFieldChange('password', e.target.value, setPassword)}
+                                    onBlur={handleBlur}
+                                    disabled={loading}
+                                    className={`w-full h-11 sm:h-12 rounded-xl bg-black/40 pl-10 pr-12 text-sm sm:text-base text-white placeholder:text-white/20 border transition-all focus:outline-none focus:ring-2 ${
+                                        fieldErrors.password 
+                                            ? 'border-red-500/50 focus:border-red-500 focus:ring-red-500/20' 
+                                            : 'border-white/10 focus:border-primary/50 focus:ring-primary/20 hover:border-white/20'
+                                    }`}
                                     required
-                                    minLength={6}
-                                    aria-invalid={touched.password && fieldErrors.password ? 'true' : 'false'}
-                                    aria-describedby={fieldErrors.password ? 'password-error' : undefined}
-                                    className={`h-12 w-full rounded-xl border bg-white/[0.05] pl-12 pr-14 text-white placeholder-muted-foreground/50 focus:outline-none focus:ring-4 transition-all duration-300 font-medium ${touched.password && fieldErrors.password
-                                        ? 'border-red-500/50 focus:border-red-500/70 focus:ring-red-500/10'
-                                        : 'border-white/10 focus:border-primary/50 focus:ring-primary/10'
-                                        }`}
                                 />
                                 <button
                                     type="button"
-                                    aria-label={showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
                                     onClick={() => setShowPassword(!showPassword)}
-                                    className="absolute right-1 top-1/2 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-lg text-muted-foreground transition-colors duration-200 hover:bg-white/5 hover:text-white"
-                                    tabIndex={-1}
+                                    disabled={loading}
+                                    className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-white/40 hover:text-white/80 transition-colors focus:outline-none rounded-md focus-visible:ring-2 focus-visible:ring-primary/50"
                                 >
-                                    {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                                 </button>
                             </div>
-                            {touched.password && fieldErrors.password && (
-                                <p id="password-error" role="alert" className="text-[11px] font-semibold text-red-400 ml-3 mt-1">
+                            {fieldErrors.password && (
+                                <p className="text-[10px] sm:text-xs font-bold text-red-400 ml-1 mt-1 animate-in slide-in-from-top-1">
                                     {fieldErrors.password}
                                 </p>
                             )}
                         </div>
 
                         {error && (
-                            <div role="alert" className="bg-red-500/10 border border-red-500/20 rounded-2xl px-4 py-3 text-xs font-bold text-red-400 flex items-center gap-2">
-                                <div className="w-1.5 h-1.5 bg-red-500 rounded-full animate-pulse flex-shrink-0" />
-                                <span>{error}</span>
+                            <div className="rounded-xl bg-red-500/10 border border-red-500/20 p-3 sm:p-4 text-center animate-in shake">
+                                <p className="text-[11px] sm:text-xs font-bold text-red-400">{error}</p>
                             </div>
                         )}
 
                         <Button
                             type="submit"
-                            size="lg"
-                            disabled={loading || !email || !password || Object.values(fieldErrors).some(e => e)}
-                            className="group relative w-full overflow-hidden rounded-xl bg-primary text-base text-white shadow-xl shadow-primary/20 hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50"
+                            disabled={loading || !!fieldErrors.email || !!fieldErrors.password || !email || !password}
+                            className="relative w-full h-11 sm:h-12 rounded-xl bg-primary text-primary-foreground font-extrabold text-sm sm:text-base tracking-wide shadow-lg hover:shadow-primary/25 hover:-translate-y-0.5 transition-all active:scale-[0.98] active:translate-y-0 disabled:opacity-50 disabled:hover:translate-y-0 overflow-hidden group"
                         >
+                            {/* Shine effect */}
+                            <div className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/20 to-transparent group-hover:animate-[shimmer_1.5s_infinite]" />
+                            
                             {loading ? (
-                                <div className="flex items-center justify-center gap-2">
-                                    <div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin" />
-                                    <span>Autenticando...</span>
-                                </div>
+                                <span className="flex items-center gap-2">
+                                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                    Autenticando...
+                                </span>
                             ) : (
-                                <div className="flex items-center justify-center gap-2">
-                                    <ShieldCheck className="w-5 h-5 group-hover:scale-110 transition-transform duration-200" />
-                                    <span>Ingresar</span>
-                                </div>
+                                'Ingresar al Sistema'
                             )}
                         </Button>
                     </form>
                 </div>
 
-                {/* Footer Section */}
-                <div ref={footerRef} className="mt-8 text-center opacity-0">
-                    <p className="text-xs text-slate-500 font-medium">
-                        © PMS JCAR LABS. Todos los derechos reservados.
+                {/* Footer */}
+                <div 
+                    ref={footerRef}
+                    className="mt-8 sm:mt-12 text-center"
+                >
+                    <p className="text-[10px] sm:text-xs font-bold uppercase tracking-widest text-white/30">
+                        Solo personal autorizado
+                    </p>
+                    <p className="text-[9px] sm:text-[10px] text-white/20 mt-1">
+                        &copy; {new Date().getFullYear()} PMS JCAR LABS. Todos los derechos reservados.
                     </p>
                 </div>
             </div>

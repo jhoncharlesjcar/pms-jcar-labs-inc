@@ -29,3 +29,7 @@ BEGIN
     )';
   END IF;
 END $$;
+
+SELECT plan(1);
+SELECT pass('Bootstrap local postgres setup passed');
+SELECT * FROM finish();

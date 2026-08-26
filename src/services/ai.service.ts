@@ -289,42 +289,31 @@ export const AIService = {
 
   // --- MÉTRICAS ---
   async getMetrics(hotelId: string): Promise<AIMetrics> {
-    // Simplicación para el MVP, en producción sería mejor una vista o función SQL
-    const { data: convs, error: cError } = await supabase
-      .from('ai_conversations')
-      .select('status')
-      .eq('hotel_id', hotelId);
-
-    if (cError) throw cError;
-
-    const { data: payments, error: qError } = await supabase
-      .from('ai_payment_intents')
-      .select('amount, status, reservation_id')
-      .eq('hotel_id', hotelId);
-
-    if (qError) throw qError;
-
-    const totalConversations = convs.length;
-    const opportunities = convs.filter(c => c.status !== 'closed' && c.status !== 'abandoned').length;
-    const { count: quotesCount = 0, error: quoteCountError } = await supabase
-      .from('ai_quotes')
-      .select('*', { count: 'exact', head: true })
-      .eq('hotel_id', hotelId);
-    if (quoteCountError) throw quoteCountError;
-    const reservations = convs.filter(c => c.status === 'booked').length;
-    const revenue = payments
-      .filter(payment => payment.status === 'paid' && payment.reservation_id)
-      .reduce((sum, payment) => sum + Number(payment.amount), 0);
-
-    const conversionRate = totalConversations > 0 ? (reservations / totalConversations) * 100 : 0;
-
+    const { data, error } = await supabase
+        .from('v_ai_hotel_metrics')
+        .select('*')
+        .eq('hotel_id', hotelId)
+        .single();
+    if (error) {
+        if (error.code === 'PGRST116') {
+             return {
+                totalConversations: 0,
+                opportunities: 0,
+                quotes: 0,
+                reservations: 0,
+                conversionRate: 0,
+                revenue: 0
+             };
+        }
+        throw error;
+    }
     return {
-      totalConversations,
-      opportunities,
-      quotes: quotesCount,
-      reservations,
-      conversionRate: Math.round(conversionRate * 10) / 10,
-      revenue
+        totalConversations: data.total_conversations,
+        opportunities: data.opportunities,
+        quotes: data.total_quotes,
+        reservations: data.reservations,
+        conversionRate: data.conversion_rate,
+        revenue: data.revenue,
     };
   }
 };

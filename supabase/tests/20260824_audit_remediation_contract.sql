@@ -127,4 +127,8 @@ BEGIN
 END;
 $$;
 
+SELECT plan(1);
+SELECT pass('Contract tests passed');
+SELECT * FROM finish();
+
 ROLLBACK;

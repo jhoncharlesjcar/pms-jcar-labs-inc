@@ -2,6 +2,14 @@
 
 Este documento registra los cambios más relevantes, mejoras arquitectónicas y soluciones a errores en el PMS JCAR LABS.
 
+## [3.0.0] - 24 de Agosto de 2026
+
+### Frontend Refactoring Masivo (Arquitectura React Hooks)
+- **Extracción de Lógica de UI (Separación Cerebro-Músculo):** Refactorización integral del 100% de las pantallas monolíticas (Dashboard, Habitaciones, Ventas, Limpieza, Recepción, Reportes, Huéspedes, Configuración, Booking Público, Revenue, POS y Login).
+- **Hooks de Negocio (Domain Logic):** Toda la lógica de componentes (`useQuery`, `useMutation`, estados locales masivos, reglas de validación) extraída a hooks especializados (e.g. `useRecepcionData.js`, `useConfiguracionData.js`) alojados en el directorio `src/pages/<PageName>/hooks/`.
+- **Estandarización de Componentes Puros:** Las páginas en `src/pages/` ahora son componentes React presentacionales casi al 100%, más testeables y fáciles de mantener, integrando animaciones GSAP de forma segura y declarativa.
+- **Reducción de Deuda Técnica y Optimización Linting:** Resolución global de advertencias de variables sin uso, correcciones de importaciones y adherencia estricta a reglas de ESLint en toda la base de código.
+
 ## [2.0.0] - 22 de Agosto de 2026
 
 ### Nuevas Características Mayores (Supabase Edge Functions)

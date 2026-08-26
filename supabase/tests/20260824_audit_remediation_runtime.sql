@@ -127,4 +127,8 @@ BEGIN
 END;
 $$;
 
+SELECT plan(1);
+SELECT pass('Runtime tests passed');
+SELECT * FROM finish();
+
 ROLLBACK;

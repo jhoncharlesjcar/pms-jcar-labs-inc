@@ -1,5 +1,4 @@
-import { useState, useMemo, memo } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { memo } from 'react';
 import { 
     BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, 
     PieChart, Pie, Cell, Legend
@@ -12,111 +11,25 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useHotelData } from '@/hooks/useHotelData';
 import { downloadCsv } from '@/lib/csv';
 import { cn } from '@/lib/utils';
 import { useGsapStaggerList } from '@/hooks/useGsapStaggerList';
-import { format, startOfDay, endOfDay, startOfMonth, endOfMonth, startOfYear, endOfYear, isWithinInterval, parseISO } from 'date-fns';
-// jsPDF se importa dinámicamente para evitar cargarlo en todas las páginas.
-
-// ─── Funciones puras desde el servicio de Ventas ──────────────────────────
-import { consolidarVentas } from '@/services/ventas.service';
+import { useReportesData } from './Reportes/hooks/useReportesData';
+import PageSkeleton from '@/components/loaders/PageSkeleton';
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8'];
 
 const Reportes = memo(function Reportes() {
-    const { db: hotelDb, hotelId } = useHotelData();
-    const [periodo, setPeriodo] = useState('mes'); // dia, mes, año, personalizado
-    const [tipoReporte, setTipoReporte] = useState('ambos'); // ambos, hotel, pos
-    const [turno, setTurno] = useState('completo'); // completo, mañana, tarde, noche
-    const [fechaInicio, setFechaInicio] = useState(format(startOfMonth(new Date()), 'yyyy-MM-dd'));
-    const [fechaFin, setFechaFin] = useState(format(endOfMonth(new Date()), 'yyyy-MM-dd'));
-
-    // Consultas de datos
-    const { data: ventasHotel = [] } = useQuery({
-        queryKey: ['ventas', hotelId],
-        queryFn: () => hotelDb.Venta.list(),
-        enabled: !!hotelId,
-    });
-
-    const { data: ventasPOS = [] } = useQuery({
-        queryKey: ['ventaspos', hotelId],
-        queryFn: () => hotelDb.VentaPOS.list(),
-        enabled: !!hotelId,
-    });
-
-    // VEN-001: Consolidación de ventas Hotel + POS (función pura del servicio)
-    const todasLasVentas = useMemo(
-        () => consolidarVentas(ventasHotel, ventasPOS),
-        [ventasHotel, ventasPOS],
-    );
-
-    // Filtrado por periodo, tipo y turno
-    const filtradas = useMemo(() => {
-        let start = parseISO(fechaInicio);
-        let end = parseISO(fechaFin);
-
-        if (periodo === 'dia') {
-            start = startOfDay(new Date());
-            end = endOfDay(new Date());
-        } else if (periodo === 'mes') {
-            start = startOfMonth(new Date());
-            end = endOfMonth(new Date());
-        } else if (periodo === 'año') {
-            start = startOfYear(new Date());
-            end = endOfYear(new Date());
-        }
-
-        return todasLasVentas
-            .filter(v => {
-                if (!v.fecha_pago) return false;
-                const f = parseISO(v.fecha_pago);
-                return isWithinInterval(f, { start, end });
-            })
-            .filter(v => {
-                if (tipoReporte === 'ambos') return true;
-                return v._tipo === tipoReporte;
-            })
-            .filter(v => {
-                if (turno === 'completo') return true;
-                if (!v.fecha_pago) return false;
-                const hora = new Date(v.fecha_pago).getHours();
-                if (turno === 'mañana') return hora >= 7 && hora < 15;
-                if (turno === 'tarde') return hora >= 15 && hora < 23;
-                if (turno === 'noche') return hora >= 23 || hora < 7;
-                return true;
-            });
-    }, [todasLasVentas, periodo, tipoReporte, turno, fechaInicio, fechaFin]);
-
-    // Estadísticas
-    const stats = useMemo(() => {
-        const total = filtradas.reduce((sum, v) => sum + Number(v.total || 0), 0);
-        const hotel = filtradas.filter(v => v._tipo === 'hotel').reduce((sum, v) => sum + Number(v.total || 0), 0);
-        const pos = filtradas.filter(v => v._tipo === 'pos').reduce((sum, v) => sum + Number(v.total || 0), 0);
-        
-        const metodos = filtradas.reduce((acc, v) => {
-            const m = v.metodo_pago || 'efectivo';
-            acc[m] = (acc[m] || 0) + Number(v.total || 0);
-            return acc;
-        }, {});
-
-        const metodosData = Object.entries(metodos).map(([name, value]) => ({ name: name.toUpperCase(), value }));
-
-        // Agrupación por fecha para gráfico
-        const porFecha = filtradas.reduce((acc, v) => {
-            const fechaKey = v.fecha_pago ? v.fecha_pago.split('T')[0] : 'Sin fecha';
-            if (!acc[fechaKey]) acc[fechaKey] = { fecha: fechaKey, hotel: 0, pos: 0, total: 0 };
-            const monto = Number(v.total || 0);
-            if (v._tipo === 'hotel') acc[fechaKey].hotel += monto;
-            else acc[fechaKey].pos += monto;
-            acc[fechaKey].total += monto;
-            return acc;
-        }, {});
-
-        const lineData = Object.values(porFecha).sort((a, b) => a.fecha.localeCompare(b.fecha));
-
-        return { total, hotel, pos, metodosData, lineData };
-    }, [filtradas]);
+    const {
+        periodo, setPeriodo,
+        tipoReporte, setTipoReporte,
+        turno, setTurno,
+        fechaInicio, setFechaInicio,
+        fechaFin, setFechaFin,
+        filtradas,
+        stats,
+        isLoading
+    } = useReportesData();
 
     // Stagger animación
     const mainRef = useGsapStaggerList([filtradas.length, periodo, tipoReporte, turno], {
@@ -244,159 +157,76 @@ const Reportes = memo(function Reportes() {
                 </div>
             </div>
 
+            {isLoading ? <PageSkeleton variant="dashboard" /> : (
+                <>
             <div className="ui-card-grid grid grid-cols-1 sm:grid-cols-3">
                 {[
                     { label: 'Ingresos Totales', val: stats.total, icon: Wallet, color: 'text-emerald-500', bg: 'bg-emerald-500/10' },
                     { label: 'Ventas Hotel', val: stats.hotel, icon: Hotel, color: 'text-blue-500', bg: 'bg-blue-500/10' },
-                    { label: 'Ventas Minimarket', val: stats.pos, icon: ShoppingCart, color: 'text-amber-500', bg: 'bg-amber-500/10' },
-                ].map((stat) => (
-                    <div 
-                        key={stat.label}
-                        className="enterprise-card metric-card ui-card-pad group relative overflow-hidden transition-all hover:-translate-y-1 hover:shadow-md"
-                    >
-                        <div className="flex justify-between items-start mb-3">
-                            <div className={cn("w-8 h-8 rounded-lg flex items-center justify-center font-bold flex-shrink-0 group-hover:scale-105 transition-transform shadow-xs", stat.bg)}>
-                                <stat.icon className={cn("w-4 h-4", stat.color)} />
+                    { label: 'Ventas POS', val: stats.pos, icon: ShoppingCart, color: 'text-amber-500', bg: 'bg-amber-500/10' }
+                ].map((stat, i) => (
+                    <div key={i} className="enterprise-card metric-card ui-card-pad relative overflow-hidden group transition-all hover:shadow-md">
+                        <div className="flex items-center gap-2 mb-2">
+                            <div className={cn("w-6 h-6 rounded-md flex items-center justify-center font-bold flex-shrink-0 shadow-sm border border-border/50", stat.bg)}>
+                                <stat.icon className={cn("w-3 h-3", stat.color)} />
                             </div>
-                            <span className="text-[8px] font-black uppercase tracking-widest text-muted-foreground bg-secondary/30 px-1.5 py-0.5 rounded shadow-xs border border-border/40">Consolidado</span>
+                            <p className="text-[10px] sm:text-xs text-muted-foreground font-bold uppercase tracking-wider">{stat.label}</p>
                         </div>
-                        <p className="text-2xl font-extrabold mb-0.5 tabular-nums tracking-tighter leading-none text-foreground">S/ {stat.val.toLocaleString('es-PE', { minimumFractionDigits: 2 })}</p>
-                        <div className="flex items-center gap-1 mt-1">
-                            <p className="text-[9px] text-muted-foreground font-black uppercase tracking-widest">{stat.label}</p>
-                            <ArrowUpRight className={cn("w-3.5 h-3.5", stat.color)} />
-                        </div>
-                        <div className={cn("absolute top-0 right-0 w-24 h-24 blur-3xl rounded-full -mr-12 -mt-12 opacity-50", stat.bg)} />
+                        <p className="text-2xl sm:text-3xl font-extrabold tabular-nums text-foreground tracking-tighter leading-none mt-2">S/ {stat.val.toLocaleString('es-PE', { minimumFractionDigits: 2 })}</p>
+                        <TrendingUp className="absolute bottom-4 right-4 w-12 h-12 text-primary/5 opacity-50 group-hover:scale-110 transition-transform" />
                     </div>
                 ))}
             </div>
 
-            <div className="ui-card-grid grid grid-cols-1 lg:grid-cols-3">
-                <div className="enterprise-card section-card ui-card-pad group flex min-h-[300px] flex-col justify-between overflow-hidden transition-all hover:shadow-md sm:min-h-[350px] lg:col-span-2">
-                    <div className="flex items-center justify-between mb-4">
-                        <h3 className="font-extrabold text-sm sm:text-base tracking-tight text-foreground flex items-center gap-2">
-                            <TrendingUp className="w-4 h-4 text-primary" /> Curva de Ingresos
-                        </h3>
-                    </div>
-                    <div className="flex-1 w-full min-h-[220px] pb-1">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div className="lg:col-span-2 enterprise-card section-card ui-card-pad flex flex-col shadow-sm">
+                    <h2 className="text-xs font-black uppercase tracking-widest text-muted-foreground flex items-center gap-2 mb-4">
+                        <TrendingUp className="w-3.5 h-3.5" /> Evolución de Ingresos
+                    </h2>
+                    <div className="flex-1 min-h-[250px] w-full mt-2" style={{ userSelect: 'none' }}>
                         <ResponsiveContainer width="100%" height="100%">
-                            <BarChart data={stats.lineData} margin={{ top: 10, right: 10, left: -20, bottom: 25 }}>
-                                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255,255,255,0.05)" />
-                                <XAxis dataKey="fecha" axisLine={false} tickLine={false} tick={{ fontSize: 9, fontWeight: 'bold', fill: 'currentColor', opacity: 0.5 }} dy={6} />
-                                <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 9, fontWeight: 'bold', fill: 'currentColor', opacity: 0.5 }} />
+                            <BarChart data={stats.lineData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" opacity={0.4} />
+                                <XAxis dataKey="fecha" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }} dy={10} />
+                                <YAxis axisLine={false} tickLine={false} tickFormatter={v => `S/${v}`} tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }} />
                                 <Tooltip 
-                                    contentStyle={{ backgroundColor: 'hsl(var(--card))', borderRadius: '0.75rem', border: '1px solid hsl(var(--border))', fontSize: '10px', fontWeight: 'bold' }}
-                                    cursor={{ fill: 'rgba(var(--primary), 0.05)' }}
+                                    cursor={{ fill: 'hsl(var(--primary)/0.05)' }}
+                                    contentStyle={{ borderRadius: '12px', border: '1px solid hsl(var(--border))', backgroundColor: 'hsl(var(--card))', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)', fontSize: '11px', fontWeight: 'bold' }}
                                 />
-                                <Legend verticalAlign="top" align="right" wrapperStyle={{ fontSize: '9px', fontWeight: 'bold' }} />
-                                <Bar dataKey="hotel" name="Hotel" fill="#2D63ED" radius={[4, 4, 0, 0]} barSize={12} />
-                                <Bar dataKey="pos" name="POS" fill="#D97706" radius={[4, 4, 0, 0]} barSize={12} />
+                                <Legend wrapperStyle={{ paddingTop: '20px', fontSize: '11px', fontWeight: 'bold' }} />
+                                {tipoReporte !== 'pos' && <Bar dataKey="hotel" name="Hotel" fill="#3b82f6" radius={[4, 4, 0, 0]} maxBarSize={40} />}
+                                {tipoReporte !== 'hotel' && <Bar dataKey="pos" name="POS" fill="#f59e0b" radius={[4, 4, 0, 0]} maxBarSize={40} />}
                             </BarChart>
                         </ResponsiveContainer>
                     </div>
                 </div>
-
-                <div className="enterprise-card section-card ui-card-pad group flex min-h-[300px] flex-col justify-between overflow-hidden transition-all hover:shadow-md sm:min-h-[350px]">
-                    <h3 className="font-extrabold text-sm sm:text-base tracking-tight text-foreground mb-4 flex items-center gap-2">
-                        <Wallet className="w-4 h-4 text-primary" /> Métodos de Pago
-                    </h3>
-                    <div className="flex-1 w-full min-h-[220px]">
-                        <ResponsiveContainer width="100%" height="100%">
-                            <PieChart>
-                                <Pie
-                                    data={stats.metodosData}
-                                    cx="50%"
-                                    cy="45%"
-                                    innerRadius={45}
-                                    outerRadius={80}
-                                    paddingAngle={5}
-                                    dataKey="value"
-                                >
-                                    {stats.metodosData.map((entry, index) => (
-                                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                                    ))}
-                                </Pie>
-                                <Tooltip contentStyle={{ fontSize: '10px', fontWeight: 'bold', borderRadius: '0.75rem', backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))' }} />
-                                <Legend layout="horizontal" verticalAlign="bottom" align="center" wrapperStyle={{ fontSize: '9px', fontWeight: 'bold' }} />
-                            </PieChart>
-                        </ResponsiveContainer>
+                
+                <div className="enterprise-card section-card ui-card-pad flex flex-col shadow-sm">
+                    <h2 className="text-xs font-black uppercase tracking-widest text-muted-foreground flex items-center gap-2 mb-4">
+                        <Wallet className="w-3.5 h-3.5" /> Métodos de Pago
+                    </h2>
+                    <div className="flex-1 min-h-[250px] w-full flex items-center justify-center">
+                        {stats.metodosData.length > 0 ? (
+                            <ResponsiveContainer width="100%" height="100%">
+                                <PieChart>
+                                    <Pie data={stats.metodosData} innerRadius={60} outerRadius={80} paddingAngle={5} dataKey="value" stroke="none">
+                                        {stats.metodosData.map((e, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
+                                    </Pie>
+                                    <Tooltip 
+                                        formatter={(v) => `S/ ${Number(v).toFixed(2)}`}
+                                        contentStyle={{ borderRadius: '12px', border: '1px solid hsl(var(--border))', backgroundColor: 'hsl(var(--card))', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)', fontSize: '11px', fontWeight: 'bold' }}
+                                    />
+                                    <Legend wrapperStyle={{ paddingTop: '10px', fontSize: '10px', fontWeight: 'bold' }} />
+                                </PieChart>
+                            </ResponsiveContainer>
+                        ) : (
+                            <p className="text-xs font-bold text-muted-foreground text-center w-full">Sin datos</p>
+                        )}
                     </div>
                 </div>
             </div>
-
-
-            {/* Tabla / Tarjetas de Detalle */}
-            <div className="bg-card/40 rounded-xl border border-border/40 overflow-hidden shadow-sm mt-4">
-                <div className="p-4 border-b border-border/40 flex items-center justify-between bg-primary/5">
-                    <h3 className="font-extrabold text-sm sm:text-base tracking-tight text-foreground">Detalle de Transacciones</h3>
-                    <span className="px-3 py-1 bg-primary/10 text-primary rounded-md text-[9px] font-black uppercase tracking-widest shadow-xs border border-primary/20">
-                        {filtradas.length} Registros
-                    </span>
-                </div>
-
-                {/* Vista Desktop (Tabla) */}
-                <div className="hidden md:block overflow-x-auto">
-                    <table className="w-full text-xs">
-                        <thead>
-                            <tr className="text-left bg-muted/30 border-b border-border/40">
-                                <th className="px-4 py-3 font-black text-[9px] uppercase tracking-widest text-muted-foreground">Fecha</th>
-                                <th className="px-4 py-3 font-black text-[9px] uppercase tracking-widest text-muted-foreground">Ticket</th>
-                                <th className="px-4 py-3 font-black text-[9px] uppercase tracking-widest text-muted-foreground">Cliente</th>
-                                <th className="px-4 py-3 font-black text-[9px] uppercase tracking-widest text-muted-foreground">Origen</th>
-                                <th className="px-4 py-3 font-black text-[9px] uppercase tracking-widest text-muted-foreground">Pago</th>
-                                <th className="px-4 py-3 font-black text-[9px] uppercase tracking-widest text-muted-foreground text-right">Total</th>
-                            </tr>
-                        </thead>
-                        <tbody className="divide-y divide-border/20">
-                            {filtradas.map((v, i) => (
-                                <tr key={`${v._tipo}-${v.id || i}`} className="hover:bg-primary/5 transition-colors group">
-                                    <td className="px-4 py-2.5 font-bold text-muted-foreground">{v.fecha_pago.split('T')[0]}</td>
-                                    <td className="px-4 py-2.5 font-extrabold text-foreground tracking-tight">#{v.numero_ticket}</td>
-                                    <td className="px-4 py-2.5 font-bold tracking-tight">{v.huesped_nombre || 'Cliente Mostrador'}</td>
-                                    <td className="px-4 py-2.5">
-                                        <span className={cn(
-                                            "text-[8px] px-2 py-0.5 rounded font-black uppercase tracking-widest shadow-xs border",
-                                            v._tipo === 'hotel' ? "bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20" : "bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20"
-                                        )}>
-                                            {v._tipo}
-                                        </span>
-                                    </td>
-                                    <td className="px-4 py-2.5 capitalize font-bold text-muted-foreground">{v.metodo_pago}</td>
-                                    <td className="px-4 py-2.5 text-right font-black text-foreground tabular-nums tracking-tighter">S/ {Number(v.total).toFixed(2)}</td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                </div>
-
-                {/* Vista Móvil (Cards) */}
-                <div className="md:hidden divide-y divide-border/20">
-                    {filtradas.map((v, i) => (
-                        <div key={`mob-${v._tipo}-${v.id || i}`} className="p-4 space-y-3 active:bg-secondary/20 transition-colors">
-                            <div className="flex justify-between items-start">
-                                <div>
-                                    <p className="text-[8px] font-black text-muted-foreground uppercase tracking-widest leading-none mb-1.5">
-                                        {v.fecha_pago.split('T')[0]} • #{v.numero_ticket}
-                                    </p>
-                                    <h4 className="text-xs sm:text-sm font-extrabold text-foreground tracking-tight">{v.huesped_nombre || 'Cliente Mostrador'}</h4>
-                                </div>
-                                <span className={cn(
-                                    "text-[8px] px-2 py-0.5 rounded font-black uppercase tracking-widest border shadow-xs",
-                                    v._tipo === 'hotel' ? "bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20" : "bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20"
-                                )}>
-                                    {v._tipo}
-                                </span>
-                            </div>
-                            <div className="flex justify-between items-center pt-2 border-t border-border/20">
-                                <div className="flex items-center gap-1.5">
-                                    <div className="w-1.5 h-1.5 rounded-full bg-primary/40" />
-                                    <p className="text-[10px] font-bold text-muted-foreground capitalize">{v.metodo_pago}</p>
-                                </div>
-                                <p className="font-black text-sm text-foreground tabular-nums tracking-tighter">S/ {Number(v.total).toFixed(2)}</p>
-                            </div>
-                        </div>
-                    ))}
-                </div>
-            </div>
+            </>
+            )}
         </div>
     );
 });

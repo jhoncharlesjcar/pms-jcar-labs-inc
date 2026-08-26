@@ -26,7 +26,7 @@ const commonRules = {
         { ignore: ["cmdk-input-wrapper", "toast-close"] },
     ],
     // Transitional baseline: CI caps total warnings, so new debt cannot grow.
-    "react-hooks/rules-of-hooks": "warn",
+    "react-hooks/rules-of-hooks": "error",
 };
 
 export default [

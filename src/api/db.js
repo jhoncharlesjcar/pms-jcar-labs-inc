@@ -57,6 +57,16 @@ const TABLE_MAP = {
     AuditLog: 'audit_logs',
 };
 
+/** Mapeo de tablas con convención de fecha distinta */
+const TABLE_DATE_COLUMN = {
+    usuarios: 'created_at',
+    hoteles: 'created_at',
+    audit_events: 'created_at',
+    audit_logs: 'created_at',
+    loyalty_accounts: 'created_at',
+    loyalty_transactions: 'created_at',
+};
+
 /**
  * Crea un wrapper de entidad con operaciones CRUD estándar
  */
@@ -86,8 +96,7 @@ function createEntityProxy(tableName) {
                 const column = isDesc ? orderBy.slice(1) : orderBy;
                 query = query.order(column, { ascending: !isDesc });
             } else {
-                // Todas las tablas en este esquema usan created_date en lugar de created_at, excepto algunas
-                const dateColumn = ['usuarios', 'hoteles'].includes(tableName) ? 'created_at' : 'created_date';
+                const dateColumn = TABLE_DATE_COLUMN[tableName] || 'created_date';
                 query = query.order(dateColumn, { ascending: false });
             }
 
@@ -311,11 +320,17 @@ const users = {
 // Cache para instancias scoped por hotel_id (evita re-crear proxies en cada llamada)
 const _scopedCache = new Map();
 
+/** Purga la caché de proxies scoped (llamar en logout o cambio de hotel) */
+function clearScopedCache() {
+    _scopedCache.clear();
+}
+
 // Exportación principal — API de acceso a datos
 export const db = {
     entities,
     auth,
     users,
+    clearScopedCache,
     /**
      * Crea una instancia de entidades filtrada automáticamente por hotel_id
      * Usa cache interna para evitar re-crear objetos proxy en cada render
