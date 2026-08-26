@@ -661,7 +661,7 @@ CREATE OR REPLACE FUNCTION public.ai_finalize_paid_hold(p_payment_intent_id uuid
 RETURNS uuid
 LANGUAGE plpgsql
 SECURITY DEFINER
-SET search_path = pg_catalog, public
+SET search_path = pg_catalog, public, extensions
 AS $$
 DECLARE
   v_payment public.ai_payment_intents%ROWTYPE;

@@ -135,7 +135,7 @@ CREATE OR REPLACE FUNCTION public._append_audit_event(
 ) RETURNS uuid
 LANGUAGE plpgsql
 SECURITY DEFINER
-SET search_path = pg_catalog, public
+SET search_path = pg_catalog, public, extensions
 AS $$
 DECLARE
   v_id uuid := gen_random_uuid();
@@ -1242,7 +1242,7 @@ CREATE OR REPLACE FUNCTION public.ai_rotate_guest_access_tokens(p_reservation_id
 RETURNS jsonb
 LANGUAGE plpgsql
 SECURITY DEFINER
-SET search_path = pg_catalog, public
+SET search_path = pg_catalog, public, extensions
 AS $$
 DECLARE
   v_reservation public.reservas%ROWTYPE;
@@ -2281,7 +2281,7 @@ CREATE OR REPLACE FUNCTION public.ai_create_client_session(
   p_hotel_id uuid, p_channel text, p_conversation_id uuid DEFAULT NULL,
   p_ttl_minutes integer DEFAULT 1440
 ) RETURNS jsonb
-LANGUAGE plpgsql SECURITY DEFINER SET search_path = pg_catalog, public
+LANGUAGE plpgsql SECURITY DEFINER SET search_path = pg_catalog, public, extensions
 AS $$
 DECLARE v_raw text; v_row public.ai_client_sessions%ROWTYPE;
 BEGIN
@@ -2305,7 +2305,7 @@ $$;
 CREATE OR REPLACE FUNCTION public.ai_validate_client_session(
   p_hotel_id uuid, p_session_token text
 ) RETURNS jsonb
-LANGUAGE plpgsql SECURITY DEFINER SET search_path = pg_catalog, public
+LANGUAGE plpgsql SECURITY DEFINER SET search_path = pg_catalog, public, extensions
 AS $$
 DECLARE v_row public.ai_client_sessions%ROWTYPE;
 BEGIN

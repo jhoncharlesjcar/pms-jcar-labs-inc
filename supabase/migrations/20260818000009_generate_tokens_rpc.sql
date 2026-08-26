@@ -6,7 +6,7 @@ CREATE OR REPLACE FUNCTION public.generate_reservation_tokens(p_reserva_id uuid)
 RETURNS jsonb
 LANGUAGE plpgsql
 SECURITY DEFINER
-SET search_path = pg_catalog, public
+SET search_path = pg_catalog, public, extensions
 AS $$
 DECLARE
   v_reserva public.reservas%ROWTYPE;
