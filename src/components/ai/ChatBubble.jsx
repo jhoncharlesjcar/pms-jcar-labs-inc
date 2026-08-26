@@ -17,7 +17,7 @@ export default function ChatBubble({ hotelId }) {
     const dialogRef = useRef(null);
 
     useEffect(() => {
-        if (!hotelId) return;
+        if (!hotelId || !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(hotelId)) return;
         let cancelled = false;
         const sessionKey = `jcar_ai_session:${hotelId}`;
         const tokenKey = `jcar_ai_token:${hotelId}`;

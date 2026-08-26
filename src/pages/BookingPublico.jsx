@@ -1,59 +1,33 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useEffect, useMemo } from 'react';
 import { useMutation, useQuery } from '@tanstack/react-query';
-import { addDays, format } from 'date-fns';
+import { format } from 'date-fns';
 import { CalendarDays, ShieldAlert } from 'lucide-react';
-import { supabase } from '@/config/supabase';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import ChatBubble from '@/components/ai/ChatBubble';
+import { useBookingData, invokeBooking } from './BookingPublico/hooks/useBookingData';
 import { validarDocumento } from '@/services/recepcion.service';
 
-async function invokeBooking(body) {
-    const { data, error } = await supabase.functions.invoke('public-booking', { body });
-    if (error) throw new Error('El motor de reservas seguro no está disponible. Contacta al hotel.');
-    if (!data || data.error) throw new Error(data?.error || 'No se pudo completar la solicitud.');
-    return data;
-}
-
 export default function BookingPublico() {
-    const { hotelId } = useParams();
-    const [dates, setDates] = useState({
-        fecha_entrada: format(new Date(), 'yyyy-MM-dd'),
-        fecha_salida: format(addDays(new Date(), 1), 'yyyy-MM-dd'),
-    });
-    const [guest, setGuest] = useState({ 
-        tipo_reserva: 'particular', 
-        nombre: '', 
-        documento: '', 
-        tipo_documento: 'DNI',
-        telefono: '', 
-        email: '' 
-    });
-    const [options, setOptions] = useState([]);
-    const [selected, setSelected] = useState(null);
-    const [completed, setCompleted] = useState(null);
-    const [challengeToken, setChallengeToken] = useState('');
-    const [paymentMethod, setPaymentMethod] = useState('yape');
-    const turnstileRef = useRef(null);
-    const turnstileSiteKey = import.meta.env.VITE_TURNSTILE_SITE_KEY;
-    const sessionId = useMemo(() => {
-        const key = `jcar_booking_session:${hotelId}`;
-        const existing = sessionStorage.getItem(key);
-        if (existing) return existing;
-        const generated = crypto.randomUUID();
-        sessionStorage.setItem(key, generated);
-        return generated;
+    const {
+        hotelId, configQuery,
+        dates, setDates,
+        guest, setGuest,
+        options, setOptions,
+        selected, setSelected,
+        completed, setCompleted,
+        challengeToken, setChallengeToken,
+        paymentMethod, setPaymentMethod,
+        turnstileRef, turnstileSiteKey,
+        sessionId, idempotencyKey
+    } = useBookingData();
+
+    const isValidUUID = useMemo(() => {
+        if (!hotelId) return false;
+        return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(hotelId);
     }, [hotelId]);
-    const idempotencyKey = useMemo(() => {
-        const key = `jcar_booking_idempotency:${hotelId}`;
-        const existing = sessionStorage.getItem(key);
-        if (existing) return existing;
-        const generated = crypto.randomUUID();
-        sessionStorage.setItem(key, generated);
-        return generated;
-    }, [hotelId]);
+
 
     useEffect(() => {
         if (!turnstileSiteKey || !turnstileRef.current) return undefined;
@@ -98,7 +72,7 @@ export default function BookingPublico() {
     const context = useQuery({
         queryKey: ['public-booking-context', hotelId],
         queryFn: () => invokeBooking({ action: 'hotel', hotel_id: hotelId }),
-        enabled: Boolean(hotelId),
+        enabled: isValidUUID,
         retry: false,
     });
 
@@ -139,7 +113,9 @@ export default function BookingPublico() {
 
     const documentValidation = validarDocumento({ tipo: /** @type {import('@/services/recepcion.service').TipoDocumento} */ (guest.tipo_documento), documento: guest.documento });
 
-    if (!hotelId) return <PublicError message="El enlace de reserva es incompleto." />;
+    if (!isValidUUID) return <PublicError message="El enlace de reserva es inválido o está incompleto." />;
+    if (configQuery.isPending) return <div className="min-h-screen bg-slate-50 flex items-center justify-center font-sans"><div className="animate-pulse flex flex-col items-center gap-4"><div className="w-12 h-12 border-4 border-slate-200 border-t-primary rounded-full animate-spin"></div><p className="text-sm font-medium text-slate-500 uppercase tracking-widest">Iniciando motor de reservas...</p></div></div>; 
+    if (configQuery.isError) return <PublicError message={configQuery.error.message} />;
     if (!turnstileSiteKey) return <PublicError message="Las reservas en línea están temporalmente deshabilitadas. Contacta directamente al hotel." />;
     if (context.isPending) return <PublicLoading />;
     if (context.isError) return <PublicError message={context.error.message} />;
