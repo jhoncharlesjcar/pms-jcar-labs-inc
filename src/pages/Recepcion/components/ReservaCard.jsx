@@ -1,5 +1,5 @@
 import React from 'react';
-import { CalendarDays, CheckCircle2, FileText, LogIn, XCircle } from 'lucide-react';
+import { CalendarDays, CheckCircle2, FileText, LogIn, XCircle, Wallet, CreditCard } from 'lucide-react';
 import { format, parseISO } from 'date-fns';
 import { Button } from '@/components/ui/button';
 import { StatusBadge } from '@/components/ui/StatusBadge';
@@ -45,6 +45,16 @@ export const ReservaCard = React.memo((/** @type {any} */ { r, hotelActual, hote
                         <div className="flex items-center gap-2 flex-wrap mb-0.5">
                             <p className="font-bold text-sm text-foreground tracking-tight leading-none">{r.huesped_nombre}</p>
                             <StatusBadge status={r.estado} className="text-[10px] px-1.5 py-0.5 rounded-sm" />
+                            {(r.estado_pago === 'pagado' || r.estado === 'finalizada') && (
+                                <span className="rounded-sm border border-emerald-500/20 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 px-1.5 py-0.5 text-[10px] font-semibold flex items-center gap-1" title="El alojamiento ha sido pagado">
+                                    <Wallet className="w-3 h-3" /> Pagado
+                                </span>
+                            )}
+                            {((r.estado_pago === 'pendiente' || !r.estado_pago) && ['activa', 'pendiente'].includes(r.estado)) && (
+                                <span className="rounded-sm border border-amber-500/20 bg-amber-500/10 text-amber-700 dark:text-amber-400 px-1.5 py-0.5 text-[10px] font-semibold flex items-center gap-1" title="El pago del alojamiento está pendiente">
+                                    <CreditCard className="w-3 h-3" /> Pendiente
+                                </span>
+                            )}
                             {(r.huesped_fecha_nacimiento || (r.tipo_documento === 'RUC' && r.huesped_email)) && r.estado === 'pendiente' && (
                                 <span className="rounded-sm border border-emerald-500/20 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 px-1.5 py-0.5 text-[10px] font-semibold flex items-center gap-1" title="El huésped ya completó sus datos digitalmente">
                                     <CheckCircle2 className="w-3 h-3" /> Auto-registro

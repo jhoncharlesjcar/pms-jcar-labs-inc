@@ -2,7 +2,7 @@
 // Middleware compartido para validar JWT y resolver usuario/rol/hotel
 // P1 Fix #4: Edge Functions privilegiadas sin autorización interna
 
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.44.0'
 
 declare const Deno: { env: { get(key: string): string | undefined } };
 

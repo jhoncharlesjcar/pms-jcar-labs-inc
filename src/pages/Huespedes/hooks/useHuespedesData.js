@@ -15,7 +15,7 @@ export function useHuespedesData() {
 
     const { data: reservas = [], isLoading } = useQuery({
         queryKey: ['reservas-huespedes', hotelId],
-        queryFn: () => hotelDb.Reserva.list(),
+        queryFn: () => hotelDb.Reserva.list(null, null, "*, observaciones"),
         enabled: !!hotelId,
     });
 
@@ -37,6 +37,7 @@ export function useHuespedesData() {
                     email: 'No registrado',
                     nacionalidad: res.huesped_procedencia || 'No registrada',
                     nochesTotales: 0,
+                    observaciones: res.observaciones || '',
                     reservas: []
                 };
             }
@@ -50,6 +51,9 @@ export function useHuespedesData() {
                 acc[key].ultimaVisita = res.fecha_entrada;
                 acc[key].habitacionFavorita = res.habitacion_numero;
                 acc[key].tipoHabFavorita = res.habitacion_tipo;
+                if (res.observaciones) {
+                    acc[key].observaciones = res.observaciones;
+                }
             }
             
             return acc;

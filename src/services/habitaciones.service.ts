@@ -29,7 +29,7 @@ export const HabitacionesService = {
   async getHabitacionesByHotel(hotelId: string): Promise<HabitacionData[]> {
     const { data, error } = await supabase
       .from('habitaciones')
-      .select('id, hotel_id, numero, piso, tipo, estado, precio_noche, precio, capacidad, descripcion, amenities')
+      .select('id, hotel_id, numero, piso, tipo, estado, precio_noche, precio, capacidad, descripcion, amenities, imagen_url')
       .eq('hotel_id', hotelId)
       .order('numero', { ascending: true });
 
@@ -42,7 +42,7 @@ export const HabitacionesService = {
       .from('habitaciones')
       .update({ estado: nuevoEstado })
       .eq('id', habitacionId)
-      .select('id, hotel_id, numero, piso, tipo, estado, precio_noche, precio, capacidad, descripcion, amenities')
+      .select('id, hotel_id, numero, piso, tipo, estado, precio_noche, precio, capacidad, descripcion, amenities, imagen_url')
       .single();
 
     if (error) throw error;
@@ -74,6 +74,7 @@ export interface HabitacionData {
   capacidad: number;
   descripcion?: string;
   amenities?: string[];
+  imagen_url?: string | null;
 }
 
 export interface ValidarHabitacionParams {
@@ -96,6 +97,7 @@ export interface HabitacionResumen {
   estado: string;
   precio_noche: number;
   capacidad: number;
+  imagen_url?: string | null;
 }
 
 // ---------------------------------------------------------------------------

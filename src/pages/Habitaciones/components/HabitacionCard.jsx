@@ -18,9 +18,15 @@ export function HabitacionCard({ h, estadoConfig, openEdit, requestDelete }) {
     return (
         <article
             data-state={h.estado}
-            className="room-card group flex flex-col justify-between tap-active"
+            className="room-card group flex flex-col justify-between tap-active relative"
         >
-            <div className="flex items-center justify-between gap-2">
+            {h.imagen_url && (
+                <div className="w-[calc(100%+2rem)] h-32 -mx-4 -mt-4 mb-4 relative overflow-hidden bg-muted flex-shrink-0">
+                    <img src={h.imagen_url} alt={`Habitación ${h.numero}`} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-background via-background/40 to-transparent" />
+                </div>
+            )}
+            <div className={cn("flex items-center justify-between gap-2", h.imagen_url ? "absolute top-2 left-2 right-2 z-10" : "")}>
                 <div className="flex min-w-0 items-center gap-2">
                     <div className={cn(
                         "flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl border border-current/10",

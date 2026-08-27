@@ -1,4 +1,4 @@
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.44.0";
 import { authenticateCronJob, errorResponse } from "../_shared/auth-middleware.ts";
 
 declare const Deno: any;

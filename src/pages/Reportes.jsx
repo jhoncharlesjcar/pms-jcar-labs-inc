@@ -5,7 +5,7 @@ import {
 } from 'recharts';
 import { 
     Download, TrendingUp, 
-    ShoppingCart, Hotel, Wallet, ArrowUpRight, FileText,
+    ShoppingCart, Hotel, Wallet, FileText,
     Table as TableIcon
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -17,7 +17,9 @@ import { useGsapStaggerList } from '@/hooks/useGsapStaggerList';
 import { useReportesData } from './Reportes/hooks/useReportesData';
 import PageSkeleton from '@/components/loaders/PageSkeleton';
 
-const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8'];
+import { TopGuestsWidget } from './Reportes/components/TopGuestsWidget';
+
+const COLORS = ['#10b981', '#3b82f6', '#f59e0b', '#8b5cf6', '#ef4444', '#64748b'];
 
 const Reportes = memo(function Reportes() {
     const {
@@ -223,6 +225,9 @@ const Reportes = memo(function Reportes() {
                             <p className="text-xs font-bold text-muted-foreground text-center w-full">Sin datos</p>
                         )}
                     </div>
+                </div>
+                <div className="lg:col-span-1">
+                    <TopGuestsWidget huespedes={stats.topGuests} isLoading={isLoading} />
                 </div>
             </div>
             </>

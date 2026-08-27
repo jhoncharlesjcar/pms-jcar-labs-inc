@@ -90,7 +90,31 @@ export function useReportesData() {
 
         const lineData = Object.values(porFecha).sort((a, b) => a.fecha.localeCompare(b.fecha));
 
-        return { total, hotel, pos, metodosData, lineData };
+        const huespedesMap = filtradas.reduce((acc, v) => {
+            const key = v.huesped_dni || v.ruc_cliente || v.huesped_nombre || v.razon_social;
+            if (!key) return acc;
+            if (key.toLowerCase() === 'mostrador' || key.toLowerCase() === 'cliente varios') return acc;
+            
+            const nombre = v.huesped_nombre || v.razon_social || 'Cliente';
+            if (!acc[key]) {
+                acc[key] = {
+                    nombre,
+                    dni: v.huesped_dni || v.ruc_cliente,
+                    procedencia: 'Huésped',
+                    totalGasto: 0,
+                    totalEstancias: 0
+                };
+            }
+            acc[key].totalGasto += Number(v.total || 0);
+            acc[key].totalEstancias += 1;
+            return acc;
+        }, {});
+
+        const topGuests = Object.values(huespedesMap)
+            .sort((a, b) => b.totalGasto - a.totalGasto)
+            .slice(0, 5);
+
+        return { total, hotel, pos, metodosData, lineData, topGuests };
     }, [filtradas]);
 
     return {

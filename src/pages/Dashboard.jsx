@@ -1,16 +1,12 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import { useHotelData } from '@/hooks/useHotelData';
-import { useQuery } from '@tanstack/react-query';
-import logger from '@/lib/logger';
 
 import { Link, useNavigate } from 'react-router-dom';
-import { format, subDays } from 'date-fns';
 import {
-    BedDouble, Wallet, Receipt, CalendarDays, TrendingUp, CheckCircle2, User,
+    BedDouble, Wallet, CalendarDays, TrendingUp, CheckCircle2, User,
     LogIn, ShoppingCart, FileText, AlertTriangle, ArrowUpRight, Zap
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { supabase } from '@/config/supabase';
 import { gsap } from 'gsap';
 import { useGsapCardHover } from '@/hooks/useGsapCardHover';
 import { useGsapStaggerList } from '@/hooks/useGsapStaggerList';
@@ -56,11 +52,12 @@ export default function Dashboard() {
     const { queueCount, isOffline, metrics } = useDashboardData(user, hotelId, db);
 
     const {
-        libres, ocupadas, mantenimiento, limpieza,
+        libres, ocupadas, limpieza, mantenimiento,
         todasLasVentas, ingresosHoy, ocupacionPct,
         chartData, ocupadasYPendientes, ingresosHospedajeHoy, ingresosPosHoy,
-        acumuladoMes, llegadasHoy, salidasHoy, variacionIngresos, habitacionesTotal,
-        metodosHoy, sunatHoy, transaccionesHoy
+        acumuladoMes, llegadasHoy, salidasHoy, 
+        variacionIngresos, variacionOcupacion, variacionLibres, variacionReservas,
+        habitacionesTotal, metodosHoy, sunatHoy, transaccionesHoy
     } = metrics;
 
     const kpis = [
@@ -74,7 +71,7 @@ export default function Dashboard() {
             bgIcon: "bg-blue-500/10 text-blue-500 dark:bg-blue-950/50 dark:text-blue-400",
             barColor: "bg-blue-500",
             isMoney: false,
-            variation: null,
+            variation: variacionOcupacion,
             subtitle: `${ocupadas} de ${habitacionesTotal} hab.`
         },
         {
@@ -100,7 +97,7 @@ export default function Dashboard() {
             bgIcon: "bg-amber-500/10 text-amber-500 dark:bg-amber-950/50 dark:text-amber-400",
             barColor: "bg-amber-500",
             isMoney: false,
-            variation: null,
+            variation: variacionLibres,
             subtitle: 'habitaciones disponibles'
         },
         {
@@ -113,7 +110,7 @@ export default function Dashboard() {
             bgIcon: "bg-purple-500/10 text-purple-500 dark:bg-purple-950/50 dark:text-purple-400",
             barColor: "bg-purple-500",
             isMoney: false,
-            variation: null,
+            variation: variacionReservas,
             subtitle: 'activas y pendientes'
         }
     ];
@@ -121,7 +118,6 @@ export default function Dashboard() {
     /** ─── Quick Actions ─── */
     const quickActions = [
         { label: 'Nuevo Check-in', icon: LogIn, color: 'text-emerald-500', bg: 'bg-emerald-500/10 hover:bg-emerald-500/20', action: () => navigate('/recepcion') },
-        { label: 'Registrar Venta', icon: Receipt, color: 'text-blue-500', bg: 'bg-blue-500/10 hover:bg-blue-500/20', action: () => navigate('/ventas') },
         { label: 'Abrir Caja', icon: Wallet, color: 'text-amber-500', bg: 'bg-amber-500/10 hover:bg-amber-500/20', action: () => navigate('/caja') },
         { label: 'Punto de Venta', icon: ShoppingCart, color: 'text-purple-500', bg: 'bg-purple-500/10 hover:bg-purple-500/20', action: () => navigate('/pos') },
         { label: 'Reportes', icon: FileText, color: 'text-cyan-500', bg: 'bg-cyan-500/10 hover:bg-cyan-500/20', action: () => navigate('/reportes') },

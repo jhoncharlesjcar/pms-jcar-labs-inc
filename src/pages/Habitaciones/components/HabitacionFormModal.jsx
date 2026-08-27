@@ -60,6 +60,10 @@ export function HabitacionFormModal({
                         </Select>
                     </div>
                     <div>
+                        <Label className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">URL de Foto (Opcional)</Label>
+                        <Input value={form.imagen_url || ''} onChange={e => setForm({ ...form, imagen_url: e.target.value })} placeholder="https://ejemplo.com/foto.jpg" className="mt-1 h-9 bg-background text-sm rounded-md border border-input focus:ring-1 focus:ring-primary" />
+                    </div>
+                    <div>
                         <Label className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-2 block">Comodidades (Amenities)</Label>
                         <div className="grid grid-cols-2 gap-3">
                             {AMENITIES_MAP.map(a => {

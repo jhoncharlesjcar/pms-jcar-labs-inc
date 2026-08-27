@@ -1,7 +1,7 @@
 import { memo } from 'react';
 import { 
     Users, Search, Phone, MapPin, Calendar, 
-    CreditCard,
+    CreditCard, StickyNote,
     ArrowUpDown, Eye, Mail, FileText, Download
 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
@@ -243,6 +243,15 @@ const Huespedes = memo(function Huespedes() {
                                             </div>
                                             <div className="bg-green-500/10 px-1.5 py-0.5 rounded border border-green-500/20 shadow-xs">
                                                 <span className="text-[10px] font-extrabold text-green-600 dark:text-green-400 tabular-nums">S/ {h.totalGasto}</span>
+                                            </div>
+                                        </div>
+
+                                        <div className="pt-2 border-t border-border/40 mt-2">
+                                            <div className="flex items-start gap-1.5 text-muted-foreground">
+                                                <StickyNote className="w-3 h-3 mt-0.5 flex-shrink-0" />
+                                                <p className="text-[9px] font-medium leading-tight flex-1 line-clamp-2" title={h.observaciones}>
+                                                    {h.observaciones ? h.observaciones : 'Sin observaciones'}
+                                                </p>
                                             </div>
                                         </div>
                                     </div>

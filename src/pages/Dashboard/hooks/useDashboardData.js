@@ -134,6 +134,14 @@ export function useDashboardData(user, hotelId, db) {
         const ingresosHoyCalc = dbStats?.ingresos_hoy || 0;
         const variacionIngresos = ingresosAyer > 0 ? ((ingresosHoyCalc - ingresosAyer) / ingresosAyer * 100) : null;
 
+        const ocupadasAyerCalc = reservas.filter(r => (r.fecha_entrada || '') <= ayerYMD && (r.fecha_salida || '') > ayerYMD && ['activa', 'finalizada'].includes(r.estado)).length;
+        const libresAyerCalc = (dbStats?.habitaciones_total || 0) - ocupadasAyerCalc;
+        const reservasAyerCalc = reservas.filter(r => (r.fecha_entrada || '') <= ayerYMD && (r.fecha_salida || '') > ayerYMD && ['activa', 'finalizada', 'pendiente'].includes(r.estado)).length;
+
+        const variacionOcupacion = ocupadasAyerCalc > 0 ? (((dbStats?.ocupadas || 0) - ocupadasAyerCalc) / ocupadasAyerCalc * 100) : null;
+        const variacionLibres = libresAyerCalc > 0 ? (((dbStats?.libres || 0) - libresAyerCalc) / libresAyerCalc * 100) : null;
+        const variacionReservas = reservasAyerCalc > 0 ? (((dbStats?.ocupadas_y_pendientes || 0) - reservasAyerCalc) / reservasAyerCalc * 100) : null;
+
         return {
             libres: dbStats?.libres || 0,
             ocupadas: dbStats?.ocupadas || 0,
@@ -154,6 +162,9 @@ export function useDashboardData(user, hotelId, db) {
             llegadasHoy,
             salidasHoy,
             variacionIngresos,
+            variacionOcupacion,
+            variacionLibres,
+            variacionReservas,
             habitacionesTotal: dbStats?.habitaciones_total || 0,
             metodosHoy,
             sunatHoy,
