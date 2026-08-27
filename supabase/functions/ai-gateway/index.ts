@@ -48,7 +48,7 @@ async function credentialMasterKey(): Promise<CryptoKey> {
     throw new Error('channel_credential_master_key_invalid');
   }
   if (bytes.byteLength !== 32) throw new Error('channel_credential_master_key_invalid');
-  return crypto.subtle.importKey('raw', ownedArrayBuffer(bytes), { name: 'AES-GCM' }, false, ['encrypt', 'decrypt']);
+  return await crypto.subtle.importKey('raw', ownedArrayBuffer(bytes), { name: 'AES-GCM' }, false, ['encrypt', 'decrypt']);
 }
 
 async function encryptCredential(secret: string): Promise<string> {

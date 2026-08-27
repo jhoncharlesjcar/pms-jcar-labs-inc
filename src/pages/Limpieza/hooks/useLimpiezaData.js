@@ -24,6 +24,7 @@ export function useLimpiezaData() {
         enabled: !!hotelId,
     });
 
+    /** @type {import('@tanstack/react-query').UseMutationResult<any, Error, { id: any, estado: string, motivo?: string }>} */
     const actualizarEstado = useMutation({
         mutationFn: ({ id, estado, motivo }) => {
             const currentRoom = habitaciones.find(h => h.id === id);
@@ -55,7 +56,7 @@ export function useLimpiezaData() {
             await qc.cancelQueries({ queryKey: ['habitaciones', hotelId] });
             const previousHabitaciones = qc.getQueryData(['habitaciones', hotelId]);
 
-            qc.setQueryData(['habitaciones', hotelId], (old) => {
+            qc.setQueryData(['habitaciones', hotelId], (/** @type {any[]} */ old) => {
                 if (!old) return [];
                 return old.map(hab => {
                     if (hab.id === id) {

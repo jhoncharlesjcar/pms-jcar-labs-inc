@@ -15,7 +15,14 @@ import { FidelidadCard } from '@/components/checkout/FidelidadCard';
 import { ComprobanteSelector } from '@/components/checkout/ComprobanteSelector';
 import { VentaExitosaDialog } from '@/components/checkout/VentaExitosaDialog';
 
-const RegistrarVentaModal = memo(function RegistrarVentaModal({ reserva, onClose, onSuccess }) {
+const RegistrarVentaModal = memo(
+    /**
+     * @param {object} props
+     * @param {any} props.reserva
+     * @param {() => void} props.onClose
+     * @param {() => void} props.onSuccess
+     */
+    function RegistrarVentaModal({ reserva, onClose, onSuccess }) {
     const { state, actions } = useRegistrarVenta({ reserva, onClose, onSuccess });
     
     if (state.ventaCreada) {
