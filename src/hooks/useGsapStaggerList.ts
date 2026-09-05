@@ -16,7 +16,7 @@ export interface UseGsapStaggerListOptions {
   grid?: 'auto' | 'row' | 'column' | [number, number];
 }
 
-export function useGsapStaggerList(deps: any[] = [], opts: UseGsapStaggerListOptions = {}) {
+export function useGsapStaggerList<T extends HTMLElement = HTMLDivElement>(deps: any[] = [], opts: UseGsapStaggerListOptions = {}) {
   const {
     stagger = 0.025,
     from = 'start',
@@ -26,7 +26,7 @@ export function useGsapStaggerList(deps: any[] = [], opts: UseGsapStaggerListOpt
     grid,
   } = opts;
 
-  const ref = useRef<HTMLDivElement>(null);
+  const ref = useRef<T>(null);
   const prevLengthRef = useRef(0);
 
   useGSAP(() => {
@@ -104,7 +104,7 @@ export interface UseGsapStaggerChildrenOptions {
 /**
  * Versión para animar un subconjunto de hijos (ej. slice(0, N)).
  */
-export function useGsapStaggerChildren(deps: any[] = [], opts: UseGsapStaggerChildrenOptions = {}) {
+export function useGsapStaggerChildren<T extends HTMLElement = HTMLDivElement>(deps: any[] = [], opts: UseGsapStaggerChildrenOptions = {}) {
   const {
     stagger = 0.04,
     from = 'start',
@@ -113,7 +113,7 @@ export function useGsapStaggerChildren(deps: any[] = [], opts: UseGsapStaggerChi
     selector = ':scope > *',
   } = opts;
 
-  const ref = useRef<HTMLDivElement>(null);
+  const ref = useRef<T>(null);
 
   useGSAP(() => {
     const container = ref.current;

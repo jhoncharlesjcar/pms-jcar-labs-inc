@@ -1,5 +1,5 @@
 import { useRef, useEffect, memo } from 'react';
-import { Mail, Lock, Eye, EyeOff, ShieldCheck } from 'lucide-react';
+import { Mail, Lock, Eye, EyeOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { gsap } from 'gsap';
 import { useGsapStaggerList } from '@/hooks/useGsapStaggerList';
@@ -23,11 +23,11 @@ const Login = memo(function Login() {
     const footerRef = useRef(null);
     const bgRef = useRef(null);
 
-    const formRef = useGsapStaggerList([], {
+    const formRef = /** @type {any} */ (useGsapStaggerList([], {
         stagger: 0.1,
         direction: 'y',
         distance: 15,
-    });
+    }));
 
     // GSAP entrance animation
     useEffect(() => {
@@ -113,9 +113,8 @@ const Login = memo(function Login() {
                         {/* Logo Glow */}
                         <div className="absolute inset-0 bg-primary/30 blur-2xl rounded-full scale-150" />
                         
-                        <div className="relative flex h-16 w-16 sm:h-20 sm:w-20 items-center justify-center rounded-[1.5rem] bg-gradient-to-b from-white/10 to-white/5 shadow-2xl border border-white/10 backdrop-blur-xl">
-                            <div className="absolute inset-0 bg-gradient-to-tr from-primary/20 to-transparent rounded-[1.5rem]" />
-                            <ShieldCheck className="h-8 w-8 sm:h-10 sm:w-10 text-primary drop-shadow-[0_0_15px_rgba(255,255,255,0.5)]" />
+                        <div className="relative flex h-16 w-16 sm:h-20 sm:w-20 items-center justify-center rounded-[1.5rem] bg-white shadow-2xl border border-white/10 overflow-hidden p-1 flex-shrink-0">
+                            <img src="/logo.jpg" alt="PMS JCAR LABS" className="w-full h-full object-contain origin-center rounded-[1.1rem]" />
                         </div>
                     </div>
                     <h1 
