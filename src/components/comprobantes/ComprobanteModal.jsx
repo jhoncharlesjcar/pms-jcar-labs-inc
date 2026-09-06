@@ -11,6 +11,7 @@ import { toast } from 'sonner';
 import QRCode from 'qrcode';
 import { useIdentity } from '@/hooks/useIdentity';
 import ComprobanteStatus from './ComprobanteStatus';
+import NotaComprobanteDialog from './NotaComprobanteDialog';
 
 /**
  * Genera el ticket SUNAT en formato de texto plano (32 columnas)
@@ -157,6 +158,8 @@ const ComprobanteModal = memo(function ComprobanteModal(/** @type {any} */ { isO
   const [nombreCliente, setNombreCliente] = useState('');
   const [qrUrl, setQrUrl] = useState('');
   const [hash, setHash] = useState('');
+  const [comprobanteData, setComprobanteData] = useState(null);
+  const [notaOpen, setNotaOpen] = useState(false);
   
   const [cargando, setCargando] = useState(false);
   const { fetchIdentity, loadingIdentity } = useIdentity();
@@ -215,7 +218,7 @@ const ComprobanteModal = memo(function ComprobanteModal(/** @type {any} */ { isO
 
         const { data: compData } = await supabase
           .from('comprobantes')
-          .select('id')
+          .select('id, tipo, serie, numero, subtotal, igv, total')
           .eq('hotel_id', ventaPos.hotel_id)
           .eq('tipo', tipoComprobante === 'factura' ? 'Factura' : 'Boleta')
           .eq('serie', serie)
@@ -223,6 +226,7 @@ const ComprobanteModal = memo(function ComprobanteModal(/** @type {any} */ { isO
           .maybeSingle();
 
         if (compData?.id) {
+          setComprobanteData(compData);
           const { data: xmlData } = await supabase
             .from('comprobante_xml')
             .select('hash')
@@ -377,6 +381,7 @@ const ComprobanteModal = memo(function ComprobanteModal(/** @type {any} */ { isO
   };
 
   return (
+    <>
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="flex max-h-[92vh] max-w-4xl flex-col overflow-hidden border border-border/60 bg-card p-0 shadow-2xl max-sm:left-0 max-sm:top-0 max-sm:h-[100dvh] max-sm:max-h-none max-sm:w-full max-sm:max-w-none max-sm:translate-x-0 max-sm:translate-y-0 max-sm:rounded-none sm:rounded-2xl">
         <DialogHeader className="shrink-0 border-b border-border/60 p-4 pr-12 text-left sm:p-5 sm:pr-12">
@@ -752,10 +757,25 @@ const ComprobanteModal = memo(function ComprobanteModal(/** @type {any} */ { isO
               <><Download className="h-4 w-4" /> Descargar PDF</>
             )}
           </Button>
+          {isSunatEmitted && comprobanteData && (
+            <Button
+              onClick={() => setNotaOpen(true)}
+              variant="outline"
+              className="col-span-2 h-11 gap-2 sm:col-span-1"
+            >
+              <FileText className="h-4 w-4" /> Emitir Nota
+            </Button>
+          )}
           </div>
         </div>
       </DialogContent>
     </Dialog>
+      <NotaComprobanteDialog
+        open={notaOpen}
+        onClose={() => setNotaOpen(false)}
+        comprobante={comprobanteData}
+      />
+    </>
   );
 });
 ComprobanteModal.displayName = 'ComprobanteModal';
