@@ -64,7 +64,7 @@ const NotaComprobanteDialog = memo(function NotaComprobanteDialog(/** @type {any
     try {
       await crearNotaComprobante({
         comprobante_ref_id: comprobante.id,
-        tipo,
+        tipo: /** @type {'nota_credito' | 'nota_debito'} */ (tipo),
         tipo_nota: tipoNota,
         motivo: motivo.trim() || undefined,
         subtotal: Number(subtotal),
