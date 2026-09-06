@@ -50,6 +50,15 @@ function validateCredentials(credentials: Record<string, any>): void {
   }
 }
 
+function validateXmlStructure(xml: string, expectedRoot: string): void {
+  if (!xml || xml.length === 0) throw new Error("Generated XML is empty");
+  if (!xml.includes(`<${expectedRoot}`)) throw new Error(`Generated XML missing root <${expectedRoot}>`);
+  const required = ["<cbc:UBLVersionID", "<cbc:ID", "<cac:TaxTotal", "<cac:LegalMonetaryTotal"];
+  for (const el of required) {
+    if (!xml.includes(el)) throw new Error(`Generated XML missing required element: ${el}`);
+  }
+}
+
 async function persistXml(supabase: any, comprobanteId: number, unsignedXml: string, signedXml: string, zipBytes: Uint8Array): Promise<void> {
   const hash = forge.md.sha256.create().update(signedXml, "utf8").digest().toHex();
   const { data: existingXml } = await supabase.from("comprobante_xml").select("id")
@@ -215,6 +224,7 @@ serve(async (req: Request) => {
         serie: original.serie,
         numero: original.numero,
       });
+      validateXmlStructure(unsignedXml, esCredito ? "CreditNote" : "DebitNote");
       const signedXml = signXmlDocument(unsignedXml, signingMaterialFor(credentials));
       const zip = new JSZip();
       const fileName = `${credentials.ruc}-${esCredito ? "07" : "08"}-${serie}-${formattedNumber}`;
@@ -317,6 +327,7 @@ serve(async (req: Request) => {
 
     const formattedNumber = comp.numero;
     const unsignedXml = buildUblXml(comp, credentials, formattedNumber, detalle);
+    validateXmlStructure(unsignedXml, "Invoice");
     const signedXml = signXmlDocument(unsignedXml, signingMaterialFor(credentials));
     const zip = new JSZip();
     const fileName = `${credentials.ruc}-${tipo === "Factura" ? "01" : "03"}-${serie}-${formattedNumber}`;
