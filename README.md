@@ -2,8 +2,8 @@
 
 PMS hotelero multi-tenant para gestionar recepción, habitaciones, huéspedes, limpieza, ventas, POS, caja, inventario, reportes, revenue y configuración de propiedades.
 
-**Versión del proyecto:** 3.0.0
-**Documentación actualizada:** 26 de agosto de 2026
+**Versión del proyecto:** 3.1.0
+**Documentación actualizada:** 27 de agosto de 2026
 **Rama productiva:** `main`
 
 ## Capacidades
@@ -13,7 +13,7 @@ PMS hotelero multi-tenant para gestionar recepción, habitaciones, huéspedes, l
 - Ventas del hotel y punto de venta con múltiples medios de pago.
 - Caja, egresos, arqueo y cierre de turno.
 - Limpieza e inventario de suministros.
-- **Facturación electrónica SUNAT:** Generación, firmado XML y emisión de comprobantes (Facturas/Boletas).
+- **Facturación electrónica SUNAT (SOAP directo):** Generación y firmado XML UBL 2.1 con certificado ICP, emisión de Facturas (01), Boletas (03), Notas de Crédito (07) y Notas de Débito (08), con parseo del CDR, series configurables y detalle por líneas.
 - **Inteligencia Artificial (AI Gateway):** Asistente conversacional Gemini 2.0 con *Tool Calling* y base de conocimiento dinámica.
 - **Channel Manager (OTA Sync):** Sincronización bidireccional de inventario y tarifas con Agencias de Viajes Online (OTAs).
 - **Pasarela de Pagos y Portales:** Portal del huésped, Booking Engine integrado, Pre-Checkin y webhooks de validación de pagos.

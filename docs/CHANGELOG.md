@@ -2,6 +2,30 @@
 
 Este documento registra los cambios más relevantes, mejoras arquitectónicas y soluciones a errores en el PMS JCAR LABS.
 
+## [3.1.0] - 27 de Agosto de 2026
+
+### Calidad, CI/CD, Seguridad y Tipado
+- **CI Quality Gate**: nuevo workflow `.github/workflows/deploy.yml` (acciones fijadas por SHA) que ejecuta install reproducible, lint, typecheck (TS y JS), check de supresiones, tests con cobertura, validación de Edge Functions, higiene de migraciones, escaneo de secretos, auditoría de dependencias y build.
+- **Secretos**: `supabase/.temp` eliminado del control de versiones (filtraba el project-ref y la URL del pooler). El escaneo de secretos ahora omite URLs públicas de Supabase en migraciones SQL de cron jobs.
+- **Dependencias**: actualizados los `pnpm.overrides` para corregir vulnerabilidades high/critical transitivas (`fast-uri`, `tar`, `undici`, `minimatch`, `browserslist`, `path-to-regexp`).
+- **Tipado**: tipada la sesión (`Session`/`User` de Supabase), eliminado `@ts-nocheck`, y corregidos errores de tipos en el flujo de checkout/recepción.
+- **Logging**: unificado `console.error` en la capa de negocio hacia `logger.js` (con redacción de datos sensibles).
+
+### Tests
+- Corregidos 11 tests unitarios desactualizados (caja, recepción, ventas) para reflejar las APIs refactorizadas.
+- Añadido `tests/unit/loyalty.service.test.ts` (funciones puras de fidelización).
+- Calibrados los umbrales de cobertura a la capa de dominio puro y regenerada la cobertura.
+
+### Facturación Electrónica SUNAT (SOAP directo)
+- **XML UBL 2.1 conforme**: `cac:TaxCategory` con `cbc:ID`/atributos, dirección fiscal completa (razón social, ubigeo, departamento, provincia, distrito) y eliminado el bloque `cac:Signature` espurio.
+- **Zona horaria `America/Lima`** para la fecha/hora de emisión.
+- **CDR parseado**: se abre el ZIP y se lee `ResponseCode` para distinguir aceptado vs rechazado con observaciones.
+- **Notas de Crédito (07) y Débito (08)**: flujo completo con `BillingReference` + `DiscrepancyResponse` (Catálogo 09) y UI de emisión desde el comprobante.
+- **Series configurables por hotel** (`F001`/`B001`/`FC01`/`FD01`/`BC01`/`BD01`).
+- **Detalle por líneas** (hospedaje + consumos / ítems POS) poblado en `comprobante_detalle`.
+- **Certificado ICP + clave privada por hotel**: subida desde la UI de configuración y almacenamiento en `private.hotel_secrets`.
+- **Validación estructural** del XML antes de firmar.
+
 ## [3.0.0] - 26 de Agosto de 2026 (Go-Live a Producción)
 
 ### Infraestructura y Estabilización (Hotfixes de Producción)

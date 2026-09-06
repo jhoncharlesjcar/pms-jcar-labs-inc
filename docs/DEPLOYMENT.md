@@ -75,7 +75,11 @@ Configurar con `supabase secrets set` o el gestor del entorno, nunca en Git:
 - `CRON_SECRET`;
 - `TURNSTILE_SECRET_KEY`;
 - secretos de webhooks/proveedor de pagos;
-- credenciales y certificados SUNAT/identidad/OTA solo cuando el adaptador real esté habilitado.
+- `SUNAT_RUC`, `SUNAT_SOL_USERNAME`, `SUNAT_SOL_PASSWORD`, `SUNAT_CERT_PEM` y `SUNAT_CERT_PRIVATE_KEY_PEM` (fallbacks globales opcionales para un único hotel).
+
+### Credenciales SUNAT por hotel
+
+Las credenciales SUNAT (usuario SOL, clave SOL, certificado ICP y su clave privada) se configuran **por hotel** desde la UI (Configuración → Módulo SUNAT) y se almacenan en `private.hotel_secrets` vía la Edge Function `configure-hotel-secrets`. Las variables globales anteriores solo se usan como fallback para entornos de un único hotel.
 
 Tras desplegar, crear y monitorizar los schedules de `expire-ai-booking-artifacts` y `facturacion-worker` cada minuto, y `expire-loyalty-points` diariamente. Los tres usan `CRON_SECRET`; desplegar la función sin schedule/alerta no completa la operación.
 

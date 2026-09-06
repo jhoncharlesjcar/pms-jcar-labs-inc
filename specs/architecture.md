@@ -1,7 +1,7 @@
 # Arquitectura del PMS JCAR LABS
 
-**Versión:** 3.0.0
-**Última revisión:** 26 de agosto de 2026
+**Versión:** 3.1.0
+**Última revisión:** 27 de agosto de 2026
 
 ## Objetivo
 
