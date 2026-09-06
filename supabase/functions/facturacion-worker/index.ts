@@ -76,14 +76,14 @@ serve(async (req: Request) => {
           comprobante_id: job.id,
           ticket: result.ticket,
           estado: result.estadoFinal,
-          respuesta: JSON.stringify({ detalle: result.messageResult, status: result.soapResponseStatus }),
+          respuesta: JSON.stringify({ detalle: result.messageResult, codigo: result.codigo, descripcion: result.descripcion, status: result.soapResponseStatus }),
         });
         if (result.estadoFinal === 'aceptado') {
           if (result.base64Cdr) {
             const { data: currentCdr } = await db.from('cdr').select('id').eq('comprobante_id', job.id).maybeSingle();
             const mutation = currentCdr
-              ? db.from('cdr').update({ codigo: '0', descripcion: result.messageResult, archivo_xml: result.base64Cdr }).eq('id', currentCdr.id)
-              : db.from('cdr').insert({ comprobante_id: job.id, codigo: '0', descripcion: result.messageResult, archivo_xml: result.base64Cdr });
+              ? db.from('cdr').update({ codigo: result.codigo, descripcion: result.descripcion || result.messageResult, archivo_xml: result.base64Cdr }).eq('id', currentCdr.id)
+              : db.from('cdr').insert({ comprobante_id: job.id, codigo: result.codigo, descripcion: result.descripcion || result.messageResult, archivo_xml: result.base64Cdr });
             const { error } = await mutation;
             if (error) throw error;
           }
