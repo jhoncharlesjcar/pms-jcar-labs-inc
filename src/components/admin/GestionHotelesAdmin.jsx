@@ -2,6 +2,7 @@ import { useState, memo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { db } from '@/api/db';
 import { supabase } from '@/config/supabase';
+import logger from '@/lib/logger';
 import { useAuth } from '@/contexts/AuthContext';
 import {
     Building2, Plus, Pencil, Trash2, ToggleLeft, ToggleRight,
@@ -101,7 +102,7 @@ const GestionHotelesAdmin = memo(function GestionHotelesAdmin({ onClose }) {
                 setCodigoError('Código inválido o ya utilizado. Solicita uno nuevo al developer.');
             }
         } catch (err) {
-            console.error('[Unlock] Error:', err);
+            logger.error('[Unlock] Error', err);
             setCodigoError('Error al verificar el código. Intenta de nuevo.');
         }
         setVerificando(false);

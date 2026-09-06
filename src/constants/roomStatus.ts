@@ -55,11 +55,11 @@ export const ROOM_STATUS_CONFIG: Record<RoomStatus, {
  * por reserva/check-in/check-out usan estas mismas reglas de dominio.
  */
 export const ROOM_STATUS_TRANSITIONS: Record<RoomStatus, readonly RoomStatus[]> = {
-  disponible: ['reservada', 'ocupada', 'limpieza', 'mantenimiento'],
-  reservada: ['ocupada', 'disponible', 'mantenimiento'],
-  ocupada: ['limpieza', 'mantenimiento'],
-  limpieza: ['disponible', 'mantenimiento'],
-  mantenimiento: ['limpieza'],
+  disponible: ['reservada', 'ocupada', 'mantenimiento'],
+  reservada: ['ocupada', 'disponible'],
+  ocupada: ['disponible', 'limpieza'],
+  limpieza: ['disponible'],
+  mantenimiento: ['disponible'],
 };
 
 export function isRoomStatus(value: string): value is RoomStatus {

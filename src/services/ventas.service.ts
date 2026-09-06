@@ -29,6 +29,8 @@ export interface VentaHotel {
   metodo_pago?: string;
   tipo_comprobante?: string;
   estado_comprobante?: string;
+  ruc_cliente?: string;
+  razon_social?: string;
   fecha_pago?: string;
   created_date?: string;
 }

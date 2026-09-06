@@ -20,7 +20,7 @@ const RegistrarVentaModal = memo(
      * @param {object} props
      * @param {any} props.reserva
      * @param {() => void} props.onClose
-     * @param {() => void} props.onSuccess
+     * @param {(() => void) | undefined} [props.onSuccess]
      */
     function RegistrarVentaModal({ reserva, onClose, onSuccess }) {
     const { state, actions } = useRegistrarVenta({ reserva, onClose, onSuccess });

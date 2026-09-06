@@ -127,7 +127,6 @@ La guía operativa completa está en [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md).
 - [Sistema de diseño](docs/DESIGN_SYSTEM.md)
 - [Despliegue](docs/DEPLOYMENT.md)
 - [Runbook operativo](docs/OPERATIONS_RUNBOOK.md)
-- [Matriz de remediación de auditoría](docs/AUDIT_REMEDIATION_2026-08.md)
 - [Especificaciones de dominio](specs/)
 
 ## Seguridad

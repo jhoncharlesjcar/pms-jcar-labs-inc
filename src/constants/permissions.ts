@@ -16,7 +16,6 @@ export const ROUTE_ROLE_MAP: Record<string, readonly AppRole[]> = {
   '/revenue': ['admin', 'developer'],
   '/jcar-ai': ['admin', 'developer'],
   '/insumos': ['admin', 'developer'],
-  '/fidelizacion': ['admin', 'developer', 'recepcionista'],
 };
 
 export function canAccessPath(role: string | null | undefined, path: string): boolean {

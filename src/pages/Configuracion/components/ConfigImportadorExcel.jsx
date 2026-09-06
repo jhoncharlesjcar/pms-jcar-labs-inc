@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { useHotelData } from '@/hooks/useHotelData';
 import { useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
+import logger from '@/lib/logger';
 import { formatearHabitacionParaBD } from '@/services/habitaciones.service';
 
 const MAX_FILE_BYTES = 1024 * 1024;
@@ -94,7 +95,7 @@ export const ConfigImportadorExcel = memo(function ConfigImportadorExcel(/** @ty
                 setFileData(parseados);
                 toast.success(`${parseados.length} habitaciones leídas del archivo.`);
             } catch (err) {
-                console.error(err);
+                logger.error('Error al procesar CSV', err);
                 toast.error(err instanceof Error ? err.message : 'Error al procesar el CSV.');
                 setFileData([]);
             } finally {
@@ -143,7 +144,7 @@ export const ConfigImportadorExcel = memo(function ConfigImportadorExcel(/** @ty
             setFileName('');
             if (fileInputRef.current) fileInputRef.current.value = '';
         } catch (err) {
-            console.error(err);
+            logger.error('Error en importación masiva', err);
             toast.error('Error durante la importación masiva de habitaciones.');
         } finally {
             setLoading(false);

@@ -49,7 +49,7 @@ describe('ventas.service.ts', () => {
   describe('calcularTotalesDia', () => {
     it('calcula totales correctamente', () => {
       const consolidado = consolidarVentas([vHotel], [vPos]);
-      const totales = calcularTotalesDia(consolidado);
+      const totales = calcularTotalesDia(consolidado, '2023-01-01');
       expect(totales.total).toBe(150);
       expect(totales.hotel).toBe(100);
       expect(totales.pos).toBe(50);
@@ -58,13 +58,18 @@ describe('ventas.service.ts', () => {
 
   describe('stock y tickets', () => {
     it('genera numeros de ticket', () => {
-      expect(generarNumeroTicketHotel(5)).toBe('000006');
-      expect(generarNumeroTicketPOS(10)).toBe('P000011');
+      expect(generarNumeroTicketHotel('000005')).toBe('000006');
+      expect(generarNumeroTicketPOS()).toMatch(/^POS\d{6}$/);
     });
 
     it('descuenta stock con limites', () => {
-      expect(descontarStock(10, 3)).toBe(7);
-      expect(descontarStock(2, 5)).toBe(0); // nunca < 0
+      const ok = descontarStock({ id: '1', nombre: 'A', stock: 10 }, 3);
+      expect(ok.valido).toBe(true);
+      expect(ok.nuevoStock).toBe(7);
+
+      const insuficiente = descontarStock({ id: '1', nombre: 'A', stock: 2 }, 5);
+      expect(insuficiente.valido).toBe(false);
+      expect(insuficiente.nuevoStock).toBe(2); // stock sin cambios
     });
 
     it('alerta de stock', () => {

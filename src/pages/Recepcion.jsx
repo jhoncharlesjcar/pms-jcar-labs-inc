@@ -33,7 +33,7 @@ export default function Recepcion() {
         scannerOpen, setScannerOpen,
         reservas, habitaciones,
         loadingIdentity, handleDniBlur, handleScanSuccess,
-        availabilityQuery, habitacionesDisp,
+        availabilityLoading, availabilityError, habitacionesDisp,
         saveReserva, actualizarEstado,
         noches, total, seleccionarHab,
         receptionSummary, filtradas, loyaltyAccount
@@ -130,16 +130,18 @@ export default function Recepcion() {
                 open={open} setOpen={setOpen}
                 form={form} setForm={setForm}
                 saveReserva={saveReserva}
-                availabilityQuery={availabilityQuery}
+                availabilityLoading={availabilityLoading}
+                availabilityError={availabilityError}
                 habitacionesDisp={habitacionesDisp}
                 seleccionarHab={seleccionarHab}
                 noches={noches} total={total}
                 roomGridRef={roomGridRef}
-                createdReserva={createdReserva} setCreatedReserva={setCreatedReserva}
+                createdReserva={createdReserva}
                 loyaltyAccount={loyaltyAccount}
                 loadingIdentity={loadingIdentity}
                 setScannerOpen={setScannerOpen}
                 handleDniBlur={handleDniBlur}
+                onCloseSuccess={() => { setOpen(false); setCreatedReserva(null); }}
             />
 
             {/* Modal Scanner de DNI Inteligente */}

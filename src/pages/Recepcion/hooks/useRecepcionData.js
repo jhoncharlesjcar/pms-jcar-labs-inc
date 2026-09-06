@@ -331,7 +331,10 @@ export function useRecepcionData() {
         scannerOpen, setScannerOpen,
         reservas, habitaciones,
         loadingIdentity, handleDniBlur, handleScanSuccess,
-        availabilityQuery, habitacionesDisp,
+        availabilityQuery,
+        availabilityLoading: availabilityQuery.isFetching,
+        availabilityError: availabilityQuery.error?.message,
+        habitacionesDisp,
         saveReserva, actualizarEstado,
         noches, total, seleccionarHab,
         receptionSummary, filtradas, loyaltyAccount

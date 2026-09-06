@@ -7,6 +7,8 @@
  * @see specs/domain-recepcion.md
  */
 
+import { ROOM_STATUS_TRANSITIONS } from '@/constants/roomStatus';
+
 // ---------------------------------------------------------------------------
 // Tipos
 // ---------------------------------------------------------------------------
@@ -139,14 +141,8 @@ export const ESTADOS_RESERVA: EstadoReserva[] = [
   'pendiente', 'confirmada', 'activa', 'finalizada', 'cancelada',
 ];
 
-/** Transiciones válidas de habitación (RN-REC-001) */
-export const TRANSICIONES_HABITACION: Record<EstadoHabitacion, EstadoHabitacion[]> = {
-  disponible:   ['ocupada', 'reservada', 'mantenimiento'],
-  ocupada:      ['disponible', 'limpieza'],
-  reservada:    ['ocupada', 'disponible'],
-  limpieza:     ['disponible'],
-  mantenimiento: ['disponible'],
-};
+/** Transiciones válidas de habitación (RN-REC-001) — fuente única en src/constants/roomStatus.ts */
+export const TRANSICIONES_HABITACION: Record<EstadoHabitacion, readonly EstadoHabitacion[]> = ROOM_STATUS_TRANSITIONS;
 
 /** Transiciones válidas de reserva (RN-REC-002) */
 export const TRANSICIONES_RESERVA: Record<EstadoReserva, EstadoReserva[]> = {

@@ -1,12 +1,7 @@
-import React, { useState, useEffect, useRef, memo } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import React, { useRef, memo } from 'react';
 import { Save, CheckCircle, Settings } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { useHotelData } from '@/hooks/useHotelData';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { supabase } from '@/config/supabase';
-import logger from '@/lib/logger';
-import { toast } from 'sonner';
 import { useGsapStaggerList } from '@/hooks/useGsapStaggerList';
 import { useGsapCardHover } from '@/hooks/useGsapCardHover';
 import { cn } from '@/lib/utils';
@@ -58,7 +53,6 @@ const Configuracion = memo(function Configuracion() {
         activeTab, setActiveTab,
         showQrModal, setShowQrModal,
         saved, guardar,
-        isLoading
     } = useConfiguracionData();
 
     const sectionsRef = useGsapStaggerList([hotelId], {

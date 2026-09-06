@@ -3,6 +3,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sh
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { supabase } from '@/config/supabase';
+import logger from '@/lib/logger';
 import { useAuthStore } from '@/store/auth.store';
 import { toast } from 'sonner';
 
@@ -53,7 +54,7 @@ export default function ProfileModal({ open, onOpenChange }) {
             }
             onOpenChange(false);
         } catch (error) {
-            console.error('Error al actualizar perfil:', error);
+            logger.error('Error al actualizar perfil', error);
             toast.error(error?.message || 'Ocurrió un error al guardar el perfil');
         } finally {
             setLoading(false);

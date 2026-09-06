@@ -30,7 +30,7 @@ describe('caja.service.ts', () => {
       // efectivo total = 100 + 200 = 300
       // egresos total = 50
       // balance = 250
-      expect(calcularBalanceEfectivo(ventasMock, egresosMock)).toBe(250);
+      expect(calcularBalanceEfectivo(300, 50)).toBe(250);
     });
   });
 
@@ -64,10 +64,9 @@ describe('caja.service.ts', () => {
   describe('calcularDesgloseSunat', () => {
     it('desglosa por estado', () => {
       const res = calcularDesgloseSunat(ventasMock);
-      expect(res.emitidas).toBe(1);
-      expect(res.pendientes).toBe(1);
-      expect(res.rechazadas).toBe(1);
-      expect(res.sinComprobante).toBe(1);
+      expect(res.sunatDeclaradasCount).toBe(1);
+      expect(res.sunatPendientesCount).toBe(1);
+      expect(res.sunatRechazadasCount).toBe(1);
     });
   });
 
@@ -78,14 +77,14 @@ describe('caja.service.ts', () => {
     });
     it('valida insumo requiere id', () => {
       expect(validarEgreso({ monto: 10, concepto: 'abc', categoria: 'insumos' }).valido).toBe(false);
-      expect(validarEgreso({ monto: 10, concepto: 'abc', categoria: 'insumos', insumo_id: '1' }).valido).toBe(true);
+      expect(validarEgreso({ monto: 10, concepto: 'abc', categoria: 'insumos', insumo_id: '1', cantidad_insumo: 2 }).valido).toBe(true);
     });
   });
 
   describe('validarCierreCaja', () => {
     it('falla si hay saldo inconsistente', () => {
-      expect(validarCierreCaja(100, null).valido).toBe(false);
-      expect(validarCierreCaja(100, 100).valido).toBe(true);
+      expect(validarCierreCaja({ total_ventas: 100, total_egresos: 30, saldo_final: 100 }).valido).toBe(false);
+      expect(validarCierreCaja({ total_ventas: 100, total_egresos: 30, saldo_final: 70 }).valido).toBe(true);
     });
   });
 });

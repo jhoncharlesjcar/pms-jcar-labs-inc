@@ -4,6 +4,7 @@ import { db } from '@/api/db';
 import { supabase } from '@/config/supabase';
 import { useHotel } from '@/contexts/HotelContext';
 import { toast } from 'sonner';
+import logger from '@/lib/logger';
 import { useCheckout } from '@/hooks/useCheckout';
 import { useAuth } from '@/contexts/AuthContext';
 import {
@@ -13,6 +14,7 @@ import {
     validarComprobante,
     validarReferenciaYapePlin,
 } from '@/services/checkout.service';
+import type { MetodoPago, TipoComprobante } from '@/services/checkout.service';
 import { useLoyaltyAccount } from '@/hooks/useLoyalty';
 import { canRedeemSimpleDiscount, calculateSimpleRoomDiscount } from '@/services/loyalty.service';
 
@@ -24,8 +26,8 @@ export function useRegistrarVenta({ reserva, onClose, onSuccess }) {
     const [descuento, setDescuento] = useState(0);
     const [requiereComprobante, setRequiereComprobante] = useState(false);
     const [redimirPuntos, setRedimirPuntos] = useState(false);
-    const [metodo, setMetodo] = useState('efectivo');
-    const [tipoComprobante, setTipoComprobante] = useState('boleta');
+    const [metodo, setMetodo] = useState<MetodoPago>('efectivo');
+    const [tipoComprobante, setTipoComprobante] = useState<TipoComprobante>('boleta');
     const [rucCliente, setRucCliente] = useState('');
     const [razonSocial, setRazonSocial] = useState('');
     const [dniCliente, setDniCliente] = useState(reserva.huesped_dni || '');
@@ -85,7 +87,7 @@ export function useRegistrarVenta({ reserva, onClose, onSuccess }) {
                             confetti.default({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
                         });
                         setTimeout(() => {
-                            onSuccess();
+                            onSuccess?.();
                             onClose();
                         }, 3000);
                     }
@@ -119,7 +121,7 @@ export function useRegistrarVenta({ reserva, onClose, onSuccess }) {
                 throw new Error(data?.error || 'La pasarela no devolvió una orden de pago verificable');
             }
         } catch (error) {
-            console.error('Pago automático no disponible:', error);
+            logger.error('Pago automático no disponible', error);
             toast.error(error?.message || 'Pago automático no disponible.');
         } finally {
             setGenerandoQR(false);

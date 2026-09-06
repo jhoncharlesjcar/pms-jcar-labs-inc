@@ -65,6 +65,11 @@ test-results
 .pnpm-store/
 .tmp-pg-*/
 
+# Supabase CLI local state (no versionar; filtra project-ref y URLs de pooler)
+supabase/.temp
+supabase/dist
+scratch/
+
 # Repository-local AI tooling
 .github/prompts/
 

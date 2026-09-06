@@ -80,7 +80,7 @@ const Habitaciones = memo(function Habitaciones() {
         from: 'start',
     });
 
-    const filtradas = (filtroEstado === 'todos' ? habitaciones : filtrarPorEstado(habitaciones, filtroEstado))
+    const filtradas = (filtroEstado === 'todos' ? habitaciones : filtrarPorEstado(habitaciones, /** @type {import('@/services/recepcion.service').EstadoHabitacion} */ (filtroEstado)))
         .sort((a, b) => {
             const numA = parseInt(a.numero, 10);
             const numB = parseInt(b.numero, 10);

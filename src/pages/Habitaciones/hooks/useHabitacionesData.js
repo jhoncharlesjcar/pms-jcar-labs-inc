@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/config/supabase';
@@ -114,7 +113,7 @@ export function useHabitacionesData(hotelDb, hotelId) {
             descripcion: JSON.stringify(amenities),
             imagen_url: form.imagen_url || null,
         });
-        save.mutate(dataToSave);
+        save.mutate(/** @type {any} */ (dataToSave));
     };
 
     const requestDelete = (h) => {

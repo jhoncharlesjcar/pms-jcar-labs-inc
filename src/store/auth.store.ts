@@ -1,15 +1,16 @@
 import { create } from 'zustand';
+import type { Session } from '@supabase/supabase-js';
 import { UserProfile } from '@/types';
 
 interface AuthState {
   user: UserProfile | null;
-  session: any | null;
+  session: Session | null;
   hotelId: string | null;
   isAuthenticated: boolean;
   isOffline: boolean;
   
   // Actions
-  setSession: (session: any) => void;
+  setSession: (session: Session | null) => void;
   setUser: (user: UserProfile | null) => void;
   setHotelId: (hotelId: string | null) => void;
   setOffline: (offline: boolean) => void;

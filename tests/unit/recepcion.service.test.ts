@@ -5,8 +5,6 @@ import {
   calcularTarifaDinamica,
   verificarDisponibilidad,
   validarReserva,
-  cambiarEstadoHabitacion,
-  cambiarEstadoReserva
 } from '@/services/recepcion.service';
 
 describe('recepcion.service.ts', () => {
@@ -29,14 +27,22 @@ describe('recepcion.service.ts', () => {
 
   describe('calcularNoches', () => {
     it('calcula 1 noche para mismo dia o dia siguiente', () => {
-      expect(calcularNoches({ fechaEntrada: '2023-01-01', fechaSalida: '2023-01-01' })).toBe(1);
-      expect(calcularNoches({ fechaEntrada: '2023-01-01', fechaSalida: '2023-01-02' })).toBe(1);
+      const mismoDia = calcularNoches({ fechaEntrada: '2023-01-01', fechaSalida: '2023-01-01' });
+      expect(mismoDia.noches).toBe(1);
+      expect(mismoDia.valido).toBe(false);
+      const diaSiguiente = calcularNoches({ fechaEntrada: '2023-01-01', fechaSalida: '2023-01-02' });
+      expect(diaSiguiente.noches).toBe(1);
+      expect(diaSiguiente.valido).toBe(true);
     });
     it('calcula multiples noches', () => {
-      expect(calcularNoches({ fechaEntrada: '2023-01-01', fechaSalida: '2023-01-05' })).toBe(4);
+      const res = calcularNoches({ fechaEntrada: '2023-01-01', fechaSalida: '2023-01-05' });
+      expect(res.noches).toBe(4);
+      expect(res.valido).toBe(true);
     });
     it('retorna 1 para fechas invertidas', () => {
-      expect(calcularNoches({ fechaEntrada: '2023-01-05', fechaSalida: '2023-01-01' })).toBe(1);
+      const res = calcularNoches({ fechaEntrada: '2023-01-05', fechaSalida: '2023-01-01' });
+      expect(res.noches).toBe(1);
+      expect(res.valido).toBe(false);
     });
   });
 
@@ -128,8 +134,7 @@ describe('recepcion.service.ts', () => {
     it('falla con menores sin observacion (Ley 30802)', () => {
       const res = validarReserva({
         habitacionId: '1', huespedNombre: 'Juan', tipoDocumento: 'DNI', huespedDni: '12345678',
-        fechaEntrada: '2023-01-01', fechaSalida: '2023-01-02', numAdultos: 1, numNinos: 1,
-        precioNoche: 100, total: 100
+        fechaEntrada: '2023-01-01', fechaSalida: '2023-01-02', numAdultos: 1, tieneMenores: true,
       });
       expect(res.valido).toBe(false);
     });

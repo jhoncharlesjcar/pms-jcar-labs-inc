@@ -5,10 +5,11 @@ import { useAuthStore } from '@/store/auth.store';
 import { getDeadLetterCount, getPendingCount, processQueue, purgeQueuesForIdentity } from '@/lib/sync-queue';
 import { idbPersister, queryClientInstance } from '@/lib/query-client';
 import type { UserProfile } from '@/types';
+import type { Session, User } from '@supabase/supabase-js';
 
 interface AuthContextValue {
   user: UserProfile | null;
-  session: any | null;
+  session: Session | null;
   hotelId: string | null;
   isAuthenticated: boolean;
   isOffline: boolean;
@@ -27,7 +28,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   // Estado local para loading / errores (no persistente)
   const [user, setUser] = useState<UserProfile | null>(storeUser);
-  const [session, setSession] = useState<any>(storeSession);
+  const [session, setSession] = useState<Session | null>(storeSession);
   const [isLoadingAuth, setIsLoadingAuth] = useState(!storeUser);
   const [isLoadingPublicSettings] = useState(false);
   const [authError, setAuthError] = useState<{ type: string; message: string } | null>(null);
@@ -51,7 +52,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
   }, [setOffline]);
 
-  const loadUserProfile = useCallback(async (authUser: any) => {
+  const loadUserProfile = useCallback(async (authUser: User) => {
     if (!authUser) {
       setUser(null);
       setStoreUser(null);

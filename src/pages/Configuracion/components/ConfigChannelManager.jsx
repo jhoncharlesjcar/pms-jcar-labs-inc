@@ -6,6 +6,7 @@ import { Switch } from '@/components/ui/switch';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { supabase } from '@/config/supabase';
+import logger from '@/lib/logger';
 import { useHotelData } from '@/hooks/useHotelData';
 
 export function ConfigChannelManager() {
@@ -58,7 +59,7 @@ export function ConfigChannelManager() {
             toast.success(`Configuración de ${ota_name} guardada`);
         } catch (error) {
             toast.error('Error guardando la configuración OTA');
-            console.error(error);
+            logger.error('Error guardando configuración OTA', error);
         } finally {
             setLoading(false);
         }

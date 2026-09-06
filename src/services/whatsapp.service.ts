@@ -1,6 +1,7 @@
 import { format } from 'date-fns';
 import { toast } from 'sonner';
 import { registrarLog } from '@/lib/auditLogger';
+import logger from '@/lib/logger';
 import type { Reserva, Hotel, UserProfile } from '@/types';
 
 import { supabase } from '@/config/supabase';
@@ -69,7 +70,7 @@ export const WhatsAppService = {
                 window.location.href = url;
             }
         } catch (error) {
-            console.error('Error al generar enlace de WhatsApp:', error);
+            logger.error('Error al generar enlace de WhatsApp', error);
             if (win) win.close();
             toast.error("Ocurrió un error al generar el enlace");
             return false;

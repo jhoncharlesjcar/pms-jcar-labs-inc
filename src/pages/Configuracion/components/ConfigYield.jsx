@@ -6,6 +6,7 @@ import { Switch } from '@/components/ui/switch';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { supabase } from '@/config/supabase';
+import logger from '@/lib/logger';
 import { useHotelData } from '@/hooks/useHotelData';
 
 export function ConfigYield() {
@@ -71,7 +72,7 @@ export function ConfigYield() {
             }
         } catch (err) {
             toast.error('Error guardando la regla');
-            console.error(err);
+            logger.error('Error guardando regla de yield', err);
         } finally {
             setLoading(false);
         }

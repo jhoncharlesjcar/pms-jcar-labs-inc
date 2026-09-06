@@ -14,7 +14,10 @@ describe('room status contract', () => {
   it.each([
     ['disponible', 'reservada', true],
     ['reservada', 'ocupada', true],
-    ['ocupada', 'disponible', false],
+    ['ocupada', 'disponible', true],
+    ['ocupada', 'limpieza', true],
+    ['disponible', 'limpieza', false],
+    ['ocupada', 'mantenimiento', false],
     ['mantenimiento', 'ocupada', false],
   ])('validates %s -> %s', (from, to, expected) => {
     expect(canTransitionRoomStatus(from, to)).toBe(expected);
