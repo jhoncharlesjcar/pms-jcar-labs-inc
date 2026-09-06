@@ -9,6 +9,13 @@ export default defineConfig({
   },
   test: {
     environment: 'node',
+    // Valores dummy para que src/config/supabase.ts no lance en tiempo de
+    // importación durante los tests unitarios: estos solo ejercitan funciones
+    // puras y no realizan llamadas de red, por lo que no requieren el entorno real.
+    env: {
+      VITE_SUPABASE_URL: 'https://test.supabase.co',
+      VITE_SUPABASE_ANON_KEY: 'test-anon-key',
+    },
     include: ['tests/unit/**/*.{test,spec}.{js,ts}'],
     coverage: {
       provider: 'v8',
