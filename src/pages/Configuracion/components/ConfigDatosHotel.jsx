@@ -22,16 +22,36 @@ export function ConfigDatosHotel({ form, setForm }) {
                     <Input id="hotel_nombre" value={form.nombre} onChange={e => setForm({ ...form, nombre: e.target.value })} placeholder="Hospedaje Los Andes" className="bg-background/50 h-9 rounded-md border-border/40 focus-visible:ring-primary/30 shadow-inner px-3 text-xs font-bold" />
                 </div>
                 <div className="space-y-1.5">
-                    <Label htmlFor="hotel_ruc" className="text-[9px] font-black text-muted-foreground uppercase tracking-widest ml-1">RUC (opcional)</Label>
+                    <Label htmlFor="hotel_ruc" className="text-[9px] font-black text-muted-foreground uppercase tracking-widest ml-1">RUC *</Label>
                     <Input id="hotel_ruc" value={form.ruc} onChange={e => setForm({ ...form, ruc: e.target.value })} placeholder="20XXXXXXXXX" className="bg-background/50 h-9 rounded-md border-border/40 focus-visible:ring-primary/30 shadow-inner px-3 text-xs font-bold tabular-nums" />
+                </div>
+                <div className="space-y-1.5">
+                    <Label htmlFor="hotel_razon_social" className="text-[9px] font-black text-muted-foreground uppercase tracking-widest ml-1">Razón social *</Label>
+                    <Input id="hotel_razon_social" value={form.razon_social} onChange={e => setForm({ ...form, razon_social: e.target.value })} placeholder="Nombre legal del negocio" className="bg-background/50 h-9 rounded-md border-border/40 focus-visible:ring-primary/30 shadow-inner px-3 text-xs font-bold" />
                 </div>
                 <div className="space-y-1.5">
                     <Label htmlFor="hotel_ciudad" className="text-[9px] font-black text-muted-foreground uppercase tracking-widest ml-1">Ciudad</Label>
                     <Input id="hotel_ciudad" value={form.ciudad} onChange={e => setForm({ ...form, ciudad: e.target.value })} placeholder="Cusco, Lima..." className="bg-background/50 h-9 rounded-md border-border/40 focus-visible:ring-primary/30 shadow-inner px-3 text-xs font-bold" />
                 </div>
                 <div className="sm:col-span-2 space-y-1.5">
-                    <Label htmlFor="hotel_direccion" className="text-[9px] font-black text-muted-foreground uppercase tracking-widest ml-1">Dirección</Label>
+                    <Label htmlFor="hotel_direccion" className="text-[9px] font-black text-muted-foreground uppercase tracking-widest ml-1">Dirección fiscal *</Label>
                     <Input id="hotel_direccion" value={form.direccion} onChange={e => setForm({ ...form, direccion: e.target.value })} placeholder="Jr. Principal 123" className="bg-background/50 h-9 rounded-md border-border/40 focus-visible:ring-primary/30 shadow-inner px-3 text-xs font-bold" />
+                </div>
+                <div className="space-y-1.5">
+                    <Label htmlFor="hotel_ubigeo" className="text-[9px] font-black text-muted-foreground uppercase tracking-widest ml-1">Ubigeo (6 dígitos) *</Label>
+                    <Input id="hotel_ubigeo" value={form.ubigeo} onChange={e => setForm({ ...form, ubigeo: e.target.value })} inputMode="numeric" maxLength={6} placeholder="Ej. 080101" className="bg-background/50 h-9 rounded-md border-border/40 focus-visible:ring-primary/30 shadow-inner px-3 text-xs font-bold tabular-nums" />
+                </div>
+                <div className="space-y-1.5">
+                    <Label htmlFor="hotel_departamento" className="text-[9px] font-black text-muted-foreground uppercase tracking-widest ml-1">Departamento</Label>
+                    <Input id="hotel_departamento" value={form.departamento} onChange={e => setForm({ ...form, departamento: e.target.value })} placeholder="Cusco" className="bg-background/50 h-9 rounded-md border-border/40 focus-visible:ring-primary/30 shadow-inner px-3 text-xs font-bold" />
+                </div>
+                <div className="space-y-1.5">
+                    <Label htmlFor="hotel_provincia" className="text-[9px] font-black text-muted-foreground uppercase tracking-widest ml-1">Provincia</Label>
+                    <Input id="hotel_provincia" value={form.provincia} onChange={e => setForm({ ...form, provincia: e.target.value })} placeholder="Cusco" className="bg-background/50 h-9 rounded-md border-border/40 focus-visible:ring-primary/30 shadow-inner px-3 text-xs font-bold" />
+                </div>
+                <div className="space-y-1.5">
+                    <Label htmlFor="hotel_distrito" className="text-[9px] font-black text-muted-foreground uppercase tracking-widest ml-1">Distrito</Label>
+                    <Input id="hotel_distrito" value={form.distrito} onChange={e => setForm({ ...form, distrito: e.target.value })} placeholder="Cusco" className="bg-background/50 h-9 rounded-md border-border/40 focus-visible:ring-primary/30 shadow-inner px-3 text-xs font-bold" />
                 </div>
                 <div className="space-y-1.5">
                     <Label htmlFor="hotel_telefono" className="text-[9px] font-black text-muted-foreground uppercase tracking-widest ml-1">Teléfono / WhatsApp</Label>

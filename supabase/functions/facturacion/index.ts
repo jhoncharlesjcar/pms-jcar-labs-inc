@@ -14,9 +14,8 @@ function isUuid(value: unknown): value is string {
 }
 
 function signingMaterialFor(hotel: Record<string, any>): { privateKeyPem: string; certPem: string } {
-  const dbCertPem = hotel.sunat_certificado_pem;
-  const privateKeyPem = Deno.env.get("SUNAT_CERT_PRIVATE_KEY_PEM");
-  const certPem = dbCertPem || Deno.env.get("SUNAT_CERT_PEM");
+  const certPem = hotel.sunat_certificado_pem || Deno.env.get("SUNAT_CERT_PEM");
+  const privateKeyPem = hotel.sunat_cert_private_key_pem || Deno.env.get("SUNAT_CERT_PRIVATE_KEY_PEM");
   const allowTestCert = Deno.env.get("SUNAT_ALLOW_TEST_CERTIFICATE") === "true" && hotel.sunat_modo_prueba === true;
   if ((!privateKeyPem || !certPem) && !allowTestCert) {
     throw new Error("A real SUNAT certificate is required");

@@ -14,10 +14,16 @@ serve(async (req: Request) => {
     const values = {
       sunat: typeof body.sunat_clave_sol === "string" ? body.sunat_clave_sol.trim() : null,
       cert: typeof body.sunat_certificado_pem === "string" ? body.sunat_certificado_pem.trim() : null,
+      certKey: typeof body.sunat_cert_private_key_pem === "string" ? body.sunat_cert_private_key_pem.trim() : null,
       gateway: typeof body.pasarela_private_key === "string" ? body.pasarela_private_key.trim() : null,
     };
-    if (!values.sunat && !values.cert && !values.gateway) return errorResponse("At least one secret is required", 400);
-    if ((values.sunat?.length || 0) > 512 || (values.cert?.length || 0) > 32768 || (values.gateway?.length || 0) > 2048) {
+    if (!values.sunat && !values.cert && !values.certKey && !values.gateway) return errorResponse("At least one secret is required", 400);
+    if (
+      (values.sunat?.length || 0) > 512 ||
+      (values.cert?.length || 0) > 32768 ||
+      (values.certKey?.length || 0) > 32768 ||
+      (values.gateway?.length || 0) > 2048
+    ) {
       return errorResponse("Secret exceeds allowed size", 400);
     }
     const db = createAdminClient();
@@ -26,10 +32,14 @@ serve(async (req: Request) => {
       p_sunat_clave_sol: values.sunat,
       p_sunat_certificado_pem: values.cert,
       p_pasarela_private_key: values.gateway,
+      p_sunat_cert_private_key_pem: values.certKey,
     });
     if (error) throw error;
     return Response.json({ success: true, configured: {
-      sunat_clave_sol: Boolean(values.sunat), sunat_certificado_pem: Boolean(values.cert), pasarela_private_key: Boolean(values.gateway),
+      sunat_clave_sol: Boolean(values.sunat),
+      sunat_certificado_pem: Boolean(values.cert),
+      sunat_cert_private_key_pem: Boolean(values.certKey),
+      pasarela_private_key: Boolean(values.gateway),
     } }, { headers: corsHeaders });
   } catch (error) {
     console.error("[SECRETS] Configuration failed:", error);

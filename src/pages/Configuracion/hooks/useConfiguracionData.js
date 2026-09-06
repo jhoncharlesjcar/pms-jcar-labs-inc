@@ -15,6 +15,11 @@ export function useConfiguracionData() {
     const [form, setForm] = useState({
         nombre: '',
         direccion: '',
+        ciudad: '',
+        ubigeo: '',
+        departamento: '',
+        provincia: '',
+        distrito: '',
         telefono: '',
         ruc: '',
         razon_social: '',
@@ -24,6 +29,7 @@ export function useConfiguracionData() {
         sunat_usuario_sol: '',
         sunat_clave_sol: '',
         sunat_certificado_pem: '',
+        sunat_cert_private_key_pem: '',
         sunat_modo_prueba: true,
         aplica_igv: true,
         modo_sunat: 'desactivado',
@@ -49,6 +55,11 @@ export function useConfiguracionData() {
             setForm({
                 nombre: hotel.nombre || '',
                 direccion: hotel.direccion || '',
+                ciudad: hotel.ciudad || '',
+                ubigeo: hotel.ubigeo || '',
+                departamento: hotel.departamento || '',
+                provincia: hotel.provincia || '',
+                distrito: hotel.distrito || '',
                 telefono: hotel.telefono || '',
                 ruc: hotel.ruc || '',
                 razon_social: hotel.razon_social || '',
@@ -58,6 +69,7 @@ export function useConfiguracionData() {
                 sunat_usuario_sol: hotel.sunat_usuario_sol || '',
                 sunat_clave_sol: hotel.sunat_clave_sol || '',
                 sunat_certificado_pem: hotel.sunat_certificado_pem || '',
+                sunat_cert_private_key_pem: '',
                 sunat_modo_prueba: hotel.sunat_modo_prueba ?? true,
                 aplica_igv: hotel.aplica_igv ?? true,
                 modo_sunat: hotel.modo_sunat || 'desactivado',
@@ -79,18 +91,20 @@ export function useConfiguracionData() {
             const {
                 sunat_clave_sol,
                 sunat_certificado_pem,
+                sunat_cert_private_key_pem,
                 pasarela_private_key,
                 ...publicHotelData
             } = form;
 
             await hotelDb.Hotel.update(hotelId, publicHotelData);
 
-            if (sunat_clave_sol || sunat_certificado_pem || pasarela_private_key) {
+            if (sunat_clave_sol || sunat_certificado_pem || sunat_cert_private_key_pem || pasarela_private_key) {
                 const { error: secretError } = await supabase.functions.invoke('configure-hotel-secrets', {
                     body: {
                         hotel_id: hotelId,
                         sunat_clave_sol: sunat_clave_sol || null,
                         sunat_certificado_pem: sunat_certificado_pem || null,
+                        sunat_cert_private_key_pem: sunat_cert_private_key_pem || null,
                         pasarela_private_key: pasarela_private_key || null,
                     },
                 });
@@ -106,6 +120,7 @@ export function useConfiguracionData() {
                 ...current,
                 sunat_clave_sol: '',
                 sunat_certificado_pem: '',
+                sunat_cert_private_key_pem: '',
                 pasarela_private_key: '',
             }));
             setSaved(true);
