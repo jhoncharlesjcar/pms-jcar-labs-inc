@@ -13,6 +13,54 @@ function isUuid(value: unknown): value is string {
   return typeof value === "string" && /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
 }
 
+function signingMaterialFor(hotel: Record<string, any>): { privateKeyPem: string; certPem: string } {
+  const dbCertPem = hotel.sunat_certificado_pem;
+  const privateKeyPem = Deno.env.get("SUNAT_CERT_PRIVATE_KEY_PEM");
+  const certPem = dbCertPem || Deno.env.get("SUNAT_CERT_PEM");
+  const allowTestCert = Deno.env.get("SUNAT_ALLOW_TEST_CERTIFICATE") === "true" && hotel.sunat_modo_prueba === true;
+  if ((!privateKeyPem || !certPem) && !allowTestCert) {
+    throw new Error("A real SUNAT certificate is required");
+  }
+  return privateKeyPem && certPem ? { privateKeyPem, certPem } : getOrCreateTestPfx();
+}
+
+function buildCredentials(hotel: Record<string, any>): Record<string, any> {
+  const envRuc = Deno.env.get("SUNAT_RUC");
+  const envUser = Deno.env.get("SUNAT_SOL_USERNAME");
+  const envPassword = Deno.env.get("SUNAT_SOL_PASSWORD");
+  return {
+    ...hotel,
+    ruc: envRuc || hotel.ruc,
+    sunat_usuario_sol: envUser || hotel.sunat_usuario_sol,
+    sunat_clave_sol: envPassword || hotel.sunat_clave_sol,
+  };
+}
+
+function validateCredentials(credentials: Record<string, any>): void {
+  const envRuc = Deno.env.get("SUNAT_RUC");
+  if (envRuc && envRuc !== credentials.ruc) {
+    throw new Error("SUNAT server credential tenant mismatch");
+  }
+  if (!credentials.ruc || !credentials.sunat_usuario_sol || !credentials.sunat_clave_sol) {
+    throw new Error("SUNAT credentials are not configured server-side");
+  }
+  const envPassword = Deno.env.get("SUNAT_SOL_PASSWORD");
+  if (!envPassword && String(credentials.sunat_clave_sol).startsWith("U2FsdGVkX1")) {
+    throw new Error("Browser-encrypted SUNAT credentials are not usable by the server");
+  }
+}
+
+async function persistXml(supabase: any, comprobanteId: number, unsignedXml: string, signedXml: string, zipBytes: Uint8Array): Promise<void> {
+  const hash = forge.md.sha256.create().update(signedXml, "utf8").digest().toHex();
+  const { data: existingXml } = await supabase.from("comprobante_xml").select("id")
+    .eq("comprobante_id", comprobanteId).maybeSingle();
+  const mutation = existingXml
+    ? supabase.from("comprobante_xml").update({ xml: unsignedXml, hash, xml_firmado: signedXml, zip: zipBytes }).eq("id", existingXml.id)
+    : supabase.from("comprobante_xml").insert({ comprobante_id: comprobanteId, xml: unsignedXml, hash, xml_firmado: signedXml, zip: zipBytes });
+  const { error } = await mutation;
+  if (error) throw error;
+}
+
 serve(async (req: Request) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
   if (req.method !== "POST") return errorResponse("Method not allowed", 405);
@@ -26,13 +74,111 @@ serve(async (req: Request) => {
     }
 
     const body = await req.json();
+    const supabase = createAdminClient();
+
+    // ────────────────────────────────────────────────────────────────
+    // Flujo de Nota de Crédito / Nota de Débito (referencia a comprobante)
+    // ────────────────────────────────────────────────────────────────
+    if (body.comprobante_ref_id) {
+      const refId = Number(body.comprobante_ref_id);
+      if (!Number.isInteger(refId) || refId <= 0) {
+        return errorResponse("comprobante_ref_id must be a positive integer", 400);
+      }
+      const esCredito = body.tipo === "nota_credito";
+      const esDebito = body.tipo === "nota_debito";
+      if (!esCredito && !esDebito) {
+        return errorResponse("tipo must be 'nota_credito' or 'nota_debito'", 400);
+      }
+      const tipoNota = String(body.tipo_nota || "").trim();
+      if (!/^\d{2}$/.test(tipoNota)) {
+        return errorResponse("tipo_nota (Catálogo 09) is required", 400);
+      }
+
+      const { data: original, error: originalError } = await supabase
+        .from("comprobantes").select("*").eq("id", refId).single();
+      if (originalError || !original) return errorResponse("Original comprobante not found", 404);
+      if (auth.user.role !== "developer" && original.hotel_id !== auth.user.hotel_id) {
+        return errorResponse("Access denied", 403);
+      }
+      if (original.estado !== "aceptado") {
+        return errorResponse("Original comprobante must be accepted by SUNAT before issuing a nota", 409);
+      }
+      if (!["Factura", "Boleta"].includes(original.tipo)) {
+        return errorResponse("Notas only supported for Factura or Boleta", 422);
+      }
+
+      const tipo = esCredito ? "Nota Credito" : "Nota Debito";
+      const prefijo = original.tipo === "Factura" ? "F" : "B";
+      const serie = `${prefijo}${esCredito ? "C" : "D"}01`;
+
+      const subtotal = Number(body.subtotal);
+      const igv = Number(body.igv ?? 0);
+      const total = Number(body.total);
+      if (![subtotal, igv, total].every(Number.isFinite) || total <= 0) {
+        return errorResponse("Nota amounts are invalid", 422);
+      }
+
+      const { data: hotelRows, error: hotelError } = await supabase.rpc("get_hotel_sunat_credentials", {
+        p_hotel_id: original.hotel_id,
+      });
+      const hotel = hotelRows?.[0];
+      if (hotelError || !hotel) return errorResponse("Hotel or SUNAT credentials not found", 404);
+      const credentials = buildCredentials(hotel);
+      validateCredentials(credentials);
+
+      const { data: existingNota } = await supabase.from("comprobantes").select("*")
+        .eq("comprobante_ref_id", refId).eq("tipo", tipo).maybeSingle();
+      if (existingNota && existingNota.estado === "aceptado") {
+        return noStoreJson({ comprobante_id: existingNota.id, estado: existingNota.estado, idempotent: true, request_id: traceId }, 200, corsHeaders);
+      }
+
+      const { data: formattedNumber, error: numberError } = await supabase.rpc("next_comprobante_number", {
+        p_hotel_id: original.hotel_id, p_tipo: tipo, p_serie: serie,
+      });
+      if (numberError || !formattedNumber) throw numberError || new Error("Could not allocate fiscal number");
+
+      const { data: inserted, error: insertError } = await supabase.from("comprobantes").insert({
+        hotel_id: original.hotel_id,
+        tipo,
+        serie,
+        numero: formattedNumber,
+        cliente_tipo: original.cliente_tipo,
+        cliente_documento: original.cliente_documento,
+        cliente_nombre: original.cliente_nombre,
+        subtotal, igv, total,
+        estado: "pendiente",
+        comprobante_ref_id: refId,
+        tipo_nota: tipoNota,
+        motivo: String(body.motivo || "").trim() || null,
+      }).select().single();
+      if (insertError) throw insertError;
+
+      const notaComp = { ...inserted, tipo, tipo_nota: tipoNota, motivo: body.motivo || "" };
+      const unsignedXml = buildUblXml(notaComp, credentials, formattedNumber, [], {
+        tipoDoc: original.tipo === "Factura" ? "01" : "03",
+        serie: original.serie,
+        numero: original.numero,
+      });
+      const signedXml = signXmlDocument(unsignedXml, signingMaterialFor(credentials));
+      const zip = new JSZip();
+      const fileName = `${credentials.ruc}-${esCredito ? "07" : "08"}-${serie}-${formattedNumber}`;
+      zip.file(`${fileName}.xml`, signedXml);
+      const zipBytes: Uint8Array = await zip.generateAsync({ type: "uint8array" });
+      await persistXml(supabase, inserted.id, unsignedXml, signedXml, zipBytes);
+
+      logEvent("info", "fiscal_nota_queued", { request_id: traceId, comprobante_id: inserted.id, hotel_id: original.hotel_id, final_state: "pendiente" });
+      return noStoreJson({ comprobante_id: inserted.id, estado: "pendiente", queued: true, request_id: traceId }, 202, corsHeaders);
+    }
+
+    // ────────────────────────────────────────────────────────────────
+    // Flujo de Factura / Boleta (venta persistida)
+    // ────────────────────────────────────────────────────────────────
     const ventaId = body.venta_id;
     const sourceTable = body.source === "ventas_pos" ? "ventas_pos" : body.source === "ventas" ? "ventas" : null;
     if (!isUuid(ventaId) || !sourceTable) {
       return errorResponse("venta_id (UUID) and source ('ventas' or 'ventas_pos') are required", 400);
     }
 
-    const supabase = createAdminClient();
     const { data: existing } = await supabase
       .from("comprobantes").select("*")
       .eq("source_table", sourceTable).eq("source_id", ventaId).maybeSingle();
@@ -60,7 +206,7 @@ serve(async (req: Request) => {
     const tipo = rawType === "factura" ? "Factura" : "Boleta";
     const serie = rawType === "factura" ? "F001" : "B001";
     const clienteTipo = rawType === "factura" ? "6" : (venta.huesped_dni ? "1" : "0");
-    const clienteDocumento = rawType === "factura" ? venta.ruc_cliente : (venta.huesped_dni || "00000000");
+    const clienteDocumento = rawType === "factura" ? venta.ruc_cliente : (venta.huesped_dni || "0");
     const clienteNombre = rawType === "factura" ? venta.razon_social : (venta.huesped_nombre || "CLIENTE VARIOS");
     if (rawType === "factura" && (!/^\d{11}$/.test(clienteDocumento || "") || !clienteNombre)) {
       return errorResponse("Stored invoice recipient is incomplete", 422);
@@ -71,36 +217,8 @@ serve(async (req: Request) => {
     });
     const hotel = hotelRows?.[0];
     if (hotelError || !hotel) return errorResponse("Hotel or SUNAT credentials not found", 404);
-
-    const envRuc = Deno.env.get("SUNAT_RUC");
-    const envUser = Deno.env.get("SUNAT_SOL_USERNAME");
-    const envPassword = Deno.env.get("SUNAT_SOL_PASSWORD");
-    const dbPassword = hotel.sunat_clave_sol;
-    const credentials = {
-      ...hotel,
-      ruc: envRuc || hotel.ruc,
-      sunat_usuario_sol: envUser || hotel.sunat_usuario_sol,
-      sunat_clave_sol: envPassword || dbPassword,
-    };
-    if (envRuc && envRuc !== hotel.ruc) return errorResponse("SUNAT server credential tenant mismatch", 503);
-    if (!credentials.ruc || !credentials.sunat_usuario_sol || !credentials.sunat_clave_sol) {
-      return errorResponse("SUNAT credentials are not configured server-side", 503);
-    }
-    if (!envPassword && String(dbPassword).startsWith("U2FsdGVkX1")) {
-      return errorResponse("Browser-encrypted SUNAT credentials are not usable by the server", 503);
-    }
-
-    // P0-3 FIX: Per-hotel certificate from DB, with env var fallback (shared cert for now)
-    const dbCertPem = hotel.sunat_certificado_pem;
-    const privateKeyPem = Deno.env.get("SUNAT_CERT_PRIVATE_KEY_PEM");
-    const certPem = dbCertPem || Deno.env.get("SUNAT_CERT_PEM");
-    const allowTestCert = Deno.env.get("SUNAT_ALLOW_TEST_CERTIFICATE") === "true" && hotel.sunat_modo_prueba === true;
-    if ((!privateKeyPem || !certPem) && !allowTestCert) {
-      return errorResponse("A real SUNAT certificate is required", 503);
-    }
-    const signingMaterial = privateKeyPem && certPem
-      ? { privateKeyPem, certPem }
-      : getOrCreateTestPfx();
+    const credentials = buildCredentials(hotel);
+    validateCredentials(credentials);
 
     const total = Number(venta.total);
     if (!Number.isFinite(total) || total <= 0) return errorResponse("Stored sale total is invalid", 422);
@@ -139,19 +257,12 @@ serve(async (req: Request) => {
 
     const formattedNumber = comp.numero;
     const unsignedXml = buildUblXml(comp, credentials, formattedNumber);
-    const signedXml = signXmlDocument(unsignedXml, signingMaterial);
+    const signedXml = signXmlDocument(unsignedXml, signingMaterialFor(credentials));
     const zip = new JSZip();
     const fileName = `${credentials.ruc}-${tipo === "Factura" ? "01" : "03"}-${serie}-${formattedNumber}`;
     zip.file(`${fileName}.xml`, signedXml);
     const zipBytes: Uint8Array = await zip.generateAsync({ type: "uint8array" });
-    const hash = forge.md.sha256.create().update(signedXml, "utf8").digest().toHex();
-    const { data: existingXml } = await supabase.from("comprobante_xml").select("id")
-      .eq("comprobante_id", comp.id).maybeSingle();
-    const xmlMutation = existingXml
-      ? supabase.from("comprobante_xml").update({ xml: unsignedXml, hash, xml_firmado: signedXml, zip: zipBytes }).eq("id", existingXml.id)
-      : supabase.from("comprobante_xml").insert({ comprobante_id: comp.id, xml: unsignedXml, hash, xml_firmado: signedXml, zip: zipBytes });
-    const { error: xmlError } = await xmlMutation;
-    if (xmlError) throw xmlError;
+    await persistXml(supabase, comp.id, unsignedXml, signedXml, zipBytes);
 
     logEvent("info", "fiscal_document_queued", {
       request_id: traceId, comprobante_id: comp.id, hotel_id: venta.hotel_id,
