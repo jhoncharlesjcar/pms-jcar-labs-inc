@@ -61,6 +61,62 @@ async function persistXml(supabase: any, comprobanteId: number, unsignedXml: str
   if (error) throw error;
 }
 
+function round2(n: number): number {
+  return Math.round((n + Number.EPSILON) * 100) / 100;
+}
+
+function serieFor(hotel: Record<string, any>, tipoDoc: string, originalTipoDoc?: string): string {
+  switch (tipoDoc) {
+    case "01": return hotel.serie_factura || "F001";
+    case "03": return hotel.serie_boleta || "B001";
+    case "07": return originalTipoDoc === "03" ? (hotel.serie_nc_boleta || "BC01") : (hotel.serie_nc_factura || "FC01");
+    case "08": return originalTipoDoc === "03" ? (hotel.serie_nd_boleta || "BD01") : (hotel.serie_nd_factura || "FD01");
+    default: return "F001";
+  }
+}
+
+function buildDetalle(venta: Record<string, any>, sourceTable: string, baseTotal: number, divisor: number): { descripcion: string; cantidad: number; precio_unitario: number }[] {
+  if (sourceTable === "ventas") {
+    const noches = Number(venta.noches || 1);
+    const precioNocheBase = round2(Number(venta.precio_noche || 0) / divisor);
+    const hospedajeBase = round2(noches * precioNocheBase);
+    const extrasBase = round2(baseTotal - hospedajeBase);
+    if (extrasBase > 0.005 && hospedajeBase > 0.005) {
+      return [
+        { descripcion: "SERVICIO DE HOSPEDAJE", cantidad: noches, precio_unitario: precioNocheBase },
+        { descripcion: "CONSUMOS Y SERVICIOS ADICIONALES", cantidad: 1, precio_unitario: extrasBase },
+      ];
+    }
+    return [{ descripcion: "SERVICIO DE HOSPEDAJE / CONSUMO", cantidad: 1, precio_unitario: baseTotal }];
+  }
+  // POS: desglosa items cuando no hay descuento; con descuento usa línea única para no desbalancear.
+  const descuento = Number(venta.descuento || 0);
+  const items = Array.isArray(venta.items) ? venta.items : [];
+  if (descuento <= 0.005 && items.length > 0) {
+    const detalle = items
+      .map((it: any) => ({
+        descripcion: String(it.nombre || "PRODUCTO"),
+        cantidad: Number(it.cantidad || 1),
+        precio_unitario: round2(Number(it.precio_venta || 0) / divisor),
+      }))
+      .filter((d: any) => d.precio_unitario > 0 && d.cantidad > 0);
+    if (detalle.length > 0) return detalle;
+  }
+  return [{ descripcion: "VENTA MINIMARKET", cantidad: 1, precio_unitario: baseTotal }];
+}
+
+async function populateDetalle(supabase: any, comprobanteId: number, detalle: { descripcion: string; cantidad: number; precio_unitario: number }[]): Promise<void> {
+  if (detalle.length === 0) return;
+  const rows = detalle.map((d) => ({
+    comprobante_id: comprobanteId,
+    descripcion: d.descripcion,
+    cantidad: d.cantidad,
+    precio_unitario: d.precio_unitario,
+  }));
+  const { error } = await supabase.from("comprobante_detalle").insert(rows);
+  if (error) throw error;
+}
+
 serve(async (req: Request) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
   if (req.method !== "POST") return errorResponse("Method not allowed", 405);
@@ -108,8 +164,7 @@ serve(async (req: Request) => {
       }
 
       const tipo = esCredito ? "Nota Credito" : "Nota Debito";
-      const prefijo = original.tipo === "Factura" ? "F" : "B";
-      const serie = `${prefijo}${esCredito ? "C" : "D"}01`;
+      const originalTipoDoc = original.tipo === "Factura" ? "01" : "03";
 
       const subtotal = Number(body.subtotal);
       const igv = Number(body.igv ?? 0);
@@ -125,6 +180,7 @@ serve(async (req: Request) => {
       if (hotelError || !hotel) return errorResponse("Hotel or SUNAT credentials not found", 404);
       const credentials = buildCredentials(hotel);
       validateCredentials(credentials);
+      const serie = serieFor(hotel, esCredito ? "07" : "08", originalTipoDoc);
 
       const { data: existingNota } = await supabase.from("comprobantes").select("*")
         .eq("comprobante_ref_id", refId).eq("tipo", tipo).maybeSingle();
@@ -155,7 +211,7 @@ serve(async (req: Request) => {
 
       const notaComp = { ...inserted, tipo, tipo_nota: tipoNota, motivo: body.motivo || "" };
       const unsignedXml = buildUblXml(notaComp, credentials, formattedNumber, [], {
-        tipoDoc: original.tipo === "Factura" ? "01" : "03",
+        tipoDoc: originalTipoDoc,
         serie: original.serie,
         numero: original.numero,
       });
@@ -204,7 +260,6 @@ serve(async (req: Request) => {
       return errorResponse("The stored sale does not request a supported fiscal document", 422);
     }
     const tipo = rawType === "factura" ? "Factura" : "Boleta";
-    const serie = rawType === "factura" ? "F001" : "B001";
     const clienteTipo = rawType === "factura" ? "6" : (venta.huesped_dni ? "1" : "0");
     const clienteDocumento = rawType === "factura" ? venta.ruc_cliente : (venta.huesped_dni || "0");
     const clienteNombre = rawType === "factura" ? venta.razon_social : (venta.huesped_nombre || "CLIENTE VARIOS");
@@ -224,6 +279,10 @@ serve(async (req: Request) => {
     if (!Number.isFinite(total) || total <= 0) return errorResponse("Stored sale total is invalid", 422);
     const subtotal = hotel.aplica_igv === false ? total : Number((total / 1.18).toFixed(2));
     const igv = hotel.aplica_igv === false ? 0 : Number((total - subtotal).toFixed(2));
+    const tipoDoc = rawType === "factura" ? "01" : "03";
+    const serie = serieFor(hotel, tipoDoc);
+    const divisor = hotel.aplica_igv === false ? 1 : 1.18;
+    const detalle = buildDetalle(venta, sourceTable, subtotal, divisor);
 
     let comp = existing;
     if (comp && ['rechazado', 'pendiente'].includes(comp.estado)) {
@@ -252,11 +311,12 @@ serve(async (req: Request) => {
         throw insertError;
       } else {
         comp = inserted;
+        await populateDetalle(supabase, comp.id, detalle);
       }
     }
 
     const formattedNumber = comp.numero;
-    const unsignedXml = buildUblXml(comp, credentials, formattedNumber);
+    const unsignedXml = buildUblXml(comp, credentials, formattedNumber, detalle);
     const signedXml = signXmlDocument(unsignedXml, signingMaterialFor(credentials));
     const zip = new JSZip();
     const fileName = `${credentials.ruc}-${tipo === "Factura" ? "01" : "03"}-${serie}-${formattedNumber}`;

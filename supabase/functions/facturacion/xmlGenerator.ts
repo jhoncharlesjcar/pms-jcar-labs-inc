@@ -123,19 +123,25 @@ function customerParty(doc: any, comp: Record<string, any>): any {
   return customer;
 }
 
-function lineElement(parent: any, lineName: string, id: number, cantidad: string, unitCode: string, lineExt: string, priceAmount: string, taxAmount: string, percent: string, descripcion: string, moneda: string): any {
+function lineElement(parent: any, lineName: string, id: number, cantidad: number, unitCode: string, precioUnitarioBase: number, percent: string, descripcion: string, moneda: string): any {
+  const cant = new Decimal(cantidad || 0);
+  const unitBase = new Decimal(precioUnitarioBase || 0);
+  const lineExt = cant.mul(unitBase).toDecimalPlaces(2);
+  const lineIgv = lineExt.mul(0.18).toDecimalPlaces(2);
+  const unitPriceIgv = unitBase.mul(1.18).toDecimalPlaces(2);
+
   const line = parent.ele(lineName);
   line.ele("cbc:ID").txt(String(id)).up();
-  line.ele("cbc:InvoicedQuantity", { unitCode }).txt(cantidad).up();
-  line.ele("cbc:LineExtensionAmount", { currencyID: moneda }).txt(lineExt).up();
+  line.ele("cbc:InvoicedQuantity", { unitCode }).txt(cant.toFixed(2)).up();
+  line.ele("cbc:LineExtensionAmount", { currencyID: moneda }).txt(lineExt.toFixed(2)).up();
   line.ele("cac:PricingReference").ele("cac:AlternativeConditionPrice")
-    .ele("cbc:PriceAmount", { currencyID: moneda }).txt(priceAmount).up()
+    .ele("cbc:PriceAmount", { currencyID: moneda }).txt(unitPriceIgv.toFixed(2)).up()
     .ele("cbc:PriceTypeCode", { listName: "Tipo de precio", listAgencyName: "PE:SUNAT" }).txt("01").up().up().up();
   const lineTax = line.ele("cac:TaxTotal");
-  lineTax.ele("cbc:TaxAmount", { currencyID: moneda }).txt(taxAmount).up();
-  taxSubtotal(lineTax, lineExt, taxAmount, percent, moneda);
+  lineTax.ele("cbc:TaxAmount", { currencyID: moneda }).txt(lineIgv.toFixed(2)).up();
+  taxSubtotal(lineTax, lineExt.toFixed(2), lineIgv.toFixed(2), percent, moneda);
   line.ele("cac:Item").ele("cbc:Description").dat(descripcion).up().up();
-  line.ele("cac:Price").ele("cbc:PriceAmount", { currencyID: moneda }).txt(lineExt).up().up();
+  line.ele("cac:Price").ele("cbc:PriceAmount", { currencyID: moneda }).txt(unitBase.toFixed(2)).up().up();
   return line;
 }
 
@@ -212,16 +218,12 @@ export function buildUblXml(
   if (detalle.length > 0) {
     let idx = 1;
     for (const d of detalle) {
-      const cantidad = new Decimal(d.cantidad || 1).toFixed(2);
-      const lineExt = new Decimal(d.cantidad || 1).mul(d.precio_unitario || 0).toFixed(2);
-      const lineTaxAmount = new Decimal(lineExt).mul(0.18).toFixed(2);
-      const priceAmount = new Decimal(d.precio_unitario || 0).toFixed(2);
-      lineElement(doc, lineName, idx, cantidad, "NIU", lineExt, priceAmount, lineTaxAmount, percent, d.descripcion, moneda);
+      lineElement(doc, lineName, idx, Number(d.cantidad || 1), "NIU", Number(d.precio_unitario || 0), percent, d.descripcion, moneda);
       idx += 1;
     }
   } else {
     // Línea única consolidada
-    lineElement(doc, lineName, 1, "1.00", "NIU", subtotalAmount, totalAmount, igvAmount, percent, "SERVICIO DE HOSPEDAJE / CONSUMO", moneda);
+    lineElement(doc, lineName, 1, 1, "NIU", Number(subtotalAmount), percent, "SERVICIO DE HOSPEDAJE / CONSUMO", moneda);
   }
 
   return doc.end({ prettyPrint: false });
