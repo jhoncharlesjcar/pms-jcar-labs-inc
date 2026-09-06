@@ -11,7 +11,10 @@ const rules = [
   { name: 'clave service_role expuesta a Vite', pattern: /VITE_[A-Z0-9_]*SERVICE[_-]?ROLE/i },
   { name: 'clave privada PEM', pattern: /-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----/ },
   { name: 'JWT Supabase incrustado', pattern: /eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9\.eyJ[A-Za-z0-9_-]{40,}\.[A-Za-z0-9_-]{20,}/ },
-  { name: 'URL de proyecto Supabase incrustada', pattern: /https:\/\/[a-z]{20}\.supabase\.co/i },
+  // La URL del proyecto Supabase es pública (equivale a VITE_SUPABASE_URL) y las
+  // migraciones SQL de cron jobs (pg_cron + net.http_post) la requieren embebida
+  // para invocar las Edge Functions. No es un secreto, por eso se omite en .sql.
+  { name: 'URL de proyecto Supabase incrustada', pattern: /https:\/\/[a-z]{20}\.supabase\.co/i, skipSql: true },
 ];
 
 const findings = [];
@@ -20,6 +23,7 @@ for (const file of tracked) {
   if (!existsSync(file)) continue;
   const content = readFileSync(file, 'utf8');
   for (const rule of rules) {
+    if (rule.skipSql && file.endsWith('.sql')) continue;
     if (rule.pattern.test(content)) findings.push(`${file}: ${rule.name}`);
   }
 }
