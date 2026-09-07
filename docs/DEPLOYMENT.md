@@ -69,7 +69,9 @@ Ninguna variable `VITE_*` puede contener `service_role`, contraseñas, certifica
 
 Configurar con `supabase secrets set` o el gestor del entorno, nunca en Git:
 
-- `GEMINI_API_KEY` (y opcionalmente `GEMINI_MODEL`);
+- `AI_PROVIDER` (`qwen` por defecto; usa `gemini` para Google);
+- `QWEN_API_KEY`, `QWEN_MODEL` (def. `qwen-plus`) y `QWEN_BASE_URL` (DashScope compatible-mode);
+- `GEMINI_API_KEY` y `GEMINI_MODEL` (alternativa Gemini);
 - `CHANNEL_CREDENTIAL_MASTER_KEY` (32 bytes aleatorios codificados base64url) para cifrar credenciales individuales de conectores JcarAI;
 - `PUBLIC_APP_URL` HTTPS para que `issue-guest-access` emita enlaces de portal/pre-check-in fuera del modelo;
 - `CRON_SECRET`;

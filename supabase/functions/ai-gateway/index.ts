@@ -5,7 +5,8 @@ import { logEvent, noStoreJson, requestId } from "../_shared/runtime.ts";
 import { AIGatewayRequest } from "./types.ts";
 import { buildSystemPrompt } from "./prompts.ts";
 import { geminiToolsDefinition, ToolExecutor } from "./tools.ts";
-import { callGemini, submitToolResponseToGemini } from "./gemini.ts";
+import { createSession, callModel, submitToolResults, resolveProvider, resolveApiKey } from "./llm.ts";
+import type { ModelMessage, OpenAiTool } from "./llm.ts";
 
 declare const Deno: any;
 
@@ -709,27 +710,41 @@ serve(async (req: Request) => {
       .limit(100);
     if (knowledgeError) throw knowledgeError;
 
-    const apiKey = Deno.env.get('GEMINI_API_KEY');
+    const provider = resolveProvider();
+    const apiKey = resolveApiKey(provider);
     if (!apiKey) return errorResponse('AI model is not configured', 503);
     const systemPrompt = `${buildSystemPrompt(config, knowledge || [])}\nLos marcadores [PII_*] representan datos reales protegidos. Consérvalos exactamente al pasarlos a herramientas; nunca los repitas en la respuesta.`;
-    let geminiSession = await callGemini(systemPrompt, modelHistory.slice(0, -1), protectedMessage.text, geminiToolsDefinition, apiKey);
+
+    // Convertir la definición (formato Gemini) a formato OpenAI-compatible (canónico).
+    const openAiTools: OpenAiTool[] = (geminiToolsDefinition[0]?.functionDeclarations || []).map((decl: any) => ({
+      type: 'function',
+      function: { name: decl.name, description: decl.description, parameters: decl.parameters },
+    }));
+
+    const messages: ModelMessage[] = [
+      { role: 'system', content: systemPrompt },
+      ...modelHistory.slice(0, -1).map((entry: any) => ({
+        role: entry.role === 'assistant' ? ('assistant' as const) : ('user' as const),
+        content: String(entry.content || ''),
+      })),
+      { role: 'user', content: protectedMessage.text },
+    ];
+
+    const session = createSession(provider, messages, openAiTools);
+    let reply = await callModel(session, apiKey);
     let finalResponseText = '';
     const executor = new ToolExecutor(supabase, hotelId, conversation.id, protectedMessage.vault);
 
     for (let iteration = 0; iteration < 5; iteration++) {
-      const candidate = geminiSession.response.candidates?.[0];
-      if (!candidate?.content?.parts) break;
-      const parts = candidate.content.parts;
-      const textParts = parts.filter((part: any) => typeof part.text === 'string');
-      if (textParts.length) finalResponseText += textParts.map((part: any) => part.text).join('');
-      const calls = parts.filter((part: any) => part.functionCall).map((part: any) => part.functionCall);
+      if (reply.text) finalResponseText += reply.text;
+      const calls = reply.toolCalls;
       if (!calls.length) break;
 
       const toolResults = [];
       for (const call of calls) {
         const result = await executor.executeTool(call.name, call.args || {});
         const safeResult = sanitizeForModel(result);
-        toolResults.push({ name: call.name, result: safeResult });
+        toolResults.push({ id: call.id, name: call.name, result: safeResult });
         await supabase.from('ai_messages').insert({
           conversation_id: conversation.id,
           hotel_id: hotelId,
@@ -743,9 +758,7 @@ serve(async (req: Request) => {
         });
       }
 
-      geminiSession = await submitToolResponseToGemini(
-        systemPrompt, geminiSession, parts, toolResults, geminiToolsDefinition, apiKey
-      );
+      reply = await submitToolResults(session, toolResults, apiKey);
     }
 
     if (!finalResponseText.trim()) finalResponseText = 'No pude completar la solicitud. Te comunicaré con recepción.';

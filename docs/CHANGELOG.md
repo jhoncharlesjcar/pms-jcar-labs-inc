@@ -10,6 +10,7 @@ Este documento registra los cambios más relevantes, mejoras arquitectónicas y 
 - **Dependencias**: actualizados los `pnpm.overrides` para corregir vulnerabilidades high/critical transitivas (`fast-uri`, `tar`, `undici`, `minimatch`, `browserslist`, `path-to-regexp`).
 - **Tipado**: tipada la sesión (`Session`/`User` de Supabase), eliminado `@ts-nocheck`, y corregidos errores de tipos en el flujo de checkout/recepción.
 - **Logging**: unificado `console.error` en la capa de negocio hacia `logger.js` (con redacción de datos sensibles).
+- **JcarAI multi-proveedor**: el AI Gateway ahora soporta **Qwen (DashScope, modo compatible OpenAI)** y Gemini mediante la variable `AI_PROVIDER` (por defecto `qwen`). Refactor del cliente LLM (`llm.ts`) y del bucle de herramientas para abstraer el proveedor.
 
 ### Tests
 - Corregidos 11 tests unitarios desactualizados (caja, recepción, ventas) para reflejar las APIs refactorizadas.

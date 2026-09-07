@@ -14,7 +14,7 @@ PMS hotelero multi-tenant para gestionar recepción, habitaciones, huéspedes, l
 - Caja, egresos, arqueo y cierre de turno.
 - Limpieza e inventario de suministros.
 - **Facturación electrónica SUNAT (SOAP directo):** Generación y firmado XML UBL 2.1 con certificado ICP, emisión de Facturas (01), Boletas (03), Notas de Crédito (07) y Notas de Débito (08), con parseo del CDR, series configurables y detalle por líneas.
-- **Inteligencia Artificial (AI Gateway):** Asistente conversacional Gemini 2.0 con *Tool Calling* y base de conocimiento dinámica.
+- **Inteligencia Artificial (AI Gateway):** Asistente conversacional multi-proveedor (Qwen vía DashScope o Gemini 2.0) con *Tool Calling* y base de conocimiento dinámica.
 - **Channel Manager (OTA Sync):** Sincronización bidireccional de inventario y tarifas con Agencias de Viajes Online (OTAs).
 - **Pasarela de Pagos y Portales:** Portal del huésped, Booking Engine integrado, Pre-Checkin y webhooks de validación de pagos.
 - **Integraciones:** Notificaciones vía WhatsApp y exportación a DIRCETUR/MINCETUR.
@@ -40,7 +40,7 @@ La matriz ejecutable de permisos vive en [`src/constants/permissions.ts`](src/co
 - Tailwind CSS, Radix UI, Manrope, Lucide, `@gsap/react` y Recharts.
 - Web Workers nativos para generación asíncrona de reportes y tickets PDF (`jsPDF`).
 - Deno 2.x, `xml-crypto` y `node-forge` para firmado criptográfico de Facturación SUNAT.
-- Google Gemini 2.0 API para Inteligencia Artificial y Function Calling.
+- LLM multi-proveedor (Qwen vía DashScope y Google Gemini 2.0) para Inteligencia Artificial y Function Calling.
 - PWA con actualización automática mediante Workbox.
 - pnpm 9 y Node.js 22.
 
