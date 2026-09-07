@@ -102,8 +102,6 @@ const CatalogoMinimarket = memo(function CatalogoMinimarket(/** @type {any} */ {
         onError: () => toast.error('Error', { description: 'No se pudo eliminar la categoría.' })
     });
 
-    const gridRef = useRef(null);
-
     const filtrados = catActiva === 'todos'
         ? productos.filter(p => p.activo !== false)
         : productos.filter(p => p.categoria_id === catActiva && p.activo !== false);
@@ -179,7 +177,7 @@ const CatalogoMinimarket = memo(function CatalogoMinimarket(/** @type {any} */ {
                     className="py-10"
                 />
             ) : (
-                <div ref={gridRef} className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-3 pb-20 lg:pb-4">
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-3 pb-20 lg:pb-4">
                     {filtrados.map(prod => {
                         const qty = cantidadEnCarrito(prod.id);
                         const stockLeft = stockDisponible(prod);
