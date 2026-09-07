@@ -1,7 +1,7 @@
 # Documentación del PMS JCAR LABS
 
-**Estado:** vigente para la versión 3.1.0
-**Última revisión:** 27 de agosto de 2026
+**Estado:** vigente para la versión 3.2.0
+**Última revisión:** 7 de septiembre de 2026
 
 Este directorio contiene las guías operativas y técnicas permanentes. Las reglas detalladas de negocio viven en `specs/`.
 

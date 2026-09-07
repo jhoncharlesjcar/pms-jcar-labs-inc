@@ -2,6 +2,42 @@
 
 Este documento registra los cambios más relevantes, mejoras arquitectónicas y soluciones a errores en el PMS JCAR LABS.
 
+## [3.2.0] - 7 de Septiembre de 2026
+
+### Auditoría Técnica y Remediación Integral
+- **Seguridad en Base de Datos & Cron Jobs:**
+  - Migración `20260907000001_fix_cron_auth_headers.sql`: inyección mandatoria de cabeceras de autorización `Bearer` vía `service_role` en tareas programadas ejecutadas con `pg_net`.
+  - Migración `20260907000002_unique_cierre_caja.sql`: restricción de unicidad e idempotencia en `cierres_caja` por hotel, fecha operativa y turno, impidiendo duplicidad contable.
+  - Migración `20260907000003_validate_cierre_caja_saldo.sql`: validación mediante check constraint para evitar saldos iniciales o finales negativos en cierres de caja.
+- **Edge Functions & Facturación SUNAT:**
+  - `auth-middleware.ts`: verificación activa y estricta de la sesión de Supabase Auth en funciones protegidas, rechazando tokens inválidos o revocados en servidor.
+  - `xmlSigner_test.ts`: suite de pruebas en Deno 2.x para validación criptográfica del firmado XML UBL 2.1 (digest SHA-256, canonicalización C14N y firma RSA-SHA256).
+- **Quality Gates y Cobertura de Pruebas:**
+  - Ampliación de la suite de pruebas unitarias Vitest a 122 tests pasando limpiamente (13 archivos de prueba), incluyendo `hotel.service.test.ts` y `whatsapp.service.test.ts`.
+  - Creación de prueba de humo E2E Playwright en `tests/e2e/booking-flow.spec.ts` para validar el flujo crítico de reserva.
+  - Corrección de sintaxis y validación condicional de secrets en workflows de GitHub Actions (`deploy.yml` y `staging-migrations.yml`).
+
+### Experiencia de Usuario (UX/UI), Accesibilidad y Motion
+- **Limpieza (Housekeeping Móvil):**
+  - Implementación de **Optimistic UI** con actualización inmediata del estado de la habitación y notificación Toast con opción de deshacer (*Undo*) durante 4 segundos.
+  - Barra de KPIs compactada a una sola fila horizontal en pantallas móviles pequeñas (`< sm`) con métricas densas y legibles.
+  - Ampliación de botones de acción rápida a un mínimo de 50px de altura para facilitar la operación táctil con una sola mano.
+- **Recepción & POS (Tablet & Desktop):**
+  - `RecepcionTimeline`: fijación de la columna de habitaciones (`sticky left-0`) con sombra divisoria para mantener la visibilidad durante el scroll horizontal de fechas.
+  - `CarritoMinimarket`: ampliación de botones incrementales (+/-) a objetivos táctiles mínimos de 44 × 44 px conforme a WCAG 2.5.5 / 2.5.8.
+  - `NuevaReservaSheet`: eliminación del retraso stagger en el selector de habitaciones para renderizado inmediato en hoteles con alto volumen de inventario.
+- **JcarAI Gateway & Chat:**
+  - Adaptación de la ventana de chat a un bottom-sheet en pantallas móviles con indicador de tipeo pulsante de 3 puntos.
+- **Analítica y Visualización de Datos (Desktop Admin):**
+  - Gráficos Recharts en `Reportes.jsx` y `Revenue.jsx` refactorizados con altura explícita responsiva (`h-[280px]` en móvil, `h-[320px]` en tablet/desktop) eliminando distorsiones y desbordamientos.
+  - Eje X optimizado con `interval="preserveStartEnd"` y formateo legible de fechas.
+  - Equilibrio de la cuadrícula en Reportes mediante incorporación de tabla de auditoría operativa reciente.
+- **Optimización de Animaciones GSAP:**
+  - Migración a transformaciones exclusivas por GPU (`transform`, `opacity`), evitando recálculos de layout por propiedades `height`/`top`/`left`.
+  - Soporte nativo para `prefers-reduced-motion` en hooks (`useGsapCardHover`, `useGsapStaggerList`) y componentes clave (`PageTransition`).
+  - Desactivación de transiciones `:hover` en pantallas táctiles (`@media (hover: hover)`).
+  - Purga de estilos no utilizados de Lenis y parallax en `gsap.css`.
+
 ## [3.1.0] - 27 de Agosto de 2026
 
 ### Calidad, CI/CD, Seguridad y Tipado

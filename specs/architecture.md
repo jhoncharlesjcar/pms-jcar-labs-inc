@@ -1,7 +1,7 @@
 # Arquitectura del PMS JCAR LABS
 
-**Versión:** 3.1.0
-**Última revisión:** 27 de agosto de 2026
+**Versión:** 3.2.0
+**Última revisión:** 7 de septiembre de 2026
 
 ## Objetivo
 
@@ -123,28 +123,36 @@ Las funciones autenticadas reutilizan `supabase/functions/_shared/auth-middlewar
 7. Las acciones destructivas se confirman en la UI y siguen protegidas por RLS.
 8. Una migración aplicada nunca se reescribe.
 
-## PWA y rendimiento
+## PWA, UX y Rendimiento
 
 - Vite divide los proveedores principales en chunks.
-- Las páginas usan lazy loading.
+- Las páginas usan lazy loading diferido con `React.lazy`.
 - Procesamiento pesado delegado a Web Workers (ej. generación asíncrona de reportes y PDFs) para evitar bloquear el hilo de la UI.
-- Limpieza automática de animaciones (garbage collection) a través de los contextos nativos de `@gsap/react`.
+- **Optimistic UI:** Flujos de alta repetición (housekeeping) aplican actualización visual inmediata (0ms) con ventana de revocación (Undo toast 4s).
+- **Animaciones GSAP de Alto Rendimiento:**
+  - Microinteracciones rápidas (120-180ms) limitadas a compositing por GPU (`transform`, `opacity`).
+  - Soporte nativo para accesibilidad (`prefers-reduced-motion: reduce`) retornando render sin movimiento.
+  - Hover protegido en móviles y tablets mediante `@media (hover: hover)`.
+  - Eliminación de staggers en grids operativos de alta densidad.
 - Workbox precachea activos estáticos y aplica actualización automática.
-- No existe runtime caching de respuestas Supabase.
+- No existe runtime caching de respuestas autenticadas de Supabase.
 - `ANALYZE=true pnpm build` genera un reporte local del bundle.
 
-## Quality gate
+## Quality gate y CI/CD
 
-`.github/workflows/deploy.yml` ejecuta:
+El repositorio implementa dos pipelines automáticos en GitHub Actions:
+- `.github/workflows/deploy.yml`: Quality gate y build de producción.
+- `.github/workflows/staging-migrations.yml`: Validación idempotente de migraciones en staging.
 
+El Quality Gate exige:
 1. `pnpm install --frozen-lockfile`;
-2. `pnpm lint`;
-3. `pnpm typecheck`;
-4. `pnpm audit --audit-level=high`;
-5. `pnpm build`;
-6. publicación del artefacto `dist`.
-
-Los escenarios contractuales de cada spec funcionan como matriz de aceptación. El repositorio productivo no incluye las suites de pruebas históricas eliminadas durante la limpieza.
+2. `pnpm lint` (`--max-warnings=0`);
+3. `pnpm typecheck` y `pnpm typecheck:js`;
+4. `pnpm check:secrets` y `pnpm check:migrations`;
+5. `pnpm check:edge` (Deno 2.x test suite);
+6. `pnpm test` / `pnpm test:coverage` (122 pruebas unitarias de dominio);
+7. `pnpm test:e2e` (Playwright smoke test);
+8. `pnpm build` y publicación del artefacto `dist`.
 
 ## Dependencias de dominio
 

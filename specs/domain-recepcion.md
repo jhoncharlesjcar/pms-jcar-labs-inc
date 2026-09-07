@@ -2,8 +2,8 @@
 
 **Dominio:** Recepción
 **Prioridad:** P0
-**Versión:** 3.0 Enterprise
-**Última actualización:** Agosto 2026
+**Versión:** 3.2 Enterprise
+**Última actualización:** 7 de Septiembre de 2026
 **Dependencias:** `specs/domain-checkout.md`
 
 ---

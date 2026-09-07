@@ -1,20 +1,24 @@
 # Despliegue reproducible
 
-**Última revisión:** 24 de agosto de 2026
+**Última revisión:** 7 de septiembre de 2026 (v3.2.0)
 **Frontend:** Vercel SPA/PWA
 **Backend:** Supabase PostgreSQL, Auth y Edge Functions
 
-## Quality Gate
+## Quality Gate y Workflows de CI/CD
 
-`.github/workflows/deploy.yml` se ejecuta en cada push/PR a `main` o `master` y bloquea por:
+El proyecto cuenta con dos flujos automatizados en GitHub Actions:
 
-- instalación `pnpm` con lockfile congelado;
-- secret scan, higiene de migraciones, auditoría de dependencias y Actions fijadas por SHA;
-- ESLint, TypeScript y línea base JS con `checkJs`;
-- Vitest con umbrales de cobertura;
-- `deno check --frozen` de todas las Edge Functions;
-- reconstrucción completa de Supabase, pgTAP/RLS y lint de base;
-- build y smoke E2E Playwright en escritorio/móvil.
+1. **`.github/workflows/deploy.yml` (Production Quality Gate):**
+   Se ejecuta en cada push o pull request hacia `main` o `master`, asegurando:
+   - Instalación reproducible con `pnpm --frozen-lockfile` (Node 22 / pnpm 9).
+   - Verificación de código estático: `pnpm lint` (`--max-warnings=0`), `pnpm typecheck` y `pnpm typecheck:js`.
+   - Seguridad y compliance: `pnpm check:secrets` (escaneo preventivo de secretos) y `pnpm check:migrations` (orden e higiene de 42 migraciones).
+   - Edge Functions & Deno: `pnpm check:edge` (compilación y suite de pruebas nativas con Deno 2.x).
+   - Suite de pruebas: `pnpm test` (122 pruebas unitarias) y pruebas de humo E2E Playwright.
+   - Build de producción y PWA service worker generation.
+
+2. **`.github/workflows/staging-migrations.yml` (Staging Migrations Pipeline):**
+   Valida y aplica de forma idempotente las migraciones en el entorno de staging tras verificar la existencia de secretos de proyecto (`SUPABASE_PROJECT_REF`, `SUPABASE_DB_PASSWORD`).
 
 Validación local sin Docker:
 

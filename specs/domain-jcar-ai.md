@@ -1,8 +1,8 @@
 # Spec: JcarAI — agente conversacional multicanal
 
 **Prioridad:** P0  
-**Versión:** 1.0  
-**Última actualización:** 23 de agosto de 2026
+**Versión:** 2.1  
+**Última actualización:** 7 de Septiembre de 2026
 
 ## Propósito
 

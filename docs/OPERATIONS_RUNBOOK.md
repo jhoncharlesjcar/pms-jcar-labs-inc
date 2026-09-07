@@ -1,6 +1,6 @@
 # Runbook de operaciones y continuidad
 
-**Vigencia:** 24 de agosto de 2026
+**Vigencia:** 7 de septiembre de 2026 (v3.2.0)
 **Alcance:** frontend Vercel, Supabase, Edge Functions y conectores JcarAI
 
 ## Objetivos de continuidad
@@ -50,7 +50,12 @@ El responsable de privacidad debe aprobar las ventanas legales del último rengl
 | Recuperar leases/retención | Incluido en `expire-ai-booking-artifacts` | RPC service-only desde cron | DLQ creciente o job ausente 5 minutos |
 | Restore drill | Mensual | Operador autorizado | Prueba no ejecutada o RTO incumplido |
 
-El scheduler se configura por entorno mediante scripts SQL (`pg_cron`) inyectando directamente los endpoints. Las credenciales de autorización se extraen en tiempo real de **Supabase Vault** (`vault.decrypted_secrets`), eliminando la necesidad de gestionar secretos globales de Postgres. Nunca colocar el `service_role_key` en claro ni en variables `VITE_*`.
+El scheduler se configura por entorno mediante scripts SQL (`pg_cron`) inyectando directamente los endpoints. A partir de la migración `20260907000001_fix_cron_auth_headers.sql`, todas las llamadas HTTP de `pg_net` inyectan obligatoriamente la cabecera `Authorization: Bearer <service_role_key>` desencriptada dinámicamente desde **Supabase Vault** (`vault.decrypted_secrets`), garantizando la autenticación estricta en Edge Functions y eliminando la exposición de credenciales globales. Nunca colocar el `service_role_key` en claro ni en variables públicas `VITE_*`.
+
+### Integridad Operativa de Caja
+A partir de la versión 3.2.0:
+- **Unicidad de Cierre de Turno (`20260907000002_unique_cierre_caja.sql`):** Existe una restricción única por `hotel_id`, `fecha_cierre` y `turno`, impidiendo duplicidad accidental de cierres contables para una misma ventana de tiempo.
+- **Validación de Saldos (`20260907000003_validate_cierre_caja_saldo.sql`):** Restricción CHECK que valida que `saldo_inicial >= 0` y `monto_esperado >= 0`, asegurando coherencia matemática antes de persistir cualquier arqueo.
 
 ## Observabilidad sin PII
 

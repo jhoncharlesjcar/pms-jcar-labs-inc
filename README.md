@@ -104,9 +104,11 @@ certificados, secretos de pasarela ni credenciales de proveedores.
 | `ANALYZE=true pnpm build` | Generar `bundle-report.html` para análisis local           |
 
 El workflow [`Production Quality Gate`](.github/workflows/deploy.yml) ejecuta
-instalación reproducible, lint, typecheck, auditoría de dependencias y build en
-cada push o pull request hacia `main` o `master`. El workflow valida y publica
-el artefacto `dist`; no despliega automáticamente el sitio.
+instalación reproducible, lint, typecheck (TS y JS), escaneo de secretos,
+migraciones, tests unitarios (122 tests), validación de Edge Functions y build en
+cada push o pull request hacia `main` o `master`. Adicionalmente, el workflow
+[`Staging Migrations`](.github/workflows/staging-migrations.yml) valida y aplica
+migraciones de forma segura en entornos de prueba.
 
 ## Estructura
 

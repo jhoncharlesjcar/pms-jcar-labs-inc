@@ -2,8 +2,8 @@
 
 **Dominio:** Limpieza / Housekeeping  
 **Prioridad:** P1  
-**Versión:** 3.0 Enterprise  
-**Última actualización:** Agosto 2026  
+**Versión:** 3.2 Enterprise  
+**Última actualización:** 7 de Septiembre de 2026  
 **Dependencias:** `specs/domain-habitaciones.md`, `specs/domain-recepcion.md`, `specs/architecture.md`, `specs/domain-insumos.md`
 
 ---
@@ -46,6 +46,8 @@ El módulo incluye 4 mini-tarjetas de métricas calculadas en tiempo real en con
 3. ✨ **Listas / Disponibles:** Cantidad limpia lista para Check-in (`disponible`).
 4. 👥 **Ocupadas:** Cantidad alojando huéspedes actualmente (`ocupada`).
 
+*(En viewports móviles `< sm`, la barra se compacta automáticamente a una fila horizontal única de 4 columnas condensadas, garantizando visualización completa sin requerir scroll vertical).*
+
 ### 3.3 Rejilla Responsiva de Alta Densidad (`w-full`)
 - Layout extendido a **ancho completo de pantalla (`w-full`)**.
 - Grid adaptable de alta densidad: `grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4`.
@@ -54,7 +56,7 @@ El módulo incluye 4 mini-tarjetas de métricas calculadas en tiempo real en con
 - **Status Badge Unificado:** `<StatusBadge status={hab.estado} />`.
 - **Cronómetro de Tiempo Transcurrido:** Muestra la duración exacta del proceso de aseo (`⏱️ En proceso: 25m`).
 - **Alerta de Mantenimiento:** Muestra el motivo redactado de la falla reportada.
-- **Acciones Táctiles Directas:**
+- **Acciones Táctiles Ergonómicas (mín. 50px de altura para uso en campo):**
   - `✨ Marcar Lista`: `<Button variant="emerald">` (cambia a `disponible`).
   - `🧼 Marcar Sucia`: `<Button variant="outline">` (cambia a `limpieza`).
   - `🛠️ Reportar Falla`: Abre modal para especificar motivo y cambiar a `mantenimiento`.
@@ -71,3 +73,9 @@ El módulo incluye 4 mini-tarjetas de métricas calculadas en tiempo real en con
 
 ### RN-LIM-003: Bloqueo por Mantenimiento
 - Para pasar una habitación a `mantenimiento`, se requiere ingresar un motivo obligatorio en el modal de fallas.
+
+### RN-LIM-004: UI Optimista y Deshacer Inmediato (v3.2.0)
+- El cambio de estado operativo (ej. de `limpieza` a `disponible`) se aplica inmediatamente en el estado local de React sin esperar respuesta de red.
+- Se dispara un Toast con temporizador de 4 segundos que incluye la acción interactiva **"Deshacer"**.
+- Si el usuario pulsa "Deshacer" dentro de la ventana de 4 segundos, el cambio se cancela en cliente sin persistir la mutación remota.
+- Si transcurren los 4 segundos sin revocación, la mutación se envía al servidor Supabase. Si ocurre un fallo de red o autorización, se revierte automáticamente el estado y se notifica al usuario.

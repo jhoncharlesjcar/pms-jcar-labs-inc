@@ -1,6 +1,6 @@
 # Sistema de diseño
 
-**Última revisión:** 16 de agosto de 2026
+**Última revisión:** 7 de septiembre de 2026 (v3.2.0)
 **Implementación principal:** `src/index.css`, `tailwind.config.js` y `src/components/ui/`
 
 ## Principios
@@ -124,27 +124,57 @@ Los estados fiscales, de sincronización y de caja deben usar `StatusBadge` o un
 
 Antes de crear un componente nuevo, comprobar si existe una variante compartida.
 
+## Optimistic UI y Feedback Inmediato
+
+En flujos de alta frecuencia y baja fricción (ej. actualización de estados de limpieza por personal de housekeeping):
+- La interfaz actualiza el estado local de forma inmediata (0ms latency visual).
+- Se presenta una notificación Toast (`sonner`) con una ventana de 4 segundos que incluye un botón explícito de **Deshacer (Undo)**.
+- Si el usuario no pulsa "Deshacer", la mutación remota se confirma; si pulsa "Deshacer", se revierte el estado local de forma atómica y se cancela la sincronización.
+- Si ocurre un error de red o de servidor, la interfaz revierte automáticamente al estado previo y muestra un toast de error descriptivo.
+
+## Visualización de Datos (Recharts Responsivo)
+
+Los componentes analíticos y de gráficos (`Reportes.jsx`, `Revenue.jsx`) deben seguir estrictamente:
+- **Alturas explícitas responsivas:** Contenedor padre con `h-[280px] sm:h-[320px] w-full`, envolviendo a `<ResponsiveContainer width="100%" height="100%">` para evitar colapsos o distorsiones de SVG.
+- **Formateo de Ejes:**
+  - Eje X (`XAxis`): usar `interval="preserveStartEnd"`, ticks legibles con formato de fecha conciso (ej. `dd/MMM`) y rotación (`angle={-25}`) en viewports móviles si la densidad de datos lo amerita.
+  - Eje Y (`YAxis`): formateo numérico o de moneda abreviado (`S/ k`), ancho controlado (`width={60}`) para evitar desplazamiento horizontal del gráfico.
+- **Paleta Semántica:** Usar tokens HSL del tema (`hsl(var(--primary))`, `hsl(var(--chart-1))` a `chart-5`), evitando colores fijos que no respondan al modo oscuro.
+- **Tooltips Táctiles:** `<Tooltip>` con fondo `bg-popover/95`, borde semántico, texto contrastado y soporte para eventos táctiles sin requerir `hover` persistente.
+
+## Rendimiento de Animaciones y GSAP
+
+- **Microinteracciones rápidas:** Duración máxima de 120ms a 180ms para transiciones y listas (`stagger: 0.03` a `0.05`).
+- **Compositing por GPU:** Animar exclusivamente `transform` (`x`, `y`, `scale`) y `opacity`. Queda estrictamente prohibido animar propiedades de layout como `height`, `width`, `top` o `left`.
+- **Preferencia de Movimiento Reducido (`prefers-reduced-motion`):**
+  Todos los hooks y componentes GSAP (`useGsapCardHover`, `useGsapStaggerList`, `PageTransition`) deben consultar `window.matchMedia('(prefers-reduced-motion: reduce)')`. Si está activo, retornar de inmediato y renderizar la interfaz con opacidad 1 y sin desplazamientos espaciales.
+- **Soporte Táctil sin Hover Fantasma:**
+  Las animaciones basadas en puntero deben encapsularse con la media query `@media (hover: hover)` para evitar que queden atascadas en dispositivos móviles o tablets tras un toque.
+- **Eliminación de Stagger en Vistas de Alta Densidad:**
+  No aplicar animaciones secuenciales en selectores donde el usuario necesite actuar de inmediato (ej. selector de habitaciones en reservas o catálogo POS).
+
 ## Accesibilidad e interacción
 
-- Mantener navegación completa por teclado y foco visible.
+- Mantener navegación completa por teclado y foco visible en todos los elementos interactivos (`ring-2 ring-primary ring-offset-2`).
 - Usar `aria-current` en navegación y `aria-selected` en pestañas.
 - Asociar errores de campo mediante `aria-describedby`.
-- Anunciar resultados con toast o mensajes inline.
-- Respetar `prefers-reduced-motion`.
-- Reservar GSAP para entrada y jerarquía; nunca retrasar información crítica.
-- Confirmar eliminar, anular y otras acciones irreversibles.
+- Anunciar resultados con toast o mensajes inline accesibles a lectores de pantalla.
+- Respetar `prefers-reduced-motion` globalmente.
+- Objetivos táctiles mínimos: 44 × 44 px en botones secundarios e iconos; 50 px de altura en botones de acción rápida móvil.
+- Confirmar eliminar, anular y otras acciones irreversibles mediante `ConfirmDialog`.
 
 ## Checklist visual
 
 Revisar como mínimo:
 
-- 360 × 800;
-- 390 × 844;
-- 768 × 1024;
-- 1024 × 768;
-- 1366 × 768;
-- 1920 × 1080;
+- 360 × 800 (móviles estándar);
+- 390 × 844 (iOS);
+- 768 × 1024 (tablets en vertical - iPad);
+- 1024 × 768 (tablets en horizontal / POS de mostrador);
+- 1366 × 768 (laptops estándar);
+- 1920 × 1080 (pantallas de administración desktop);
 - modo claro y oscuro;
 - zoom de navegador al 200 %;
 - navegación solo con teclado;
 - estados loading, vacío, error, offline y contenido extenso.
+

@@ -2,8 +2,8 @@
 
 **Dominio:** Caja
 **Prioridad:** P1
-**Versión:** 3.0 Enterprise
-**Última actualización:** Agosto 2026
+**Versión:** 3.2 Enterprise
+**Última actualización:** 7 de Septiembre de 2026
 **Dependencias:** `specs/domain-ventas.md`, `specs/domain-limpieza.md`
 
 ---
@@ -199,6 +199,25 @@ SI diferencia > 0.01 → sobrante, requiere nota
 ```
 
 El arqueo es una evidencia operativa y no sustituye el `saldo_final`, que conserva la fórmula contable `ingresos - egresos`. La evidencia se incorpora en `notas` para mantener compatibilidad con la tabla actual.
+
+### RN-CAJA-012: Unicidad e Idempotencia de Cierre de Caja (v3.2.0)
+
+```sql
+CREATE UNIQUE INDEX IF NOT EXISTS unique_cierre_caja_hotel_fecha_turno 
+ON cierres_caja(hotel_id, fecha_cierre, turno);
+```
+
+- Impide que se registren múltiples cierres de caja para el mismo hotel, fecha operativa y turno (`mañana`, `tarde`, `noche`), garantizando idempotencia en el cierre contable y evitando duplicidades en reportes financieros.
+
+### RN-CAJA-013: Integridad de Saldos no Negativos (v3.2.0)
+
+```sql
+ALTER TABLE cierres_caja 
+ADD CONSTRAINT check_cierre_caja_saldos_non_negative 
+CHECK (saldo_inicial >= 0 AND monto_esperado >= 0);
+```
+
+- Asegura a nivel de motor de base de datos que ni el saldo inicial de apertura ni el monto esperado puedan ser negativos.
 
 ---
 

@@ -1,6 +1,6 @@
 # Flujo de negocio hotelero
 
-**Última revisión:** 16 de agosto de 2026
+**Última revisión:** 7 de septiembre de 2026 (v3.2.0)
 
 Este documento resume el ciclo operativo que debe conservarse al evolucionar la interfaz o la arquitectura. Las reglas detalladas se encuentran en `specs/domain-*.md`.
 
@@ -92,9 +92,10 @@ Después del checkout:
 
 1. la habitación aparece pendiente de limpieza;
 2. housekeeping inicia y completa la tarea;
-3. si no hay incidencia, la habitación pasa a disponible;
-4. si existe una falla, pasa a mantenimiento;
-5. una habitación en mantenimiento vuelve primero a limpieza antes de quedar disponible.
+3. el personal marca la habitación como limpia usando la interfaz móvil con **Optimistic UI** (cambio visual inmediato y toast con ventana de 4 segundos para "Deshacer");
+4. si no hay incidencia, la habitación pasa a disponible;
+5. si existe una falla, se reporta la avería y pasa a mantenimiento;
+6. una habitación en mantenimiento vuelve primero a limpieza antes de quedar disponible.
 
 Transiciones canónicas:
 
@@ -115,7 +116,7 @@ Caja consolida ingresos del hotel, ventas POS y egresos dentro del hotel activo.
 3. El responsable ingresa el efectivo contado.
 4. Se calcula la diferencia.
 5. Una diferencia exige observación.
-6. Se confirma el cierre y se conserva su trazabilidad.
+6. Se confirma el cierre y se conserva su trazabilidad. El cierre aplica validación de idempotencia (`unique_cierre_caja_hotel_fecha_turno`) y restricción de saldos no negativos a nivel de base de datos.
 7. El turno puede exportarse en PDF o CSV.
 
 Los comprobantes pendientes o rechazados permanecen visibles para seguimiento; el cierre de caja no debe ocultar su estado fiscal.
