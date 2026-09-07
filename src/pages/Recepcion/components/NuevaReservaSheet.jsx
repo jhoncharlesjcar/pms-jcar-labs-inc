@@ -18,7 +18,6 @@ export const NuevaReservaSheet = ({
     habitacionesDisp,
     availabilityLoading,
     availabilityError,
-    roomGridRef,
     seleccionarHab,
     loadingIdentity,
     loyaltyAccount,

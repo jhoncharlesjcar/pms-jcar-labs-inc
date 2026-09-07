@@ -46,14 +46,6 @@ export default function Recepcion() {
         distance: 15,
     });
 
-    // Stagger 2D wave para el grid de habitaciones en el Sheet (5 columnas en desktop)
-    const roomGridRef = useGsapStaggerList([open, habitacionesDisp.length], {
-        stagger: 0.05,
-        direction: 'y',
-        distance: 12,
-        grid: 'auto',
-        from: 'start',
-    });
 
     return (
         <div className="page-shell">
@@ -135,7 +127,6 @@ export default function Recepcion() {
                 habitacionesDisp={habitacionesDisp}
                 seleccionarHab={seleccionarHab}
                 noches={noches} total={total}
-                roomGridRef={roomGridRef}
                 createdReserva={createdReserva}
                 loyaltyAccount={loyaltyAccount}
                 loadingIdentity={loadingIdentity}
