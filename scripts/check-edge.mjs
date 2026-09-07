@@ -7,7 +7,10 @@ const entries = readdirSync(functionsRoot, { withFileTypes: true })
   .filter((entry) => entry.isDirectory() && !entry.name.startsWith('_'))
   .map((entry) => path.join(functionsRoot, entry.name, 'index.ts'))
   .sort();
-const tests = [path.join(functionsRoot, '_shared', 'runtime_test.ts')];
+const tests = [
+  path.join(functionsRoot, '_shared', 'runtime_test.ts'),
+  path.join(functionsRoot, 'ai-gateway', 'llm_test.ts'),
+];
 
 if (entries.length === 0) {
   throw new Error('No se encontraron Edge Functions para validar');
@@ -34,6 +37,7 @@ if ((result.status ?? 1) !== 0) process.exit(result.status ?? 1);
 
 const testResult = spawnSync(binary, [
   'test',
+  '--allow-env',
   '--config',
   path.join(functionsRoot, 'deno.json'),
   '--lock',
