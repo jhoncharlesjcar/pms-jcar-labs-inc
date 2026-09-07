@@ -85,8 +85,8 @@ const RecepcionTimeline = ({ reservas, habitaciones }) => {
             <div className="overflow-x-auto custom-scrollbar">
                 <div className="min-w-[800px] lg:min-w-full inline-block align-middle pb-4">
                     {/* Header Row (Days) */}
-                    <div className="flex border-b border-border/50 sticky top-0 bg-card z-10">
-                        <div className="w-40 flex-shrink-0 p-3 border-r border-border/50 bg-muted/10 flex items-center">
+                    <div className="flex border-b border-border/50 sticky top-0 bg-card z-30">
+                        <div className="w-40 flex-shrink-0 p-3 border-r border-border/50 bg-card sticky left-0 z-30 shadow-[2px_0_8px_-2px_rgba(0,0,0,0.08)] flex items-center">
                             <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Hab.</span>
                         </div>
                         <div className="flex-1 flex">
@@ -111,13 +111,13 @@ const RecepcionTimeline = ({ reservas, habitaciones }) => {
                         {pisosOrdenados.map(piso => (
                             <React.Fragment key={piso}>
                                 {/* Piso Header */}
-                                <div className="bg-muted/30 border-b border-border/50 p-1.5 px-3">
+                                <div className="bg-muted/40 border-b border-border/50 p-1.5 px-3 sticky left-0 z-20">
                                     <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">{piso === 'Sin Piso' ? 'Sin Asignar' : `Piso ${piso}`}</span>
                                 </div>
                                 {/* Habitaciones del Piso */}
                                 {habitacionesAgrupadas[piso].map(hab => (
                                     <div key={hab.id} className="flex border-b border-border/30 group table-row-dense h-12">
-                                        <div className="w-40 flex-shrink-0 px-3 py-2 border-r border-border/50 flex items-center justify-between gap-2 bg-card group-hover:bg-transparent transition-colors">
+                                        <div className="w-40 flex-shrink-0 px-3 py-2 border-r border-border/50 flex items-center justify-between gap-2 bg-card sticky left-0 z-20 shadow-[2px_0_8px_-2px_rgba(0,0,0,0.08)] group-hover:bg-muted/20 transition-colors">
                                             <div className="min-w-0">
                                                 <span className="text-sm font-bold tabular-dense tracking-dense">{hab.numero}</span>
                                                 <p className="truncate text-[9px] font-medium uppercase text-muted-foreground tracking-dense">{hab.tipo}</p>

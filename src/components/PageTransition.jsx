@@ -1,8 +1,6 @@
 /**
- * PageTransition — Transiciones de página premium con GSAP.
- *
- * Envuelve el contenido de la página con transiciones suaves de
- * desvanecimiento y deslizamiento usando GSAP.
+ * PageTransition — Transiciones de página operativas y ligeras con GSAP.
+ * Optimizado para cero latencia perceptiva y soporte a prefers-reduced-motion.
  */
 
 import { useRef, useEffect, memo } from 'react';
@@ -16,23 +14,25 @@ const PageTransition = memo(function PageTransition(/** @type {any} */ { childre
     const el = containerRef.current;
     if (!el) return;
 
-    // Cancelar animación existente
     if (animRef.current) {
       animRef.current.kill();
     }
 
-    // Estado inicial (oculto, ligeramente desplazado hacia abajo)
+    // Guarda de accesibilidad y modo rápido
+    if (typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      gsap.set(el, { opacity: 1, y: 0 });
+      return;
+    }
+
+    // Transición ágil y sutil (120ms, sin saltos verticales)
     gsap.set(el, { 
-      opacity: 0, 
-      y: 8,
+      opacity: 0.9, 
     });
 
-    // Animar entrada
     animRef.current = gsap.to(el, {
       opacity: 1,
-      y: 0,
-      duration: 0.35,
-      ease: 'power3.out',
+      duration: 0.12,
+      ease: 'power1.out',
     });
 
     return () => {
@@ -43,7 +43,7 @@ const PageTransition = memo(function PageTransition(/** @type {any} */ { childre
   }, []);
 
   return (
-    <div ref={containerRef} className="w-full will-change-transform will-change-opacity">
+    <div ref={containerRef} className="w-full">
       {children}
     </div>
   );

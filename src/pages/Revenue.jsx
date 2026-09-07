@@ -132,18 +132,19 @@ export const Revenue = memo(function Revenue() {
                         <AreaChart data={forecastData.data} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
                             <defs>
                                 <linearGradient id="colorOcupacion" x1="0" y1="0" x2="0" y2="1">
-                                    <stop offset="5%" stopColor="#10B981" stopOpacity={0.3}/>
-                                    <stop offset="95%" stopColor="#10B981" stopOpacity={0}/>
+                                    <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.35}/>
+                                    <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0.02}/>
                                 </linearGradient>
                             </defs>
-                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" />
+                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" opacity={0.5} />
                             <XAxis dataKey="dia" stroke="hsl(var(--muted-foreground))" fontSize={11} tickMargin={10} />
                             <YAxis stroke="hsl(var(--muted-foreground))" fontSize={11} unit="%" domain={[0, 100]} />
                             <Tooltip 
-                                contentStyle={{ backgroundColor: 'hsl(var(--card))', borderColor: 'hsl(var(--border))', borderRadius: '12px' }}
+                                isAnimationActive={false}
+                                contentStyle={{ backgroundColor: 'hsl(var(--card))', borderColor: 'hsl(var(--border))', borderRadius: '12px', boxShadow: '0 8px 24px -4px rgba(0,0,0,0.12)' }}
                                 itemStyle={{ color: 'hsl(var(--foreground))', fontWeight: 'bold' }}
                             />
-                            <Area type="monotone" dataKey="ocupacion" name="Ocupación (%)" stroke="#10B981" strokeWidth={3} fillOpacity={1} fill="url(#colorOcupacion)" />
+                            <Area type="monotone" dataKey="ocupacion" name="Ocupación (%)" stroke="hsl(var(--primary))" strokeWidth={2.5} fillOpacity={1} fill="url(#colorOcupacion)" />
                         </AreaChart>
                     </ResponsiveContainer>
                 </div>

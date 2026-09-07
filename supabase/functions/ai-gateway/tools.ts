@@ -118,6 +118,20 @@ export const geminiToolsDefinition = [
 ];
 
 export class ToolExecutor {
+  private toolCallCounts: Map<string, number> = new Map();
+  private static readonly TOOL_LIMITS: Record<string, number> = {
+    search_availability: 5,
+    create_quote: 3,
+    create_reservation_hold: 2,
+    create_payment_request: 2,
+    check_payment_status: 5,
+    submit_payment_proof: 2,
+    get_hotel_policies: 5,
+    get_reservation: 3,
+    start_pre_checkin: 1,
+    handoff_to_human: 1,
+  };
+
   constructor(
     private supabase: any,
     private hotelId: string,
@@ -138,6 +152,13 @@ export class ToolExecutor {
 
   async executeTool(name: string, args: any): Promise<any> {
     console.log(`[ToolExecutor] Executing ${name}`);
+    const count = (this.toolCallCounts.get(name) || 0) + 1;
+    const limit = ToolExecutor.TOOL_LIMITS[name] || 3;
+    if (count > limit) {
+      console.warn(`[ToolExecutor] Rate limit exceeded for ${name}: ${count}/${limit}`);
+      return { error: `Límite de uso excedido para ${name}. Transfiriendo a recepción.` };
+    }
+    this.toolCallCounts.set(name, count);
     try {
       const resolvedArgs = this.restoreProtectedValues(args);
       switch (name) {

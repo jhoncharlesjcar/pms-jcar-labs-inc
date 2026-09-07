@@ -83,12 +83,12 @@ function createEntityProxy(tableName) {
         },
         /**
          * Lista registros con ordenamiento, límite y columnas opcionales
-         * @param {string} orderBy - Campo de ordenamiento. Prefijo '-' para DESC (ej: '-created_date')
-         * @param {number} limit - Límite de registros
-         * @param {string} columns - Columnas a seleccionar (ej: 'id, nombre, precio')
+         * @param {string} [orderBy] - Campo de ordenamiento. Prefijo '-' para DESC (ej: '-created_date')
+         * @param {number} [limit=500] - Límite de registros (por defecto 500 para evitar consultas ilimitadas)
+         * @param {string} [columns='*'] - Columnas a seleccionar (ej: 'id, nombre, precio')
          * @returns {Promise<Array>}
          */
-        async list(orderBy, limit, columns = '*') {
+        async list(orderBy, limit = 500, columns = '*') {
             let query = supabase.from(tableName).select(columns);
 
             if (orderBy) {
@@ -100,8 +100,9 @@ function createEntityProxy(tableName) {
                 query = query.order(dateColumn, { ascending: false });
             }
 
-            if (limit) {
-                query = query.limit(limit);
+            const effectiveLimit = limit ?? 500;
+            if (effectiveLimit && effectiveLimit > 0) {
+                query = query.limit(effectiveLimit);
             }
 
             const { data, error } = await query;

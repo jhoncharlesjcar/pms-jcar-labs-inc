@@ -79,5 +79,32 @@ describe('habitaciones.service.ts', () => {
       expect(res.disponibles).toBe(2);
       expect(res.porcentajeOcupacion).toBe(50); // (1 ocupada + 1 limpieza) / 4 = 50%
     });
+
+    it('retorna 0% de ocupacion si no hay habitaciones', () => {
+      const res = calcularEstadisticas([]);
+      expect(res.total).toBe(0);
+      expect(res.porcentajeOcupacion).toBe(0);
+    });
+  });
+
+  describe('puedeEliminarHabitacion y filtrarPorEstado', () => {
+    it('bloquea eliminacion si tiene reservas activas', async () => {
+      const { puedeEliminarHabitacion } = await import('@/services/habitaciones.service');
+      expect(puedeEliminarHabitacion(0)).toEqual({ permite: true });
+      const bloqueado = puedeEliminarHabitacion(3);
+      expect(bloqueado.permite).toBe(false);
+      expect(bloqueado.error).toContain('tiene 3 reserva(s) activa(s)');
+    });
+
+    it('filtra habitaciones por estado o retorna todas si el estado es null', async () => {
+      const { filtrarPorEstado } = await import('@/services/habitaciones.service');
+      const habs: HabitacionResumen[] = [
+        { id: '1', numero: '1', tipo: 'simple', estado: 'disponible', precio_noche: 100, capacidad: 1 },
+        { id: '2', numero: '2', tipo: 'simple', estado: 'ocupada', precio_noche: 100, capacidad: 1 },
+      ];
+      expect(filtrarPorEstado(habs, null)).toHaveLength(2);
+      expect(filtrarPorEstado(habs, 'disponible')).toHaveLength(1);
+      expect(filtrarPorEstado(habs, 'limpieza')).toHaveLength(0);
+    });
   });
 });

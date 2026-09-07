@@ -64,4 +64,14 @@ describe('loyalty.service.ts (funciones puras de dominio)', () => {
       expect(calculateSimpleRoomDiscount(0, 5)).toBe(0);
     });
   });
+
+  describe('operaciones asincronas de fidelizacion', () => {
+    it('retorna null si faltan parametros en getLoyaltyAccount o accumulatePointsOnCheckout', async () => {
+      const { getLoyaltyAccount, accumulatePointsOnCheckout, redeemPointsOnCheckout, reversePointsOnCancellation } = await import('@/services/loyalty.service');
+      expect(await getLoyaltyAccount('', '')).toBeNull();
+      expect(await accumulatePointsOnCheckout({ hotelId: '', guestDocumentNumber: '', nights: 0 })).toBeNull();
+      expect(await redeemPointsOnCheckout({ hotelId: '', guestDocumentNumber: '' })).toBeNull();
+      expect(await reversePointsOnCancellation({ hotelId: '', guestDocumentNumber: '', reservaId: '' })).toBe(false);
+    });
+  });
 });

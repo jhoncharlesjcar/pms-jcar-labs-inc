@@ -10,6 +10,7 @@ const entries = readdirSync(functionsRoot, { withFileTypes: true })
 const tests = [
   path.join(functionsRoot, '_shared', 'runtime_test.ts'),
   path.join(functionsRoot, 'ai-gateway', 'llm_test.ts'),
+  path.join(functionsRoot, 'facturacion', 'xmlSigner_test.ts'),
 ];
 
 if (entries.length === 0) {

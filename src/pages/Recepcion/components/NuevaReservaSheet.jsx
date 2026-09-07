@@ -117,7 +117,7 @@ export const NuevaReservaSheet = ({
                                         <div className="w-1 h-4 bg-primary rounded-full" />
                                         <h3 className="text-xs font-semibold text-muted-foreground/90 uppercase tracking-wider">1. Selección de Habitación</h3>
                                     </div>
-                            <div ref={roomGridRef} className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
+                            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
                                 {availabilityLoading && <p role="status" className="col-span-full py-4 text-center text-sm text-muted-foreground">Consultando disponibilidad y tarifas del PMS…</p>}
                                 {!availabilityLoading && habitacionesDisp.map(h => (
                                     <button key={h.id} onClick={() => seleccionarHab(h)}

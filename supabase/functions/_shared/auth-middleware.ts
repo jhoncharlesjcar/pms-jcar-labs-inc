@@ -20,10 +20,20 @@ export interface AuthResult {
   status: number;
 }
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-idempotency-key, x-request-id, x-jcar-key-id, x-jcar-timestamp, x-jcar-nonce, x-jcar-signature',
-};
+export function buildCorsHeaders(req?: Request): Record<string, string> {
+  const allowedOrigins = (Deno.env.get('ALLOWED_ORIGINS') || '*').split(',').map((o: string) => o.trim());
+  const requestOrigin = req?.headers.get('Origin') || '';
+  const origin = allowedOrigins.includes('*') ? '*'
+    : allowedOrigins.includes(requestOrigin) ? requestOrigin
+    : allowedOrigins[0] || '';
+  return {
+    'Access-Control-Allow-Origin': origin,
+    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-idempotency-key, x-request-id, x-jcar-key-id, x-jcar-timestamp, x-jcar-nonce, x-jcar-signature',
+    'Vary': 'Origin',
+  };
+}
+
+const corsHeaders = buildCorsHeaders();
 
 /**
  * Valida el JWT del request y resuelve el perfil del usuario desde la BD.

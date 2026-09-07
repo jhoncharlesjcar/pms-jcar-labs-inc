@@ -91,4 +91,24 @@ describe('checkout.service.ts', () => {
       expect(validarPagoDuplicado('1', [{ reserva_id: '2' }]).valido).toBe(true);
     });
   });
+
+  describe('procesarCheckout', () => {
+    it('transiciona reserva a finalizada y habitacion a limpieza si el pago fue exitoso', async () => {
+      const { procesarCheckout } = await import('@/services/checkout.service');
+      const reserva = { id: 'r1', estado: 'activa' } as any;
+      const habitacion = { id: 'h1', estado: 'ocupada' } as any;
+
+      const exitoso = procesarCheckout({ reserva, habitacion, pagoExitoso: true });
+      expect(exitoso.success).toBe(true);
+      expect(exitoso.reserva.estado).toBe('finalizada');
+      expect(exitoso.habitacion.estado).toBe('limpieza');
+      expect(exitoso.errors).toHaveLength(0);
+
+      const fallido = procesarCheckout({ reserva, habitacion, pagoExitoso: false });
+      expect(fallido.success).toBe(false);
+      expect(fallido.reserva.estado).toBe('activa');
+      expect(fallido.habitacion.estado).toBe('ocupada');
+      expect(fallido.errors).toContain('El pago no fue procesado correctamente');
+    });
+  });
 });

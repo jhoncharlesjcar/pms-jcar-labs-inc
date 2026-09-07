@@ -9,7 +9,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { cn } from '@/lib/utils';
 import { useHotelData } from '@/hooks/useHotelData';
 import { toast } from 'sonner';
-import { gsap } from 'gsap';
 import EmptyState from '@/components/common/EmptyState';
 
 const EMOJI_DEFAULT = {
@@ -104,7 +103,6 @@ const CatalogoMinimarket = memo(function CatalogoMinimarket(/** @type {any} */ {
     });
 
     const gridRef = useRef(null);
-    const prevCatRef = useRef(catActiva);
 
     const filtrados = catActiva === 'todos'
         ? productos.filter(p => p.activo !== false)
@@ -120,34 +118,7 @@ const CatalogoMinimarket = memo(function CatalogoMinimarket(/** @type {any} */ {
         return (prod.stock || 0) - enCarrito;
     };
 
-    // GSAP stagger en grid de productos cuando cambia categoría
-    useEffect(() => {
-        if (!gridRef.current) return;
-        const cards = gridRef.current.children;
-        if (cards.length === 0) return;
 
-        // Solo animar si cambió la categoría (no en primera carga)
-        const isCategoryChange = prevCatRef.current !== null && prevCatRef.current !== catActiva;
-        prevCatRef.current = catActiva;
-
-        if (isCategoryChange) {
-            gsap.fromTo(
-                cards,
-                { opacity: 0, y: 15, scale: 0.97 },
-                {
-                    opacity: 1,
-                    y: 0,
-                    scale: 1,
-                    duration: 0.35,
-                    ease: 'power2.out',
-                    stagger: {
-                        each: 0.04,
-                        from: 'start',
-                    },
-                }
-            );
-        }
-    }, [catActiva, filtrados.length]);
 
     const abrirNuevo = () => { setEditando(null); setForm(emptyProd); setModalOpen(true); };
     const abrirEditar = (p) => { 

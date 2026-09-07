@@ -146,12 +146,13 @@ const Login = memo(function Login() {
 
                     <form ref={formRef} onSubmit={handleEmailLogin} className="space-y-4 sm:space-y-5" noValidate>
                         <div className="space-y-1.5 sm:space-y-2">
-                            <label className="text-[10px] sm:text-xs font-bold uppercase tracking-widest text-white/70 ml-1">
+                            <label htmlFor="login_email" className="text-[10px] sm:text-xs font-bold uppercase tracking-widest text-white/70 ml-1">
                                 Correo Electrónico
                             </label>
                             <div className="relative group">
                                 <Mail className={`absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 transition-colors ${fieldErrors.email ? 'text-red-400' : 'text-white/40 group-focus-within:text-primary'}`} />
                                 <input
+                                    id="login_email"
                                     name="email"
                                     type="email"
                                     placeholder="admin@hotel.com"
@@ -176,13 +177,14 @@ const Login = memo(function Login() {
 
                         <div className="space-y-1.5 sm:space-y-2">
                             <div className="flex items-center justify-between ml-1">
-                                <label className="text-[10px] sm:text-xs font-bold uppercase tracking-widest text-white/70">
+                                <label htmlFor="login_password" className="text-[10px] sm:text-xs font-bold uppercase tracking-widest text-white/70">
                                     Contraseña
                                 </label>
                             </div>
                             <div className="relative group">
                                 <Lock className={`absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 transition-colors ${fieldErrors.password ? 'text-red-400' : 'text-white/40 group-focus-within:text-primary'}`} />
                                 <input
+                                    id="login_password"
                                     name="password"
                                     type={showPassword ? 'text' : 'password'}
                                     placeholder="••••••••"

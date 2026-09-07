@@ -26,4 +26,27 @@ describe('structured telemetry', () => {
     expect(record.details.token).toBe('[REDACTED]');
     consoleSpy.mockRestore();
   });
+
+  it('exposes info, warn, error, and withCorrelation methods', async () => {
+    const logger = (await import('@/lib/logger')).default;
+    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+    const infoSpy = vi.spyOn(console, 'info').mockImplementation(() => undefined);
+
+    const warnRecord = logger.warn('test.warning', { key: 'val' });
+    expect(warnRecord.level).toBe('warn');
+
+    const infoRecord = logger.info('test.info', { a: 1 }, { b: 2 });
+    expect(infoRecord.level).toBe('info');
+
+    const errRecord = logger.error('test.err', { error: 'boom' });
+    expect(errRecord.level).toBe('error');
+
+    logger.debug('test.dbg');
+
+    const corrRecord = logger.withCorrelation('custom-corr-123', 'custom.event', { foo: 'bar' });
+    expect(corrRecord.details.upstream_correlation_id).toBe('custom-corr-123');
+
+    warnSpy.mockRestore();
+    infoSpy.mockRestore();
+  });
 });

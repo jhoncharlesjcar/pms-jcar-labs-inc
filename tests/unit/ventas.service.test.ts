@@ -79,12 +79,40 @@ describe('ventas.service.ts', () => {
     });
   });
 
-  describe('getTotalMonto', () => {
+  describe('getTotalMonto y carrito', () => {
     it('suma items del carrito', () => {
       expect(getTotalMonto([
         { id: '1', nombre: 'A', precio: 10, cantidad: 2, stock: 10 },
         { id: '2', nombre: 'B', precio: 5, cantidad: 1, stock: 10 }
       ])).toBe(25);
+    });
+
+    it('agrega productos al carrito e incrementa si ya existen', async () => {
+      const { agregarAlCarrito, cambiarCantidadCarrito, eliminarDelCarrito, validarStockSuficiente, filtrarPorMetodo } = await import('@/services/ventas.service');
+      const item = { id: 'p1', nombre: 'Agua', precio: 3, cantidad: 1, stock: 10 };
+      const carrito1 = agregarAlCarrito([], item);
+      expect(carrito1).toHaveLength(1);
+      expect(carrito1[0].cantidad).toBe(1);
+
+      const carrito2 = agregarAlCarrito(carrito1, item);
+      expect(carrito2).toHaveLength(1);
+      expect(carrito2[0].cantidad).toBe(2);
+
+      const carritoMod = cambiarCantidadCarrito(carrito2, 0, 5);
+      expect(carritoMod[0].cantidad).toBe(5);
+
+      const carritoElim = cambiarCantidadCarrito(carritoMod, 0, 0);
+      expect(carritoElim).toHaveLength(0);
+
+      const carritoDirectElim = eliminarDelCarrito([{ id: 'p1', nombre: 'Agua', precio: 3, cantidad: 1, stock: 10 }], 0);
+      expect(carritoDirectElim).toHaveLength(0);
+
+      expect(validarStockSuficiente({ id: 'p1', nombre: 'Agua', stock: 5 }, 3)).toBe(true);
+      expect(validarStockSuficiente({ id: 'p1', nombre: 'Agua', stock: 5 }, 10)).toBe(false);
+
+      const ventasTest = [{ id: '1', metodo_pago: 'efectivo' }, { id: '2', metodo_pago: 'yape' }] as any;
+      expect(filtrarPorMetodo(ventasTest, 'todos')).toHaveLength(2);
+      expect(filtrarPorMetodo(ventasTest, 'efectivo')).toHaveLength(1);
     });
   });
 });

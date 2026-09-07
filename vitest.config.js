@@ -33,10 +33,10 @@ export default defineConfig({
       // la UI (pages/components/hooks) y los workers no tienen cobertura unitaria:
       // requieren pruebas de integración/e2e y se miden por separado.
       thresholds: {
-        statements: 40,
-        branches: 30,
-        functions: 40,
-        lines: 40,
+        statements: 60,
+        branches: 50,
+        functions: 60,
+        lines: 60,
       },
     },
   },

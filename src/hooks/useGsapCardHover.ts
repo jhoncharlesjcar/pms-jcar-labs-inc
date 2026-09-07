@@ -1,5 +1,6 @@
 /**
- * useGsapCardHover — Hook para micro-interacciones hover en tarjetas con GSAP
+ * useGsapCardHover — Hook para micro-interacciones hover ligeras en tarjetas con GSAP
+ * Optimizada para no jank, GPU-only transforms y soporte a touch y prefers-reduced-motion.
  */
 import { useEffect } from 'react';
 import { gsap } from 'gsap';
@@ -18,11 +19,8 @@ export interface UseGsapCardHoverOptions {
 
 export function useGsapCardHover(ref: React.RefObject<HTMLElement | null>, opts: UseGsapCardHoverOptions = {}) {
   const {
-    scale = 1.02,
-    glowColor = 'hsl(var(--primary) / 0.18)',
-    glowSize = 28,
-    borderColor,
-    duration = 0.35,
+    scale = 1.01,
+    duration = 0.2,
     ease = 'power2.out',
   } = opts;
 
@@ -31,26 +29,11 @@ export function useGsapCardHover(ref: React.RefObject<HTMLElement | null>, opts:
   const onEnter = contextSafe(() => {
     const el = ref.current;
     if (!el) return;
-    
-    // GSAP cannot parse `var(...)` or `hsl(x y z / a)` natively in complex strings.
-    let resolvedGlowColor = glowColor;
-    if (resolvedGlowColor.includes('var(')) {
-      const varMatch = resolvedGlowColor.match(/var\((--[^)]+)\)/);
-      if (varMatch) {
-        const varValue = getComputedStyle(el).getPropertyValue(varMatch[1]).trim();
-        const commaSeparated = varValue.replace(/\s+/g, ', ');
-        resolvedGlowColor = resolvedGlowColor.replace(`var(${varMatch[1]})`, commaSeparated);
-      }
-    }
-    // Convert modern hsl(a b c / d) to hsla(a, b, c, d)
-    if (resolvedGlowColor.includes('/')) {
-      resolvedGlowColor = resolvedGlowColor.replace('hsl(', 'hsla(').replace('/', ',');
-    }
-    
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
     gsap.to(el, {
+      y: -2,
       scale,
-      boxShadow: `0 ${glowSize * 0.5}px ${glowSize}px -8px ${resolvedGlowColor}, 0 4px 12px rgba(0,0,0,0.08)`,
-      borderColor: borderColor || undefined,
       duration,
       ease,
       overwrite: 'auto',
@@ -60,19 +43,22 @@ export function useGsapCardHover(ref: React.RefObject<HTMLElement | null>, opts:
   const onLeave = contextSafe(() => {
     const el = ref.current;
     if (!el) return;
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
 
     gsap.to(el, {
+      y: 0,
       scale: 1,
-      boxShadow: 'none',
-      borderColor: borderColor ? 'transparent' : undefined,
       duration: duration * 0.8,
       ease: 'power2.out',
       overwrite: 'auto',
-      clearProps: 'boxShadow,borderColor'
+      clearProps: 'transform',
     });
   });
 
   useEffect(() => {
+    // Si no es un dispositivo con cursor hover (ej. móviles y tablets táctiles), no adjuntar listeners
+    if (typeof window === 'undefined' || !window.matchMedia('(hover: hover)').matches) return;
+
     const el = ref.current;
     if (!el) return;
 

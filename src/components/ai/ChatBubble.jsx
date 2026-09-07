@@ -124,7 +124,13 @@ export default function ChatBubble({ hotelId }) {
             )}
 
             {isOpen && (
-                <div ref={dialogRef} role="dialog" aria-modal="true" aria-labelledby="jcar-chat-title" className="flex h-[550px] max-h-[80vh] w-[350px] flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-2xl animate-in fade-in slide-in-from-bottom-8">
+                <div 
+                    ref={dialogRef} 
+                    role="dialog" 
+                    aria-modal="true" 
+                    aria-labelledby="jcar-chat-title" 
+                    className="fixed inset-x-3 bottom-3 top-16 sm:inset-auto sm:bottom-6 sm:right-6 sm:top-auto sm:h-[550px] sm:max-h-[85vh] sm:w-[380px] z-50 flex flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-2xl animate-in fade-in slide-in-from-bottom-6 duration-200"
+                >
                     <div className="flex items-center justify-between bg-primary p-4 text-primary-foreground shadow-md">
                         <div className="flex items-center gap-3">
                             <div className="relative flex h-10 w-10 items-center justify-center rounded-full bg-white/20">
@@ -160,8 +166,11 @@ export default function ChatBubble({ hotelId }) {
                         })}
                         {isTyping && (
                             <div className="flex justify-start">
-                                <div className="rounded-2xl rounded-bl-sm border border-border bg-card px-4 py-3 text-xs text-muted-foreground shadow-sm">
-                                    JcarAI está consultando el PMS…
+                                <div className="flex items-center gap-1.5 rounded-2xl rounded-bl-sm border border-border bg-card px-4 py-3 shadow-xs">
+                                    <span className="text-xs text-muted-foreground font-semibold mr-1">JcarAI</span>
+                                    <span className="h-1.5 w-1.5 rounded-full bg-primary animate-bounce [animation-delay:-0.3s]" />
+                                    <span className="h-1.5 w-1.5 rounded-full bg-primary animate-bounce [animation-delay:-0.15s]" />
+                                    <span className="h-1.5 w-1.5 rounded-full bg-primary animate-bounce" />
                                 </div>
                             </div>
                         )}

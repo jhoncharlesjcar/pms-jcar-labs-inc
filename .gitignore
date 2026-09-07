@@ -76,3 +76,4 @@ scratch/
 # Windows reserved files
 nul
 nul.*
+powershell.cmd

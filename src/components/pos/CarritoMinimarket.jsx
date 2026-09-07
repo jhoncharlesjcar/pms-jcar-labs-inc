@@ -11,35 +11,34 @@ const EMOJI_DEFAULT = {
 /**
  * @param {Object} props
  * @param {any[]} props.items
- * @param {(id: string, dir: 'inc' | 'dec') => void} props.onCambiarCantidad
- * @param {(id: string) => void} props.onEliminar
+ * @param {(id: number, cant: number) => void} props.onCambiarCantidad
+ * @param {(idx: number) => void} props.onEliminar
  */
 const CarritoMinimarket = memo(function CarritoMinimarket(/** @type {any} */ { items, onCambiarCantidad, onEliminar }) {
     const listRef = useRef(null);
     const prevLengthRef = useRef(0);
 
-    // GSAP stagger en items del carrito — solo anima el último item agregado
+    // GSAP microinteracción al ingresar un ítem nuevo al carrito
     useEffect(() => {
         if (!listRef.current) return;
+        if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
         const children = listRef.current.children;
         if (children.length === 0) return;
 
-        // Detectar si se agregó un item nuevo (no en primera carga)
         const isNewItem = prevLengthRef.current > 0 && children.length > prevLengthRef.current;
         prevLengthRef.current = children.length;
 
         if (isNewItem) {
-            // Animar solo el último hijo (el nuevo), sin afectar existentes
             const lastChild = children[children.length - 1];
             if (lastChild) {
                 gsap.fromTo(
                     lastChild,
-                    { opacity: 0, x: 20 },
+                    { opacity: 0, x: 12 },
                     {
                         opacity: 1,
                         x: 0,
-                        duration: 0.35,
-                        ease: 'power3.out',
+                        duration: 0.2,
+                        ease: 'power2.out',
                     }
                 );
             }
@@ -60,57 +59,66 @@ const CarritoMinimarket = memo(function CarritoMinimarket(/** @type {any} */ { i
     const total = items.reduce((s, i) => s + i.precio * i.cantidad, 0);
 
     return (
-        <div ref={listRef} className="divide-y divide-border">
-            {items.map((item, idx) => (
-                <div key={item.id} className="flex items-center gap-3 px-4 py-3 group hover:bg-muted/10 transition-colors">
-                    {/* Emoji */}
-                    <div className="w-8 h-8 rounded-lg bg-secondary/50 border border-border/40 flex items-center justify-center flex-shrink-0 shadow-sm">
-                        <span className="text-base drop-shadow-sm">
-                            {item.emoji || EMOJI_DEFAULT[item.categoria] || '📦'}
-                        </span>
-                    </div>
+        <div className="flex flex-col h-full justify-between">
+            <div ref={listRef} className="divide-y divide-border/60">
+                {items.map((item, idx) => (
+                    <div key={item.id} className="flex items-center gap-3 px-4 py-3 group hover:bg-muted/10 transition-colors">
+                        {/* Emoji */}
+                        <div className="w-9 h-9 rounded-lg bg-secondary/50 border border-border/40 flex items-center justify-center shrink-0 shadow-xs">
+                            <span className="text-base drop-shadow-sm">
+                                {item.emoji || EMOJI_DEFAULT[item.categoria] || '📦'}
+                            </span>
+                        </div>
 
-                    {/* Info */}
-                    <div className="flex-1 min-w-0">
-                        <p className="text-xs font-extrabold text-foreground leading-tight truncate">{item.nombre}</p>
-                        <p className="text-[9px] text-muted-foreground font-bold tracking-widest uppercase mt-0.5">S/ {item.precio.toFixed(2)} c/u</p>
-                    </div>
+                        {/* Info */}
+                        <div className="flex-1 min-w-0">
+                            <p className="text-xs font-extrabold text-foreground leading-tight truncate">{item.nombre}</p>
+                            <p className="text-[10px] text-muted-foreground font-bold tracking-wider uppercase mt-0.5">S/ {item.precio.toFixed(2)} c/u</p>
+                        </div>
 
-                    {/* Controles cantidad */}
-                    <div className="flex items-center gap-1 flex-shrink-0 bg-background/60 p-1 rounded-lg border border-border/60 shadow-2xs">
-                        <button
-                            type="button"
-                            onClick={() => onCambiarCantidad(idx, item.cantidad - 1)}
-                            className="w-8 h-8 rounded-md bg-card hover:bg-destructive hover:text-destructive-foreground active:scale-95 flex items-center justify-center shadow-2xs transition-all text-foreground"
-                            title="Disminuir cantidad"
-                        >
-                            <Minus className="w-3.5 h-3.5" />
-                        </button>
-                        <span className="w-6 text-center text-xs font-extrabold text-foreground tabular-nums">{item.cantidad}</span>
-                        <button
-                            type="button"
-                            onClick={() => onCambiarCantidad(idx, item.cantidad + 1)}
-                            className="w-8 h-8 rounded-md bg-card hover:bg-primary hover:text-primary-foreground active:scale-95 flex items-center justify-center shadow-2xs transition-all text-foreground"
-                            title="Aumentar cantidad"
-                        >
-                            <Plus className="w-3.5 h-3.5" />
-                        </button>
-                    </div>
+                        {/* Controles de cantidad táctiles (WCAG 44px) */}
+                        <div className="flex items-center gap-1.5 shrink-0 bg-muted/60 p-1 rounded-xl border border-border/50">
+                            <button
+                                type="button"
+                                onClick={() => onCambiarCantidad(idx, item.cantidad - 1)}
+                                className="w-9 h-9 sm:w-10 sm:h-10 rounded-lg bg-card hover:bg-destructive hover:text-destructive-foreground active:scale-95 flex items-center justify-center shadow-xs transition-all text-foreground"
+                                title="Disminuir cantidad"
+                                aria-label="Disminuir cantidad"
+                            >
+                                <Minus className="w-4 h-4" />
+                            </button>
+                            <span className="w-6 text-center text-sm font-extrabold text-foreground tabular-nums select-none">
+                                {item.cantidad}
+                            </span>
+                            <button
+                                type="button"
+                                onClick={() => onCambiarCantidad(idx, item.cantidad + 1)}
+                                className="w-9 h-9 sm:w-10 sm:h-10 rounded-lg bg-card hover:bg-primary hover:text-primary-foreground active:scale-95 flex items-center justify-center shadow-xs transition-all text-foreground"
+                                title="Aumentar cantidad"
+                                aria-label="Aumentar cantidad"
+                            >
+                                <Plus className="w-4 h-4" />
+                            </button>
+                        </div>
 
-                    {/* Subtotal + eliminar */}
-                    <div className="text-right flex-shrink-0 min-w-[65px] flex flex-col items-end">
-                        <p className="text-xs font-extrabold text-foreground tabular-nums tracking-tighter">S/ {(item.precio * item.cantidad).toFixed(2)}</p>
-                        <button 
-                            type="button"
-                            onClick={() => onEliminar(idx)} 
-                            className="text-muted-foreground hover:text-destructive transition-colors p-1.5 -mr-1 mt-0.5 opacity-70 hover:opacity-100"
-                            title="Eliminar producto"
-                        >
-                            <Trash2 className="w-3.5 h-3.5" />
-                        </button>
+                        {/* Subtotal + eliminar */}
+                        <div className="text-right shrink-0 min-w-[65px] flex flex-col items-end">
+                            <p className="text-xs font-extrabold text-foreground tabular-nums tracking-tighter">
+                                S/ {(item.precio * item.cantidad).toFixed(2)}
+                            </p>
+                            <button 
+                                type="button"
+                                onClick={() => onEliminar(idx)} 
+                                className="text-muted-foreground hover:text-destructive transition-colors p-1.5 -mr-1 mt-0.5 opacity-70 hover:opacity-100"
+                                title="Eliminar producto"
+                                aria-label="Eliminar producto"
+                            >
+                                <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                        </div>
                     </div>
-                </div>
-            ))}
+                ))}
+            </div>
 
             {/* Resumen */}
             <div className="px-4 py-3.5 bg-muted/20 border-t border-border/40">

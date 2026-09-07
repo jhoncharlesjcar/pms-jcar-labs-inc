@@ -139,4 +139,36 @@ describe('recepcion.service.ts', () => {
       expect(res.valido).toBe(false);
     });
   });
+
+  describe('transiciones y reservas online', () => {
+    it('valida transiciones de estado de reserva', async () => {
+      const { calcularTransicionReserva, esTransicionHabitacionValida, generarNumeroReservaOnline, construirPayloadReservaOnline } = await import('@/services/recepcion.service');
+      
+      expect(calcularTransicionReserva('pendiente', 'check-in')).toEqual({ nuevoEstado: 'activa', valido: true });
+      expect(calcularTransicionReserva('activa', 'check-out')).toEqual({ nuevoEstado: 'finalizada', valido: true });
+      expect(calcularTransicionReserva('finalizada', 'check-in').valido).toBe(false);
+
+      expect(esTransicionHabitacionValida('disponible', 'ocupada')).toBe(true);
+      expect(esTransicionHabitacionValida('ocupada', 'disponible')).toBe(true);
+      expect(esTransicionHabitacionValida('mantenimiento', 'ocupada')).toBe(false);
+
+      expect(generarNumeroReservaOnline()).toMatch(/^W\d{6}$/);
+
+      const payload = construirPayloadReservaOnline({
+        hotelId: 'h1',
+        habitacionId: 'hab1',
+        habitacionNumero: '101',
+        habitacionTipo: 'Simple',
+        huespedNombre: 'Carlos Test',
+        huespedDni: '12345678',
+        fechaEntrada: '2026-10-01',
+        fechaSalida: '2026-10-03',
+        total: 150,
+      });
+      expect(payload.hotel_id).toBe('h1');
+      expect(payload.estado).toBe('pendiente');
+      expect(payload.numero_reserva).toMatch(/^W\d{6}$/);
+      expect(payload.total).toBe(150);
+    });
+  });
 });

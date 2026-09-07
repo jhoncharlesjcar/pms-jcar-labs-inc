@@ -1,5 +1,6 @@
 /**
  * useGsapStaggerList — Hook para animaciones stagger de listas con GSAP
+ * Soporta de forma nativa prefers-reduced-motion y transiciones ágiles sin lag.
  */
 import { useRef } from 'react';
 import { gsap } from 'gsap';
@@ -18,10 +19,10 @@ export interface UseGsapStaggerListOptions {
 
 export function useGsapStaggerList<T extends HTMLElement = HTMLDivElement>(deps: any[] = [], opts: UseGsapStaggerListOptions = {}) {
   const {
-    stagger = 0.025,
+    stagger = 0.02,
     from = 'start',
     direction = 'y',
-    distance = 20,
+    distance = 10,
     animateOnMount = true,
     grid,
   } = opts;
@@ -35,6 +36,13 @@ export function useGsapStaggerList<T extends HTMLElement = HTMLDivElement>(deps:
 
     const children = container.children;
     if (!children || children.length === 0) return;
+
+    // Guarda de accesibilidad: si el usuario prefiere movimiento reducido
+    if (typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      gsap.set(children, { opacity: 1, x: 0, y: 0, scale: 1 });
+      prevLengthRef.current = children.length;
+      return;
+    }
 
     // No animar al montar si está deshabilitado
     if (!animateOnMount && prevLengthRef.current === 0) {
@@ -58,7 +66,7 @@ export function useGsapStaggerList<T extends HTMLElement = HTMLDivElement>(deps:
       toVars.x = 0;
     } else if (direction === 'scale') {
       fromVars.opacity = 0;
-      fromVars.scale = 0.9;
+      fromVars.scale = 0.96;
       toVars.opacity = 1;
       toVars.scale = 1;
     } else {
@@ -75,14 +83,14 @@ export function useGsapStaggerList<T extends HTMLElement = HTMLDivElement>(deps:
       staggerConfig.grid = grid;
     }
 
-    // Animar hijos con stagger
+    // Animar hijos con stagger ágil (0.18s)
     gsap.fromTo(
       children,
       { ...fromVars },
       {
         ...toVars,
-        duration: 0.25,
-        ease: 'power3.out',
+        duration: 0.18,
+        ease: 'power2.out',
         stagger: staggerConfig,
       }
     );
@@ -106,10 +114,10 @@ export interface UseGsapStaggerChildrenOptions {
  */
 export function useGsapStaggerChildren<T extends HTMLElement = HTMLDivElement>(deps: any[] = [], opts: UseGsapStaggerChildrenOptions = {}) {
   const {
-    stagger = 0.04,
+    stagger = 0.03,
     from = 'start',
     direction = 'y',
-    distance = 20,
+    distance = 12,
     selector = ':scope > *',
   } = opts;
 
@@ -122,6 +130,12 @@ export function useGsapStaggerChildren<T extends HTMLElement = HTMLDivElement>(d
     const children = container.querySelectorAll(selector);
     if (children.length === 0) return;
 
+    // Guarda de accesibilidad
+    if (typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      gsap.set(children, { opacity: 1, x: 0, y: 0, scale: 1 });
+      return;
+    }
+
     const fromVars: any = { opacity: 0 };
     const toVars: any = { opacity: 1 };
 
@@ -132,7 +146,7 @@ export function useGsapStaggerChildren<T extends HTMLElement = HTMLDivElement>(d
       fromVars.x = -distance;
       toVars.x = 0;
     } else if (direction === 'scale') {
-      fromVars.scale = 0.9;
+      fromVars.scale = 0.96;
       toVars.scale = 1;
     }
 
@@ -141,8 +155,8 @@ export function useGsapStaggerChildren<T extends HTMLElement = HTMLDivElement>(d
       { ...fromVars },
       {
         ...toVars,
-        duration: 0.4,
-        ease: 'power3.out',
+        duration: 0.2,
+        ease: 'power2.out',
         stagger: {
           each: stagger,
           from,

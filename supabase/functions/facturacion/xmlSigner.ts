@@ -46,7 +46,7 @@ export function signXmlDocument(xmlString: string, pfxCache: { privateKeyPem: st
   });
 
   sig.addReference({
-    xpath: "//*[local-name()='Invoice']",
+    xpath: "//*[local-name()='Invoice' or local-name()='CreditNote' or local-name()='DebitNote']",
     digestAlgorithm: "http://www.w3.org/2001/04/xmlenc#sha256",
     transforms: [
       "http://www.w3.org/2000/09/xmldsig#enveloped-signature",

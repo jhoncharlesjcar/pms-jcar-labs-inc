@@ -496,7 +496,7 @@
   }
 
   .page-header> :last-child,
-  .page-header> :last-child>button {
+  .page-header> :last-child>button:only-child {
     width: 100%;
   }
 

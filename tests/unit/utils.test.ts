@@ -22,4 +22,11 @@ describe('shared utilities', () => {
     expect(getRandomValues).toHaveBeenCalledOnce();
     Object.defineProperty(globalThis, 'crypto', { value: originalCrypto, configurable: true });
   });
+
+  it('throws when crypto is undefined', () => {
+    const originalCrypto = globalThis.crypto;
+    Object.defineProperty(globalThis, 'crypto', { value: undefined, configurable: true });
+    expect(() => generateUUID()).toThrow('No hay un generador criptografico disponible');
+    Object.defineProperty(globalThis, 'crypto', { value: originalCrypto, configurable: true });
+  });
 });

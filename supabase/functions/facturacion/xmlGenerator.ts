@@ -45,6 +45,13 @@ const LINE_ELEMENT: Record<TipoDocumento, string> = {
   "08": "cac:DebitNoteLine",
 };
 
+const QUANTITY_ELEMENT: Record<TipoDocumento, string> = {
+  "01": "cbc:InvoicedQuantity",
+  "03": "cbc:InvoicedQuantity",
+  "07": "cbc:CreditedQuantity",
+  "08": "cbc:DebitedQuantity",
+};
+
 const IGV_TRIBUTO = { id: "1000", nombre: "IGV", codigoInternacional: "VAT" };
 
 // Catálogo 07 (tipo de afectación del IGV): 10 = Gravado - Operación Onerosa
@@ -123,7 +130,7 @@ function customerParty(doc: any, comp: Record<string, any>): any {
   return customer;
 }
 
-function lineElement(parent: any, lineName: string, id: number, cantidad: number, unitCode: string, precioUnitarioBase: number, percent: string, descripcion: string, moneda: string): any {
+function lineElement(parent: any, lineName: string, quantityName: string, id: number, cantidad: number, unitCode: string, precioUnitarioBase: number, percent: string, descripcion: string, moneda: string): any {
   const cant = new Decimal(cantidad || 0);
   const unitBase = new Decimal(precioUnitarioBase || 0);
   const lineExt = cant.mul(unitBase).toDecimalPlaces(2);
@@ -132,7 +139,7 @@ function lineElement(parent: any, lineName: string, id: number, cantidad: number
 
   const line = parent.ele(lineName);
   line.ele("cbc:ID").txt(String(id)).up();
-  line.ele("cbc:InvoicedQuantity", { unitCode }).txt(cant.toFixed(2)).up();
+  line.ele(quantityName, { unitCode }).txt(cant.toFixed(2)).up();
   line.ele("cbc:LineExtensionAmount", { currencyID: moneda }).txt(lineExt.toFixed(2)).up();
   line.ele("cac:PricingReference").ele("cac:AlternativeConditionPrice")
     .ele("cbc:PriceAmount", { currencyID: moneda }).txt(unitPriceIgv.toFixed(2)).up()
@@ -156,6 +163,7 @@ export function buildUblXml(
   const { root, xmlns } = ROOT_AND_NS[tipoDoc];
   const typeCodeElement = TYPE_CODE_ELEMENT[tipoDoc];
   const lineName = LINE_ELEMENT[tipoDoc];
+  const quantityName = QUANTITY_ELEMENT[tipoDoc];
 
   const { date: issueDate, time: issueTime } = limaNow();
   const moneda = "PEN";
@@ -218,12 +226,12 @@ export function buildUblXml(
   if (detalle.length > 0) {
     let idx = 1;
     for (const d of detalle) {
-      lineElement(doc, lineName, idx, Number(d.cantidad || 1), "NIU", Number(d.precio_unitario || 0), percent, d.descripcion, moneda);
+      lineElement(doc, lineName, quantityName, idx, Number(d.cantidad || 1), "NIU", Number(d.precio_unitario || 0), percent, d.descripcion, moneda);
       idx += 1;
     }
   } else {
     // Línea única consolidada
-    lineElement(doc, lineName, 1, 1, "NIU", Number(subtotalAmount), percent, "SERVICIO DE HOSPEDAJE / CONSUMO", moneda);
+    lineElement(doc, lineName, quantityName, 1, 1, "NIU", Number(subtotalAmount), percent, "SERVICIO DE HOSPEDAJE / CONSUMO", moneda);
   }
 
   return doc.end({ prettyPrint: false });

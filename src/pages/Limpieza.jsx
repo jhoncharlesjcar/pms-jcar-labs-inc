@@ -14,6 +14,8 @@ import { canTransitionRoomStatus, ROOM_STATUS_CONFIG } from '@/constants/roomSta
 import ConfirmDialog, { useConfirmDialog } from '@/components/common/ConfirmDialog';
 import { differenceInMinutes } from 'date-fns';
 
+import { toast } from 'sonner';
+
 import { useLimpiezaData } from './Limpieza/hooks/useLimpiezaData';
 
 const roomStatusConfig = {
@@ -37,10 +39,32 @@ const Limpieza = memo(function Limpieza() {
         filtradas
     } = useLimpiezaData();
 
+    const handleMarcarListaOptimista = (hab) => {
+        const estadoAnterior = hab.estado;
+        actualizarEstado.mutate(
+            { id: hab.id, estado: 'disponible' },
+            {
+                onError: () => {
+                    toast.error(`Error al actualizar Habitación #${hab.numero}`);
+                }
+            }
+        );
+        toast.success(`Habitación #${hab.numero} marcada como LISTA`, {
+            duration: 4000,
+            action: {
+                label: 'Deshacer',
+                onClick: () => {
+                    actualizarEstado.mutate({ id: hab.id, estado: estadoAnterior });
+                    toast.info(`Habitación #${hab.numero} restaurada a ${ROOM_STATUS_CONFIG[estadoAnterior]?.shortLabel || estadoAnterior}`);
+                }
+            }
+        });
+    };
+
     const gridRef = useGsapStaggerList([verTodas, filtradas.length], {
-        stagger: 0.05,
+        stagger: 0.04,
         direction: 'y',
-        distance: 10,
+        distance: 8,
     });
 
     return (
@@ -59,9 +83,33 @@ const Limpieza = memo(function Limpieza() {
                 </div>
             </div>
 
-            {/* Barra de KPIs de Housekeeping */}
-            <div className="ui-card-grid grid grid-cols-2 lg:grid-cols-4">
-                <div className="enterprise-card metric-card ui-card-pad flex items-center gap-3 transition-all duration-300 hover:-translate-y-1 hover:shadow-lg">
+            {/* Barra de KPIs compacta en Móvil (sin scroll, visible encima del pliegue) */}
+            <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1 sm:hidden">
+                <div className="flex items-center gap-2 rounded-xl border border-purple-500/25 bg-purple-500/10 px-3 py-2 shrink-0">
+                    <BroomIcon className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" />
+                    <span className="text-xs font-extrabold text-purple-600 dark:text-purple-400 tabular-nums">{metrics.sucias}</span>
+                    <span className="text-[10px] font-bold text-muted-foreground uppercase">Sucias</span>
+                </div>
+                <div className="flex items-center gap-2 rounded-xl border border-amber-500/25 bg-amber-500/10 px-3 py-2 shrink-0">
+                    <Wrench className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
+                    <span className="text-xs font-extrabold text-amber-600 dark:text-amber-400 tabular-nums">{metrics.mantenimiento}</span>
+                    <span className="text-[10px] font-bold text-muted-foreground uppercase">Fallas</span>
+                </div>
+                <div className="flex items-center gap-2 rounded-xl border border-emerald-500/25 bg-emerald-500/10 px-3 py-2 shrink-0">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+                    <span className="text-xs font-extrabold text-emerald-600 dark:text-emerald-400 tabular-nums">{metrics.disponibles}</span>
+                    <span className="text-[10px] font-bold text-muted-foreground uppercase">Listas</span>
+                </div>
+                <div className="flex items-center gap-2 rounded-xl border border-rose-500/25 bg-rose-500/10 px-3 py-2 shrink-0">
+                    <User className="w-3.5 h-3.5 text-rose-600 dark:text-rose-400" />
+                    <span className="text-xs font-extrabold text-rose-600 dark:text-rose-400 tabular-nums">{metrics.ocupadas}</span>
+                    <span className="text-[10px] font-bold text-muted-foreground uppercase">Ocupadas</span>
+                </div>
+            </div>
+
+            {/* Barra de KPIs completa en Tablet y Desktop */}
+            <div className="ui-card-grid hidden sm:grid grid-cols-2 lg:grid-cols-4">
+                <div className="enterprise-card metric-card ui-card-pad flex items-center gap-3 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md">
                     <div className="p-2 rounded-lg bg-purple-500/10 text-purple-600 dark:text-purple-400 flex items-center justify-center shadow-sm flex-shrink-0">
                         <BroomIcon className="w-4 h-4" />
                     </div>
@@ -71,7 +119,7 @@ const Limpieza = memo(function Limpieza() {
                     </div>
                 </div>
 
-                <div className="enterprise-card metric-card ui-card-pad flex items-center gap-3 transition-all duration-300 hover:-translate-y-1 hover:shadow-lg">
+                <div className="enterprise-card metric-card ui-card-pad flex items-center gap-3 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md">
                     <div className="p-2 rounded-lg bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center shadow-sm flex-shrink-0">
                         <Wrench className="w-4 h-4" />
                     </div>
@@ -81,7 +129,7 @@ const Limpieza = memo(function Limpieza() {
                     </div>
                 </div>
 
-                <div className="enterprise-card metric-card ui-card-pad flex items-center gap-3 transition-all duration-300 hover:-translate-y-1 hover:shadow-lg">
+                <div className="enterprise-card metric-card ui-card-pad flex items-center gap-3 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md">
                     <div className="p-2 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shadow-sm flex-shrink-0">
                         <CheckCircle2 className="w-4 h-4" />
                     </div>
@@ -91,7 +139,7 @@ const Limpieza = memo(function Limpieza() {
                     </div>
                 </div>
 
-                <div className="enterprise-card metric-card ui-card-pad flex items-center gap-3 transition-all duration-300 hover:-translate-y-1 hover:shadow-lg">
+                <div className="enterprise-card metric-card ui-card-pad flex items-center gap-3 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md">
                     <div className="p-2 rounded-lg bg-rose-500/10 text-rose-600 dark:text-rose-400 flex items-center justify-center shadow-sm flex-shrink-0">
                         <User className="w-4 h-4" />
                     </div>
@@ -195,17 +243,10 @@ const Limpieza = memo(function Limpieza() {
                                                 <Button 
                                                     aria-label={`Marcar habitación ${hab.numero} como lista`}
                                                     variant="emerald" 
-                                                    className="w-full gap-1.5 text-xs shadow-xs min-h-[44px]"
-                                                    onClick={() => {
-                                                        requestConfirm({
-                                                            title: `¿Habitación #${hab.numero} lista para vender?`,
-                                                            description: 'Confirma que el aseo y la inspección terminaron. La habitación pasará a Disponible.',
-                                                            confirmText: 'Marcar disponible',
-                                                            onConfirm: () => actualizarEstado.mutate({ id: hab.id, estado: 'disponible' }),
-                                                        });
-                                                    }}
+                                                    className="w-full gap-2 text-xs sm:text-sm font-bold shadow-xs min-h-[50px] rounded-xl active:scale-[0.98] transition-transform"
+                                                    onClick={() => handleMarcarListaOptimista(hab)}
                                                 >
-                                                    <CheckCircle2 className="w-3.5 h-3.5" /> Marcar Lista
+                                                    <CheckCircle2 className="w-4 h-4" /> Marcar Lista
                                                 </Button>
                                             )}
                                             

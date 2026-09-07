@@ -19,7 +19,8 @@ import PageSkeleton from '@/components/loaders/PageSkeleton';
 
 import { TopGuestsWidget } from './Reportes/components/TopGuestsWidget';
 
-const COLORS = ['#10b981', '#3b82f6', '#f59e0b', '#8b5cf6', '#ef4444', '#64748b'];
+const COLORS = ['#165B3E', '#D4A348', '#2563EB', '#7C3AED', '#DC2626', '#0D9488'];
+const CHART_THEME_COLORS = COLORS;
 
 const Reportes = memo(function Reportes() {
     const {
@@ -94,11 +95,11 @@ const Reportes = memo(function Reportes() {
                         </div>
                     </div>
                 </div>
-                <div className="flex items-center gap-2">
-                    <Button onClick={exportarExcel} variant="outline" className="gap-1.5 border-border/40 px-4 text-[10px] font-extrabold uppercase tracking-widest hover:border-emerald-500/30 hover:bg-emerald-500/10 hover:text-emerald-600 dark:hover:text-emerald-400">
+                <div className="grid grid-cols-2 sm:flex items-center gap-2 w-full sm:w-auto">
+                    <Button onClick={exportarExcel} variant="outline" className="w-full sm:w-auto gap-1.5 border-border/40 px-3 sm:px-4 text-[10px] font-extrabold uppercase tracking-widest hover:border-emerald-500/30 hover:bg-emerald-500/10 hover:text-emerald-600 dark:hover:text-emerald-400">
                         <TableIcon className="w-3.5 h-3.5 text-emerald-500" /> CSV
                     </Button>
-                    <Button onClick={exportarPDF} className="gap-1.5 px-4 text-[10px] font-extrabold uppercase tracking-widest">
+                    <Button onClick={exportarPDF} className="w-full sm:w-auto gap-1.5 px-3 sm:px-4 text-[10px] font-extrabold uppercase tracking-widest">
                         <Download className="w-3.5 h-3.5" /> PDF
                     </Button>
                 </div>
@@ -183,21 +184,39 @@ const Reportes = memo(function Reportes() {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <div className="lg:col-span-2 enterprise-card section-card ui-card-pad flex flex-col shadow-sm">
                     <h2 className="text-xs font-black uppercase tracking-widest text-muted-foreground flex items-center gap-2 mb-4">
-                        <TrendingUp className="w-3.5 h-3.5" /> Evolución de Ingresos
+                        <TrendingUp className="w-3.5 h-3.5 text-primary" /> Evolución de Ingresos
                     </h2>
-                    <div className="flex-1 min-h-[250px] w-full mt-2" style={{ userSelect: 'none' }}>
+                    <div className="w-full h-[280px] sm:h-[320px] mt-2" style={{ userSelect: 'none' }}>
                         <ResponsiveContainer width="100%" height="100%">
                             <BarChart data={stats.lineData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" opacity={0.4} />
-                                <XAxis dataKey="fecha" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }} dy={10} />
-                                <YAxis axisLine={false} tickLine={false} tickFormatter={v => `S/${v}`} tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }} />
-                                <Tooltip 
-                                    cursor={{ fill: 'hsl(var(--primary)/0.05)' }}
-                                    contentStyle={{ borderRadius: '12px', border: '1px solid hsl(var(--border))', backgroundColor: 'hsl(var(--card))', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)', fontSize: '11px', fontWeight: 'bold' }}
+                                <XAxis 
+                                    dataKey="fecha" 
+                                    axisLine={false} 
+                                    tickLine={false} 
+                                    tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }} 
+                                    interval="preserveStartEnd"
+                                    tickFormatter={(val) => {
+                                        if (!val) return '';
+                                        const parts = val.split('-');
+                                        return parts.length === 3 ? `${parts[2]}/${parts[1]}` : val;
+                                    }}
+                                    dy={8} 
                                 />
-                                <Legend wrapperStyle={{ paddingTop: '20px', fontSize: '11px', fontWeight: 'bold' }} />
-                                {tipoReporte !== 'pos' && <Bar dataKey="hotel" name="Hotel" fill="#3b82f6" radius={[4, 4, 0, 0]} maxBarSize={40} />}
-                                {tipoReporte !== 'hotel' && <Bar dataKey="pos" name="POS" fill="#f59e0b" radius={[4, 4, 0, 0]} maxBarSize={40} />}
+                                <YAxis 
+                                    axisLine={false} 
+                                    tickLine={false} 
+                                    tickFormatter={v => `S/${v >= 1000 ? `${(v/1000).toFixed(0)}k` : v}`} 
+                                    tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }} 
+                                />
+                                <Tooltip 
+                                    cursor={{ fill: 'hsl(var(--primary)/0.06)' }}
+                                    isAnimationActive={false}
+                                    contentStyle={{ borderRadius: '12px', border: '1px solid hsl(var(--border))', backgroundColor: 'hsl(var(--card))', boxShadow: '0 8px 24px -4px rgba(0,0,0,0.12)', fontSize: '11px', fontWeight: 'bold' }}
+                                />
+                                <Legend wrapperStyle={{ paddingTop: '16px', fontSize: '11px', fontWeight: 'bold' }} />
+                                {tipoReporte !== 'pos' && <Bar dataKey="hotel" name="Hotel" fill="#165B3E" radius={[4, 4, 0, 0]} maxBarSize={36} />}
+                                {tipoReporte !== 'hotel' && <Bar dataKey="pos" name="POS" fill="#D4A348" radius={[4, 4, 0, 0]} maxBarSize={36} />}
                             </BarChart>
                         </ResponsiveContainer>
                     </div>
@@ -205,18 +224,19 @@ const Reportes = memo(function Reportes() {
                 
                 <div className="enterprise-card section-card ui-card-pad flex flex-col shadow-sm">
                     <h2 className="text-xs font-black uppercase tracking-widest text-muted-foreground flex items-center gap-2 mb-4">
-                        <Wallet className="w-3.5 h-3.5" /> Métodos de Pago
+                        <Wallet className="w-3.5 h-3.5 text-secondary" /> Métodos de Pago
                     </h2>
-                    <div className="flex-1 min-h-[250px] w-full flex items-center justify-center">
+                    <div className="w-full h-[280px] sm:h-[320px] flex items-center justify-center">
                         {stats.metodosData.length > 0 ? (
                             <ResponsiveContainer width="100%" height="100%">
                                 <PieChart>
                                     <Pie data={stats.metodosData} innerRadius={60} outerRadius={80} paddingAngle={5} dataKey="value" stroke="none">
-                                        {stats.metodosData.map((e, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
+                                        {stats.metodosData.map((e, i) => <Cell key={i} fill={CHART_THEME_COLORS[i % CHART_THEME_COLORS.length]} />)}
                                     </Pie>
                                     <Tooltip 
                                         formatter={(v) => `S/ ${Number(v).toFixed(2)}`}
-                                        contentStyle={{ borderRadius: '12px', border: '1px solid hsl(var(--border))', backgroundColor: 'hsl(var(--card))', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)', fontSize: '11px', fontWeight: 'bold' }}
+                                        isAnimationActive={false}
+                                        contentStyle={{ borderRadius: '12px', border: '1px solid hsl(var(--border))', backgroundColor: 'hsl(var(--card))', boxShadow: '0 8px 24px -4px rgba(0,0,0,0.12)', fontSize: '11px', fontWeight: 'bold' }}
                                     />
                                     <Legend wrapperStyle={{ paddingTop: '10px', fontSize: '10px', fontWeight: 'bold' }} />
                                 </PieChart>
@@ -226,8 +246,51 @@ const Reportes = memo(function Reportes() {
                         )}
                     </div>
                 </div>
+
                 <div className="lg:col-span-1">
                     <TopGuestsWidget huespedes={stats.topGuests} isLoading={isLoading} />
+                </div>
+
+                <div className="lg:col-span-2 enterprise-card section-card ui-card-pad flex flex-col shadow-sm">
+                    <div className="flex items-center justify-between mb-4">
+                        <h2 className="text-xs font-black uppercase tracking-widest text-muted-foreground flex items-center gap-2">
+                            <TableIcon className="w-3.5 h-3.5 text-primary" /> Auditoría Reciente ({filtradas.length} operaciones)
+                        </h2>
+                    </div>
+                    {filtradas.length === 0 ? (
+                        <div className="flex flex-1 items-center justify-center py-8 text-xs font-semibold text-muted-foreground">
+                            No hay transacciones registradas en este período.
+                        </div>
+                    ) : (
+                        <div className="overflow-x-auto custom-scrollbar">
+                            <table className="w-full text-left text-xs">
+                                <thead>
+                                    <tr className="border-b border-border/60 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                                        <th className="pb-2">Fecha</th>
+                                        <th className="pb-2">Cliente / Ref</th>
+                                        <th className="pb-2">Origen</th>
+                                        <th className="pb-2">Método</th>
+                                        <th className="pb-2 text-right">Total</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-border/30">
+                                    {filtradas.slice(0, 6).map((v, i) => (
+                                        <tr key={i} className="hover:bg-muted/30 transition-colors">
+                                            <td className="py-2.5 font-medium tabular-nums text-muted-foreground">{v.fecha_pago?.split('T')[0] || '--'}</td>
+                                            <td className="py-2.5 font-bold text-foreground truncate max-w-[160px]">{v.huesped_nombre || 'Cliente Mostrador'}</td>
+                                            <td className="py-2.5">
+                                                <span className="rounded px-1.5 py-0.5 text-[9px] font-extrabold uppercase bg-muted text-muted-foreground">
+                                                    {v._tipo}
+                                                </span>
+                                            </td>
+                                            <td className="py-2.5 uppercase font-medium text-muted-foreground">{v.metodo_pago}</td>
+                                            <td className="py-2.5 font-extrabold text-right tabular-nums text-foreground">S/ {Number(v.total).toFixed(2)}</td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    )}
                 </div>
             </div>
             </>
