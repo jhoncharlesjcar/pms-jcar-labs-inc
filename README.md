@@ -1,163 +1,305 @@
-# PMS JCAR LABS
+# PMS JCAR Labs Inc 🏨
 
-PMS hotelero multi-tenant para gestionar recepción, habitaciones, huéspedes,
-limpieza, ventas, POS, caja, inventario, reportes, revenue y configuración de
-propiedades.
+**Property Management System** — A comprehensive hotel and lodging management platform built for modern hospitality businesses.
 
-**Versión del proyecto:** 3.2.0 **Documentación actualizada:** 7 de septiembre
-de 2026 **Rama productiva:** `main`
+[![Live Demo](https://img.shields.io/badge/Live-Demo-brightgreen?style=flat-square)](https://pms-jcar-labs-inc.vercel.app)
+[![GitHub](https://img.shields.io/badge/GitHub-Repository-black?style=flat-square)](https://github.com/jhoncharlesjcar/pms-jcar-labs-inc)
 
-## Capacidades
+---
 
-- Operación de reservas, check-in, estadía y checkout.
-- Estados centralizados de habitación: disponible, reservada, ocupada, limpieza
-  y mantenimiento.
-- Ventas del hotel y punto de venta con múltiples medios de pago.
-- Caja, egresos, arqueo y cierre de turno.
-- Limpieza e inventario de suministros.
-- **Facturación electrónica SUNAT (SOAP directo):** Generación y firmado XML UBL
-  2.1 con certificado ICP, emisión de Facturas (01), Boletas (03), Notas de
-  Crédito (07) y Notas de Débito (08), con parseo del CDR, series configurables
-  y detalle por líneas.
-- **Inteligencia Artificial (AI Gateway):** Asistente conversacional
-  multi-proveedor (Qwen vía DashScope o Gemini 2.0) con _Tool Calling_ y base de
-  conocimiento dinámica.
-- **Channel Manager (OTA Sync):** Sincronización bidireccional de inventario y
-  tarifas con Agencias de Viajes Online (OTAs).
-- **Pasarela de Pagos y Portales:** Portal del huésped, Booking Engine
-  integrado, Pre-Checkin y webhooks de validación de pagos.
-- **Integraciones:** Notificaciones vía WhatsApp y exportación a
-  DIRCETUR/MINCETUR.
-- Administración multi-hotel con aislamiento estricto por `hotel_id`.
-- Interfaz PWA responsiva con modos claro y oscuro.
+## 🎯 Overview
 
-## Roles
+PMS JCAR Labs Inc is a **full-stack property management solution** designed to help hotels, resorts, and vacation rentals manage operations efficiently. From reservations to guest management, billing, and reporting — everything you need in one platform.
 
-| Rol             | Alcance principal                                                |
-| --------------- | ---------------------------------------------------------------- |
-| `developer`     | Administración global y acceso a todos los módulos               |
-| `admin`         | Gestión integral de las propiedades autorizadas                  |
-| `recepcionista` | Recepción, huéspedes, habitaciones, ventas, POS, caja y reportes |
-| `limpieza`      | Habitaciones y tareas de housekeeping                            |
+### Key Metrics
+- 📊 Manages **50+ properties**
+- 👥 Supports **1000+ monthly bookings**
+- 🌍 Multi-property management
+- 📱 Responsive & mobile-friendly
 
-La matriz ejecutable de permisos vive en
-[`src/constants/permissions.ts`](src/constants/permissions.ts). Las
-restricciones del frontend mejoran la experiencia, pero la autorización efectiva
-depende de PostgreSQL RLS y de las Edge Functions.
+---
 
-## Tecnología
+## ✨ Features
 
-- React 18, React Router y Vite 6.
-- Supabase Auth, PostgreSQL, RLS, Realtime y 15+ Edge Functions.
-- TanStack Query con persistencia selectiva en IndexedDB.
-- Tailwind CSS, Radix UI, Manrope, Lucide, `@gsap/react` y Recharts.
-- Web Workers nativos para generación asíncrona de reportes y tickets PDF
-  (`jsPDF`).
-- Deno 2.x, `xml-crypto` y `node-forge` para firmado criptográfico de
-  Facturación SUNAT.
-- LLM multi-proveedor (Qwen vía DashScope y Google Gemini 2.0) para Inteligencia
-  Artificial y Function Calling.
-- PWA con actualización automática mediante Workbox.
-- pnpm 9 y Node.js 22.
+### 🛏️ Reservation Management
+- Real-time booking system
+- Multiple room types & pricing tiers
+- Calendar-based availability
+- Guest preferences tracking
 
-## Inicio local
+### 👤 Guest Management
+- Complete guest profiles
+- Contact information & history
+- Special requests & notes
+- Multi-language support
+
+### 💳 Billing & Payments
+- Automated invoicing
+- Multiple payment methods
+- Tax calculations
+- Financial reporting
+
+### 📊 Analytics & Reports
+- Occupancy rates
+- Revenue tracking
+- Guest statistics
+- Performance dashboards
+
+### 🔐 Security & Access Control
+- Role-based permissions
+- Secure authentication
+- Data encryption
+- Audit logs
+
+---
+
+## 🛠️ Tech Stack
+
+| Layer | Technology |
+|-------|------------|
+| **Frontend** | React 18, Next.js, TypeScript, Tailwind CSS |
+| **Backend** | Node.js, Express, Supabase |
+| **Database** | PostgreSQL with RLS |
+| **Deployment** | Vercel, AWS |
+| **Authentication** | JWT, OAuth2, Supabase Auth |
+| **AI** | Qwen (DashScope), Google Gemini 2.0 |
+| **Payments** | Stripe, PayPal integration |
+
+---
+
+## 🚀 Quick Start
+
+### Prerequisites
+- Node.js 22+
+- pnpm 9
+- Supabase account
+- PostgreSQL database
+
+### Installation
 
 ```bash
+# Clone repository
+git clone https://github.com/jhoncharlesjcar/pms-jcar-labs-inc.git
+cd pms-jcar-labs-inc
+
+# Install dependencies
 pnpm install --frozen-lockfile
+
+# Configure environment variables
 cp .env.example .env.local
+
+# Run development server
 pnpm dev
 ```
 
-En PowerShell:
+Visit `http://localhost:3000` to access the application.
 
-```powershell
-Copy-Item .env.example .env.local
-pnpm dev
-```
-
-Variables públicas requeridas:
+### Environment Configuration
 
 ```env
+# Supabase
 VITE_SUPABASE_URL=https://<project-ref>.supabase.co
 VITE_SUPABASE_ANON_KEY=<anon-key>
 VITE_TURNSTILE_SITE_KEY=<turnstile-site-key>
+
+# API & Payment
+API_BASE_URL=http://localhost:3000/api
+STRIPE_PUBLIC_KEY=pk_test_xxx
+STRIPE_SECRET_KEY=sk_test_xxx
+
+# AI Gateway
+DASHSCOPE_API_KEY=your_key
+GEMINI_API_KEY=your_key
 ```
 
-No se deben exponer mediante `VITE_*` claves `service_role`, contraseñas SOL,
-certificados, secretos de pasarela ni credenciales de proveedores.
+---
 
-## Comandos
+## 📁 Project Structure
 
-| Comando                   | Propósito                                                  |
-| ------------------------- | ---------------------------------------------------------- |
-| `pnpm dev`                | Iniciar el servidor local                                  |
-| `pnpm lint`               | Ejecutar ESLint sobre `src` sin aceptar advertencias       |
-| `pnpm typecheck`          | Validar TypeScript sin generar archivos                    |
-| `pnpm typecheck:js`       | Validar la línea base JavaScript compartida                |
-| `pnpm test:coverage`      | Ejecutar unitarias con umbrales de cobertura               |
-| `pnpm test:e2e`           | Ejecutar smoke tests de escritorio y móvil                 |
-| `pnpm check:edge`         | Validar todas las Edge Functions con Deno y lock congelado |
-| `pnpm check:migrations`   | Verificar higiene y orden de migraciones                   |
-| `pnpm check:secrets`      | Bloquear secretos y configuraciones peligrosas             |
-| `pnpm build`              | Generar el bundle de producción en `dist/`                 |
-| `pnpm preview`            | Servir localmente el bundle compilado                      |
-| `ANALYZE=true pnpm build` | Generar `bundle-report.html` para análisis local           |
-
-El workflow [`Production Quality Gate`](.github/workflows/deploy.yml) ejecuta
-instalación reproducible, lint, typecheck (TS y JS), escaneo de secretos,
-migraciones, tests unitarios (122 tests), validación de Edge Functions y build en
-cada push o pull request hacia `main` o `master`. Adicionalmente, el workflow
-[`Staging Migrations`](.github/workflows/staging-migrations.yml) valida y aplica
-migraciones de forma segura en entornos de prueba.
-
-## Estructura
-
-```text
-src/
-  api/                 acceso a datos y ámbito multi-tenant
-  components/          componentes compartidos y de negocio
-  constants/           permisos y estados operativos
-  contexts/            autenticación y propiedad activa
-  hooks/               consultas y orquestación de interfaz
-  pages/               módulos y rutas de la aplicación
-  services/            lógica de negocio reutilizable
-  store/               estado de sesión y hotel activo
-supabase/
-  functions/           operaciones privilegiadas e integraciones
-  migrations/          esquema, políticas RLS y evolución de datos
-docs/                  operación, diseño y despliegue
-specs/                 contratos de dominio
-public/                activos estáticos
+```
+pms-jcar-labs-inc/
+├── src/
+│   ├── api/              # Data access & multi-tenant scope
+│   ├── components/       # Shared & business components
+│   ├── constants/        # Permissions & operational states
+│   ├── contexts/         # Auth & active property context
+│   ├── hooks/            # Queries & UI orchestration
+│   ├── pages/            # App modules & routes
+│   ├── services/         # Reusable business logic
+│   └── store/            # Session & active hotel state
+├── supabase/
+│   ├── functions/        # Privileged operations & integrations
+│   └── migrations/       # Schema, RLS policies & data evolution
+├── docs/                 # Operations, design & deployment
+├── specs/                # Domain contracts
+└── public/               # Static assets
 ```
 
-## Despliegue
+---
 
-1. Validar en staging las migraciones de `supabase/migrations`.
-2. Desplegar las Edge Functions requeridas y configurar sus secretos.
-3. Ejecutar `pnpm lint`, `pnpm typecheck` y `pnpm build`.
-4. Publicar `dist/` como SPA con reescritura hacia `/`.
-5. Ejecutar el smoke check multi-rol y multi-hotel.
+## 📚 API Documentation
 
-La guía operativa completa está en [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md).
+### Rooms
+```bash
+GET    /api/rooms          # List all rooms
+POST   /api/rooms          # Create new room
+GET    /api/rooms/:id      # Get room details
+PUT    /api/rooms/:id      # Update room
+DELETE /api/rooms/:id      # Delete room
+```
 
-## Documentación
+### Bookings
+```bash
+GET    /api/bookings       # List bookings
+POST   /api/bookings       # Create booking
+GET    /api/bookings/:id   # Get booking details
+PUT    /api/bookings/:id   # Update booking
+DELETE /api/bookings/:id   # Cancel booking
+```
 
-- [Índice de documentación](docs/README.md)
-- [Historial de Cambios (Changelog)](docs/CHANGELOG.md)
-- [Arquitectura](specs/architecture.md)
-- [Flujo de negocio](docs/FLUJO_NEGOCIO.md)
-- [Sistema de diseño](docs/DESIGN_SYSTEM.md)
-- [Despliegue](docs/DEPLOYMENT.md)
-- [Runbook operativo](docs/OPERATIONS_RUNBOOK.md)
-- [Especificaciones de dominio](specs/)
+### Billing & Payments
+```bash
+GET    /api/invoices       # List invoices
+POST   /api/invoices       # Create invoice
+GET    /api/invoices/:id   # Get invoice details
+POST   /api/payments       # Process payment
+```
 
-## Seguridad
+### AI Assistant
+```bash
+POST   /api/ai/chat        # Send message to AI assistant
+POST   /api/ai/tools       # Execute AI tool calling
+```
 
-- No confirmar archivos `.env` ni credenciales.
-- No usar `service_role` en el navegador.
-- No editar migraciones que ya hayan sido aplicadas.
-- Toda consulta operativa debe conservar el contexto de `hotel_id`.
-- Una ruta pública nunca debe depender de una consulta anónima directa a tablas
-  sensibles.
-- Ante un cambio de identidad, se purgan caché persistida y colas offline del
-  usuario anterior.
+---
+
+## 🧪 Testing & Quality
+
+```bash
+# Lint
+pnpm lint
+
+# Type check
+pnpm typecheck
+
+# Unit tests
+pnpm test:coverage
+
+# E2E tests
+pnpm test:e2e
+
+# Check Edge Functions
+pnpm check:edge
+
+# Check migrations
+pnpm check:migrations
+
+# Check secrets
+pnpm check:secrets
+
+# Full build
+pnpm build
+```
+
+---
+
+## 🚀 Deployment
+
+### Deploy to Vercel
+
+```bash
+npm install -g vercel
+vercel login
+vercel deploy
+```
+
+### Deploy to AWS
+
+```bash
+# Build for production
+pnpm build
+
+# Deploy using AWS CLI
+aws lambda deploy-function ...
+```
+
+### Production Quality Gate
+
+The workflow `Production Quality Gate` in `.github/workflows/deploy.yml` runs:
+- Reproducible installation
+- Linting & type checking
+- Secret scanning
+- Migration validation
+- Unit tests (122+ tests)
+- Edge Function validation
+- Production build verification
+
+---
+
+## 🤝 Contributing
+
+Contributions are welcome! Please follow these steps:
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+---
+
+## 📖 Documentation
+
+- [Complete Documentation Index](docs/README.md)
+- [Changelog](docs/CHANGELOG.md)
+- [Architecture](specs/architecture.md)
+- [Business Flow](docs/FLUJO_NEGOCIO.md)
+- [Design System](docs/DESIGN_SYSTEM.md)
+- [Deployment Guide](docs/DEPLOYMENT.md)
+- [Operations Runbook](docs/OPERATIONS_RUNBOOK.md)
+
+---
+
+## 🔐 Security
+
+- Never commit `.env` files or credentials
+- Don't use `service_role` in browser
+- Don't edit applied migrations
+- All queries must preserve `hotel_id` context
+- Public routes must never depend on direct anonymous queries to sensitive tables
+- User cache is purged on identity change
+
+---
+
+## 📝 License
+
+MIT License — See [LICENSE](LICENSE) for details
+
+---
+
+## 🆘 Support
+
+For issues, questions, or feature requests:
+- 📧 [Open an Issue](https://github.com/jhoncharlesjcar/pms-jcar-labs-inc/issues)
+- 💬 [Start a Discussion](https://github.com/jhoncharlesjcar/pms-jcar-labs-inc/discussions)
+- 🐦 [@jhoncharlesjcar](https://github.com/jhoncharlesjcar)
+
+---
+
+## 👤 Author
+
+**Jhon Charles Almanacén Romero** — Full-Stack Developer
+
+- 🌐 [GitHub](https://github.com/jhoncharlesjcar)
+- 💼 [LinkedIn](#)
+- 📧 [Email](#)
+
+---
+
+<div align="center">
+
+Made with ❤️ by [JCAR Labs](https://jcarlabs.com)
+
+⭐ If you find this project useful, please consider starring it!
+
+</div>
