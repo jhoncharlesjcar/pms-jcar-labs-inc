@@ -1,0 +1,84 @@
+name: Schema Drift Detection
+
+on:
+  schedule:
+    - cron: '0 3 * * 1'  # Weekly Monday 3am UTC
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  schema-drift:
+    name: Detect schema drift
+    runs-on: ubuntu-latest
+    env:
+      SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+      SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'pnpm'
+
+      - name: Install pnpm
+        run: corepack enable && corepack prepare pnpm@9.15.9 --activate
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Install Supabase CLI
+        run: npm install -g supabase@latest
+
+      - name: Link to Supabase project
+        run: supabase link --project-ref $SUPABASE_PROJECT_REF
+
+      - name: Generate local migration diff
+        id: diff
+        run: |
+          diff_output=$(supabase db diff --schema public 2>&1 || true)
+          echo "diff_output<<EOF" >> $GITHUB_OUTPUT
+          echo "$diff_output" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+          
+          if echo "$diff_output" | grep -q "^CREATE\|^ALTER\|^DROP"; then
+            echo "has_changes=true" >> $GITHUB_OUTPUT
+          else
+            echo "has_changes=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Create PR if drift detected
+        if: steps.diff.outputs.has_changes == 'true'
+        uses: peter-evans/create-pull-request@v6
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: 'chore(db): schema drift detected - auto-generated migration'
+          title: '[Auto] Schema drift detected - review required'
+          body: |
+            ## ⚠️ Schema Drift Detected
+            
+            The production database schema has diverged from the local migration files.
+            
+            ### Diff Output
+            ```sql
+            ${{ steps.diff.outputs.diff_output }}
+            ```
+            
+            ### Action Required
+            1. Review the changes above
+            2. If intentional, create a proper migration file in `supabase/migrations/` with a descriptive name
+            3. If unintentional, investigate the source (manual DB changes, failed migration, etc.)
+            4. Close this PR after resolution
+          branch: chore/schema-drift-$(date +%Y%m%d)
+          delete-branch: true
+          labels: 'schema-drift,automated'
+
+      - name: Comment if no drift
+        if: steps.diff.outputs.has_changes == 'false'
+        run: |
+          echo "✅ No schema drift detected. Local migrations match production schema."
