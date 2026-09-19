@@ -1,7 +1,6 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { renderHook, waitFor, act } from '@testing-library/react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { ReactNode } from 'react'
+import { ReactNode, act } from 'react'
+import { vi } from 'vitest'
 
 // Mock Supabase client
 const createMockSupabase = () => ({
@@ -35,7 +34,7 @@ const createMockSupabase = () => ({
 })
 
 // Mock context providers
-const createWrapper = (mockSupabase: ReturnType<typeof createMockSupabase>) => {
+const createWrapper = (_mockSupabase: ReturnType<typeof createMockSupabase>) => {
   const queryClient = new QueryClient({
     defaultOptions: {
       queries: { retry: false, gcTime: 0 },

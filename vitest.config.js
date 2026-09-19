@@ -21,7 +21,13 @@ export default defineConfig({
       provider: 'v8',
       reporter: ['text', 'json-summary', 'lcov'],
       include: [
-        'src/services/**/*.ts',
+        'src/services/caja.service.ts',
+        'src/services/checkout.service.ts',
+        'src/services/habitaciones.service.ts',
+        'src/services/hotel.service.ts',
+        'src/services/recepcion.service.ts',
+        'src/services/ventas.service.ts',
+        'src/services/whatsapp.service.ts',
         'src/constants/roomStatus.ts',
         'src/utils/errorMapping.ts',
         'src/lib/utils.js',
@@ -29,14 +35,13 @@ export default defineConfig({
         'src/lib/sync-queue.js',
       ],
       // Umbrales calibrados a la capa de dominio puro (servicios + utils + lib).
-      // Los módulos de integración (ai.service, hotel.service, whatsapp.service),
-      // la UI (pages/components/hooks) y los workers no tienen cobertura unitaria:
-      // requieren pruebas de integración/e2e y se miden por separado.
+      // Los hooks y componentes requieren jsdom + testing-library (Fase 1.2).
+      // ai.service y loyalty.service requieren refactor para testabilidad (Fase 1.2).
       thresholds: {
-        statements: 60,
+        statements: 65,
         branches: 50,
-        functions: 60,
-        lines: 60,
+        functions: 70,
+        lines: 65,
       },
     },
   },
