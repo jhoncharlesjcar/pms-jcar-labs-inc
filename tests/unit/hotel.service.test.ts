@@ -14,14 +14,18 @@ describe('hotel.service.ts', () => {
   });
 
   it('listHoteles retorna lista ordenada de hoteles', async () => {
-    const mockOrder = vi.fn().mockResolvedValue({ data: [{ id: '1', nombre: 'Hotel Central' }], error: null });
-    const mockSelect = vi.fn().mockReturnValue({ order: mockOrder });
+    const mockLimit = vi.fn().mockResolvedValue({ data: [{ id: '1', nombre: 'Hotel Central', activo: true }], error: null });
+    const mockOrder = vi.fn().mockReturnValue({ limit: mockLimit });
+    const mockEq = vi.fn().mockReturnValue({ order: mockOrder });
+    const mockSelect = vi.fn().mockReturnValue({ eq: mockEq });
     (supabase.from as any).mockReturnValue({ select: mockSelect });
 
     const hoteles = await HotelService.listHoteles();
     expect(supabase.from).toHaveBeenCalledWith('hoteles');
     expect(mockSelect).toHaveBeenCalledWith('*');
+    expect(mockEq).toHaveBeenCalledWith('activo', true);
     expect(mockOrder).toHaveBeenCalledWith('nombre');
+    expect(mockLimit).toHaveBeenCalledWith(100);
     expect(hoteles).toHaveLength(1);
     expect(hoteles[0].nombre).toBe('Hotel Central');
   });
@@ -52,9 +56,10 @@ describe('hotel.service.ts', () => {
   });
 
   it('propaga error si la consulta falla', async () => {
-    const mockSelect = vi.fn().mockReturnValue({
-      order: vi.fn().mockResolvedValue({ data: null, error: new Error('DB error') }),
-    });
+    const mockLimit = vi.fn().mockResolvedValue({ data: null, error: new Error('DB error') });
+    const mockOrder = vi.fn().mockReturnValue({ limit: mockLimit });
+    const mockEq = vi.fn().mockReturnValue({ order: mockOrder });
+    const mockSelect = vi.fn().mockReturnValue({ eq: mockEq });
     (supabase.from as any).mockReturnValue({ select: mockSelect });
 
     await expect(HotelService.listHoteles()).rejects.toThrow('DB error');

@@ -60,6 +60,9 @@ jobs:
       - name: Unit tests with coverage
         run: pnpm test:coverage
 
+      - name: E2E tests
+        run: pnpm test:e2e
+
       - name: Check Edge Functions
         run: pnpm check:edge
 

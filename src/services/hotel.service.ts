@@ -9,7 +9,9 @@ export const HotelService = {
     const { data, error } = await supabase
       .from('hoteles')
       .select('*')
-      .order('nombre');
+      .eq('activo', true)
+      .order('nombre')
+      .limit(100);
 
     if (error) throw error;
     return data || [];

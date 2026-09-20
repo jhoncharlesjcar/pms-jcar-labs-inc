@@ -15,12 +15,26 @@ function getDeadLetterKey(userId, hotelId) {
 }
 
 /**
+ * Error tipado para mutaciones que requieren conexión.
+ * Permite al caller distinguir "offline por diseño" vs "error de red real".
+ */
+export class OfflineMutationError extends Error {
+    constructor(operation, table, reason) {
+        super(`Mutation ${operation} on ${table} requires connection (${reason})`);
+        this.name = 'OfflineMutationError';
+        this.operation = operation;
+        this.table = table;
+        this.reason = reason;
+    }
+}
+
+/**
  * Las mutaciones CRUD genéricas no tienen un contrato servidor idempotente ni
  * transaccional. Por eso se rechazan sin conexión en vez de persistir PII o
  * operaciones financieras en IndexedDB para reproducirlas después.
  */
 export async function enqueueMutation(..._legacyArguments) {
-    throw new Error('Esta operación requiere conexión. No se almacenó ningún dato sensible en el dispositivo.');
+    throw new OfflineMutationError('unknown', 'unknown', 'offline');
 }
 
 export async function getPendingCount(userId, hotelId) {
