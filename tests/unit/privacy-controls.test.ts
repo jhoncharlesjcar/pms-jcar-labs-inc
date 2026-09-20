@@ -37,7 +37,7 @@ describe('controles de privacidad offline', () => {
 
   it('rechaza mutaciones genéricas offline sin persistir su carga', async () => {
     const { enqueueMutation } = await import('../../src/lib/sync-queue.js');
-    await expect(enqueueMutation({ huesped_dni: '12345678' })).rejects.toThrow(/requiere conexión/i);
+    await expect(enqueueMutation({ huesped_dni: '12345678' })).rejects.toThrow(/requires connection/i);
     expect(store.size).toBe(0);
   });
 

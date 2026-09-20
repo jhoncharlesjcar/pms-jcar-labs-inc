@@ -23,14 +23,20 @@ export interface AuthResult {
 export function buildCorsHeaders(req?: Request): Record<string, string> {
   const allowedOrigins = (Deno.env.get('ALLOWED_ORIGINS') || '*').split(',').map((o: string) => o.trim());
   const requestOrigin = req?.headers.get('Origin') || '';
-  const origin = allowedOrigins.includes('*') ? '*'
-    : allowedOrigins.includes(requestOrigin) ? requestOrigin
-    : allowedOrigins[0] || '';
-  return {
-    'Access-Control-Allow-Origin': origin,
+  let origin = '';
+  if (allowedOrigins.includes('*')) {
+    origin = '*';
+  } else if (allowedOrigins.includes(requestOrigin)) {
+    origin = requestOrigin;
+  }
+  // Si el origen no está en la lista permitida, no devolvemos Access-Control-Allow-Origin
+  // (el navegador bloqueará la respuesta). No hacemos fallback a allowedOrigins[0].
+  const headers: Record<string, string> = {
     'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-idempotency-key, x-request-id, x-jcar-key-id, x-jcar-timestamp, x-jcar-nonce, x-jcar-signature',
     'Vary': 'Origin',
   };
+  if (origin) headers['Access-Control-Allow-Origin'] = origin;
+  return headers;
 }
 
 const corsHeaders = buildCorsHeaders();

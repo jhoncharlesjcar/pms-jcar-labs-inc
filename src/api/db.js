@@ -1,6 +1,6 @@
 import { supabase } from '@/config/supabase';
 import logger from '@/lib/logger';
-import { enqueueMutation } from '@/lib/sync-queue';
+import { enqueueMutation, OfflineMutationError } from '@/lib/sync-queue';
 import { generateUUID } from '@/lib/utils';
 import { clearPersistedCache } from '@/lib/query-client';
 
@@ -144,6 +144,8 @@ function createEntityProxy(tableName) {
                 if (error) throw error;
                 return data;
             } catch (error) {
+                // OfflineMutationError: re-lanzar (no es error real, es diseño)
+                if (error instanceof OfflineMutationError) throw error;
                 // FetchError o error de red de Supabase
                 if (error.message?.includes('FetchError') || error.message?.includes('Failed to fetch')) {
                     const userId = await getCurrentUserId();
@@ -188,6 +190,8 @@ function createEntityProxy(tableName) {
                 if (error) throw error;
                 return data;
             } catch (error) {
+                // OfflineMutationError: re-lanzar (no es error real, es diseño)
+                if (error instanceof OfflineMutationError) throw error;
                 if (error.message?.includes('FetchError') || error.message?.includes('Failed to fetch')) {
                     const userId = await getCurrentUserId();
                     const hotelId = getCurrentHotelId();
@@ -222,6 +226,8 @@ function createEntityProxy(tableName) {
 
                 if (error) throw error;
             } catch (error) {
+                // OfflineMutationError: re-lanzar (no es error real, es diseño)
+                if (error instanceof OfflineMutationError) throw error;
                 if (error.message?.includes('FetchError') || error.message?.includes('Failed to fetch')) {
                     const userId = await getCurrentUserId();
                     const hotelId = getCurrentHotelId();

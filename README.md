@@ -57,8 +57,8 @@ PMS JCAR Labs Inc is a **full-stack property management solution** designed to h
 
 | Layer | Technology |
 |-------|------------|
-| **Frontend** | React 18, Next.js, TypeScript, Tailwind CSS |
-| **Backend** | Node.js, Express, Supabase |
+| **Frontend** | React 18, TypeScript, Tailwind CSS, Vite |
+| **Backend** | Supabase (PostgreSQL, Auth, Realtime, Edge Functions) |
 | **Database** | PostgreSQL with RLS |
 | **Deployment** | Vercel, AWS |
 | **Authentication** | JWT, OAuth2, Supabase Auth |
@@ -92,7 +92,7 @@ cp .env.example .env.local
 pnpm dev
 ```
 
-Visit `http://localhost:3000` to access the application.
+Visit `http://localhost:5173` to access the application.
 
 ### Environment Configuration
 
@@ -102,12 +102,7 @@ VITE_SUPABASE_URL=https://<project-ref>.supabase.co
 VITE_SUPABASE_ANON_KEY=<anon-key>
 VITE_TURNSTILE_SITE_KEY=<turnstile-site-key>
 
-# API & Payment
-API_BASE_URL=http://localhost:3000/api
-STRIPE_PUBLIC_KEY=pk_test_xxx
-STRIPE_SECRET_KEY=sk_test_xxx
-
-# AI Gateway
+# AI Gateway (Edge Functions)
 DASHSCOPE_API_KEY=your_key
 GEMINI_API_KEY=your_key
 ```
