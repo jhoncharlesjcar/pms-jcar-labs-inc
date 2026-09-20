@@ -6,9 +6,12 @@ import { AIService } from '@/services/ai.service';
 
 const inputClass = 'w-full rounded-md border border-input bg-background px-3 py-2 text-sm';
 
-export default function AIConfigPanel(/** @type {any} */ { hotelId }) {
+/** @typedef {import('@/types/ai.types').AIHotelConfig} AIHotelConfig */
+
+export default function AIConfigPanel({ hotelId }) {
     const queryClient = useQueryClient();
-    const [draft, setDraft] = useState(/** @type {any} */ ({}));
+    /** @type {Partial<AIHotelConfig>} */
+    const [draft, setDraft] = useState({});
     const { data: config, isLoading, isError, error } = useQuery({
         queryKey: ['ai-config', hotelId],
         queryFn: () => AIService.getConfig(hotelId),
@@ -23,7 +26,8 @@ export default function AIConfigPanel(/** @type {any} */ { hotelId }) {
     const setField = (name, value) => setDraft(current => ({ ...current, [name]: value }));
 
     const updateMutation = useMutation({
-        mutationFn: (/** @type {any} */ updates) => AIService.updateConfig(hotelId, updates),
+        /** @param {Partial<AIHotelConfig>} updates */
+        mutationFn: (updates) => AIService.updateConfig(hotelId, updates),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['ai-config', hotelId] });
             toast.success('Configuración actualizada correctamente');
@@ -143,7 +147,7 @@ export default function AIConfigPanel(/** @type {any} */ { hotelId }) {
     );
 }
 
-function NumberField(/** @type {any} */ { name, label, suffix, value, ...inputProps }) {
+function NumberField({ name, label, suffix, value, ...inputProps }) {
     return (
         <label className="space-y-2 text-sm font-medium">{label}
             <input name={name} type="number" value={value} className={inputClass} {...inputProps} />

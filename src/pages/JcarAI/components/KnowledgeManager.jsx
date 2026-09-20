@@ -13,8 +13,11 @@ const CATEGORIES = [
     { id: 'amenidades', label: 'Amenidades' }
 ];
 
+/** @typedef {import('@/types/ai.types').AIKnowledge} AIKnowledge */
+
 export default function KnowledgeManager({ hotelId }) {
     const queryClient = useQueryClient();
+    /** @type {Partial<AIKnowledge> | null} */
     const [editingItem, setEditingItem] = useState(null);
     const [searchTerm, setSearchTerm] = useState('');
     const [activeCategory, setActiveCategory] = useState('all');
@@ -25,38 +28,38 @@ export default function KnowledgeManager({ hotelId }) {
     });
 
     const upsertMutation = useMutation({
-        /** @param {Partial<import('@/types/ai.types').AIKnowledge>} data */
-        mutationFn: (data) => AIService.upsertKnowledge(hotelId, data),
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['ai-knowledge', hotelId] });
-            setEditingItem(null);
-            toast.success("Conocimiento guardado correctamente");
-        }
-    });
+            /** @param {Partial<AIKnowledge>} data */
+            mutationFn: (data) => AIService.upsertKnowledge(hotelId, data),
+            onSuccess: () => {
+                queryClient.invalidateQueries({ queryKey: ['ai-knowledge', hotelId] });
+                setEditingItem(null);
+                toast.success("Conocimiento guardado correctamente");
+            }
+        });
 
-    const deleteMutation = useMutation({
-        /** @param {string} id */
-        mutationFn: (id) => AIService.deleteKnowledge(id),
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['ai-knowledge', hotelId] });
-            toast.success("Entrada eliminada");
-        }
-    });
+        const deleteMutation = useMutation({
+            /** @param {string} id */
+            mutationFn: (id) => AIService.deleteKnowledge(id),
+            onSuccess: () => {
+                queryClient.invalidateQueries({ queryKey: ['ai-knowledge', hotelId] });
+                toast.success("Entrada eliminada");
+            }
+        });
 
-    const filteredList = (knowledgeList || []).filter(k => {
-        const matchesSearch = k.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                              k.content.toLowerCase().includes(searchTerm.toLowerCase());
-        const matchesCategory = activeCategory === 'all' || k.category === activeCategory;
-        return matchesSearch && matchesCategory;
-    });
+        const filteredList = (knowledgeList || []).filter((k) => {
+            const matchesSearch = k.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                                  k.content.toLowerCase().includes(searchTerm.toLowerCase());
+            const matchesCategory = activeCategory === 'all' || k.category === activeCategory;
+            return matchesSearch && matchesCategory;
+        });
 
-    const handleSave = (e) => {
+        const handleSave = (e) => {
         e.preventDefault();
         const formData = new FormData(e.target);
         upsertMutation.mutate({
-            id: editingItem?.id, // undefined si es nuevo
+            id: editingItem?.id,
             title: formData.get('title')?.toString() || '',
-            category: /** @type {any} */ (formData.get('category')?.toString() || 'general'),
+            category: formData.get('category')?.toString() || 'general',
             content: formData.get('content')?.toString() || '',
             priority: parseInt(formData.get('priority')?.toString() || '0', 10),
             activo: formData.get('activo') === 'on'

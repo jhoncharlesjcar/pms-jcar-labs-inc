@@ -3,13 +3,15 @@ import { useQuery } from '@tanstack/react-query';
 import { AIService } from '@/services/ai.service';
 import { MessageSquare, CalendarCheck, FileText, TrendingUp, RefreshCw, BarChart3 } from 'lucide-react';
 
+/** @typedef {import('@/types/ai.types').AIMetrics} AIMetrics */
+
 const formatCurrency = (value) => new Intl.NumberFormat('es-PE', { style: 'currency', currency: 'PEN' }).format(value || 0);
 
 export default function AIDashboard({ hotelId }) {
     const { data: metrics, isLoading, isError, error, refetch } = useQuery({
         queryKey: ['ai-metrics', hotelId],
         queryFn: () => AIService.getMetrics(hotelId),
-        refetchInterval: 30000 // refetch every 30s
+        refetchInterval: 30000
     });
 
     if (isLoading) {

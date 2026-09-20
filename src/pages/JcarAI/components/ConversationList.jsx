@@ -21,8 +21,11 @@ const statusStyles = {
     closed: ['Cerrada', 'bg-slate-500/10 text-slate-500'],
 };
 
+/** @typedef {import('@/types/ai.types').AIConversation} AIConversation */
+
 export default function ConversationList({ hotelId }) {
     const [statusFilter, setStatusFilter] = useState('all');
+    /** @type {string | null} */
     const [selectedConversationId, setSelectedConversationId] = useState(null);
     const conversationsQuery = useQuery({
         queryKey: ['ai-conversations', hotelId, statusFilter],

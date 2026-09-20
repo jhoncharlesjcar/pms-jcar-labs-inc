@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
@@ -6,6 +6,7 @@ import { ArrowLeft, Bot, BotOff, CreditCard, Send, User, Wrench } from 'lucide-r
 import { toast } from 'sonner';
 import { AIService } from '@/services/ai.service';
 import { useAuth } from '@/contexts/AuthContext';
+import DOMPurify from 'dompurify';
 
 export default function ConversationDetail({ conversationId, onBack }) {
     const { user } = useAuth();
@@ -14,6 +15,15 @@ export default function ConversationDetail({ conversationId, onBack }) {
     const [evidenceId, setEvidenceId] = useState('');
     const [reviewingEvidence, setReviewingEvidence] = useState(false);
     const [reply, setReply] = useState('');
+
+    // Cleanup queries on unmount or navigation away
+    useEffect(() => {
+        return () => {
+            queryClient.cancelQueries({ queryKey: ['ai-messages', conversationId] });
+            queryClient.cancelQueries({ queryKey: ['ai-booking-context', conversationId] });
+            queryClient.cancelQueries({ queryKey: ['ai-conversation', conversationId] });
+        };
+    }, [conversationId, queryClient]);
 
     const conversationQuery = useQuery({
         queryKey: ['ai-conversation', conversationId],
@@ -163,7 +173,7 @@ export default function ConversationDetail({ conversationId, onBack }) {
                                 return (
                                     <div key={message.id} className="flex justify-center">
                                         <div className="flex items-center gap-2 rounded-full border border-border/50 bg-muted/50 px-3 py-1.5 text-xs text-muted-foreground">
-                                            <Wrench className="h-3 w-3" /> JcarAI ejecutó <strong className="font-mono">{message.tool_name}</strong>
+                                            <Wrench className="h-3 w-3" /> JcarAI ejecutó <strong className="font-mono">{DOMPurify.sanitize(message.tool_name)}</strong>
                                         </div>
                                     </div>
                                 );
@@ -175,7 +185,7 @@ export default function ConversationDetail({ conversationId, onBack }) {
                                         {isUser ? <User className="h-4 w-4" /> : <Bot className="h-4 w-4" />}
                                     </div>
                                     <div className={`flex flex-col gap-1 ${isUser ? 'items-end' : 'items-start'}`}>
-                                        <div className={`whitespace-pre-wrap rounded-2xl px-4 py-2.5 text-sm shadow-sm ${isUser ? 'rounded-tr-none bg-primary text-primary-foreground' : 'rounded-tl-none border border-border bg-card'}`}>{message.content}</div>
+                                        <div className={`whitespace-pre-wrap rounded-2xl px-4 py-2.5 text-sm shadow-sm ${isUser ? 'rounded-tr-none bg-primary text-primary-foreground' : 'rounded-tl-none border border-border bg-card'}`} dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(message.content) }} />
                                         <span className="px-1 text-[10px] text-muted-foreground">{format(new Date(message.created_at), 'HH:mm', { locale: es })}{message.direction === 'outbound' && message.delivery_status ? ` · ${deliveryLabel(message.delivery_status)}` : ''}</span>
                                     </div>
                                 </div>
@@ -199,7 +209,7 @@ function deliveryLabel(status) {
     return ({ queued: 'en cola', processing: 'enviando', sent: 'enviado', delivered: 'entregado', read: 'leído', failed: 'falló' })[status] || status;
 }
 
-function StatusCard(/** @type {any} */ { label, value, detail, icon = null }) {
+function StatusCard({ label, value, detail, icon = null }) {
     return (
         <div className="rounded-lg border border-border bg-card p-3">
             <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">{icon}{label}</div>
