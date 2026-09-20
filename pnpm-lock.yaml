@@ -83,6 +83,9 @@ importers:
       date-fns:
         specifier: ^3.6.0
         version: 3.6.0
+      dompurify:
+        specifier: 3.4.13
+        version: 3.4.13
       gsap:
         specifier: ^3.15.0
         version: 3.15.0
@@ -8109,7 +8112,6 @@ snapshots:
   dompurify@3.4.13:
     optionalDependencies:
       '@types/trusted-types': 2.0.7
-    optional: true
 
   dunder-proto@1.0.1:
     dependencies:

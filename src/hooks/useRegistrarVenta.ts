@@ -39,7 +39,7 @@ export function useRegistrarVenta({ reserva, onClose, onSuccess }) {
         queryFn: () => db.entities.ConfigHotel.filter({ id: hotelId }),
         enabled: !!hotelId,
     });
-    const config = configs[0] || {};
+    const config: Record<string, any> = configs[0] || {};
 
     const [qrDinamico, setQrDinamico] = useState(null);
     const [generandoQR, setGenerandoQR] = useState(false);
