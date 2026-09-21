@@ -5,10 +5,11 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
+import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { cn } from '@/lib/utils';
 import { validarDocumento } from '@/services/recepcion.service';
 import { supabase } from '@/config/supabase';
+import { hoyLima } from '@/lib/limaDate';
 
 export const NuevaReservaSheet = ({
     open,
@@ -31,6 +32,7 @@ export const NuevaReservaSheet = ({
 }) => {
     const [guestAccess, setGuestAccess] = useState(null);
     const [issuingAccess, setIssuingAccess] = useState(false);
+    const hoy = hoyLima();
 
     useEffect(() => setGuestAccess(null), [createdReserva?.id]);
 
@@ -57,7 +59,7 @@ export const NuevaReservaSheet = ({
                 <div className="flex-1 overflow-hidden flex flex-col relative">
                     <SheetHeader className="p-4 sm:p-5 pb-0 shrink-0 z-10">
                         <SheetTitle className="text-xl font-bold text-foreground">Registro de Reserva</SheetTitle>
-                        <p className="text-muted-foreground text-[11px] font-medium uppercase tracking-wider mt-0.5">Completa el registro oficial</p>
+                        <SheetDescription className="text-muted-foreground text-[11px] font-medium uppercase tracking-wider mt-0.5">Completa el registro oficial</SheetDescription>
                     </SheetHeader>
 
                     <div className="flex-1 overflow-y-auto p-4 sm:p-5 pt-4 space-y-5 sm:space-y-6 custom-scrollbar relative z-0">
@@ -137,8 +139,16 @@ export const NuevaReservaSheet = ({
                                         )}
                                     </button>
                                 ))}
-                                {!availabilityLoading && habitacionesDisp.length === 0 && <p className="col-span-full py-8 text-center text-sm font-bold text-muted-foreground bg-secondary/20 rounded-2xl border border-dashed border-border/60">No hay habitaciones disponibles para esas fechas</p>}
-                                {availabilityError && <p role="alert" className="col-span-full text-sm text-destructive">No se pudo consultar disponibilidad: {availabilityError}</p>}
+                                {!availabilityLoading && !availabilityError && habitacionesDisp.length === 0 && (
+                                    <p className="col-span-full py-8 text-center text-sm font-medium text-muted-foreground bg-secondary/20 rounded-2xl border border-dashed border-border/60">
+                                        No hay habitaciones libres para esas fechas. Prueba otro rango o revisa el inventario.
+                                    </p>
+                                )}
+                                {availabilityError && (
+                                    <p role="alert" className="col-span-full rounded-xl border border-destructive/30 bg-destructive/10 px-3 py-3 text-sm text-destructive">
+                                        No se pudo consultar disponibilidad. Recarga e inténtalo de nuevo.
+                                    </p>
+                                )}
                             </div>
                         </div>
 
@@ -268,7 +278,7 @@ export const NuevaReservaSheet = ({
                                     <Select value={form.estado} onValueChange={v => setForm({ ...form, estado: v })}>
                                         <SelectTrigger className="h-9 bg-background rounded-md border border-input text-sm"><SelectValue /></SelectTrigger>
                                         <SelectContent className="rounded-md">
-                                            <SelectItem value="activa" disabled={form.fecha_entrada > new Date().toLocaleDateString('sv-SE')}>Check-in (Entrada Inmediata)</SelectItem>
+                                            <SelectItem value="activa" disabled={form.fecha_entrada > hoy}>Check-in (Entrada Inmediata)</SelectItem>
                                             <SelectItem value="pendiente">Reserva (Pendiente)</SelectItem>
                                         </SelectContent>
                                     </Select>
@@ -302,7 +312,7 @@ export const NuevaReservaSheet = ({
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                                 <div className="space-y-1.5">
                                     <Label htmlFor="fecha_entrada" className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider ml-1">Fecha Entrada</Label>
-                                    <Input id="fecha_entrada" type="date" min={new Date().toLocaleDateString('sv-SE')} value={form.fecha_entrada} onChange={e => setForm({ ...form, fecha_entrada: e.target.value, habitacion_id: '', precio_noche: 0, total: 0, estado: e.target.value > new Date().toLocaleDateString('sv-SE') ? 'pendiente' : form.estado })} className="bg-background h-9 rounded-md text-sm border border-input focus:ring-1 focus:ring-primary" />
+                                    <Input id="fecha_entrada" type="date" min={hoy} value={form.fecha_entrada} onChange={e => setForm({ ...form, fecha_entrada: e.target.value, habitacion_id: '', precio_noche: 0, total: 0, estado: e.target.value > hoy ? 'pendiente' : form.estado })} className="bg-background h-9 rounded-md text-sm border border-input focus:ring-1 focus:ring-primary" />
                                 </div>
                                 <div className="space-y-1.5">
                                     <Label htmlFor="fecha_salida" className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider ml-1">Fecha Salida</Label>

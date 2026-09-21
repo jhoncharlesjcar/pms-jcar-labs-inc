@@ -7,7 +7,7 @@ import {
 
 import { useAuth } from '@/contexts/AuthContext';
 import { cn } from '@/lib/utils';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Building2 } from 'lucide-react';
 import GestionHotelesAdmin from '@/components/admin/GestionHotelesAdmin';
 
@@ -18,6 +18,7 @@ import { supabase } from '@/config/supabase';
 import { useHotelData } from '@/hooks/useHotelData';
 import { useRealtimeSync } from '@/hooks/useRealtimeSync';
 import OfflineSyncManager from '@/components/OfflineSyncManager';
+import HotelOperationalBanner from '@/components/HotelOperationalBanner';
 import { canAccessPath } from '@/constants/permissions';
 import BroomIcon from '@/components/ui/icons/BroomIcon';
 
@@ -179,6 +180,7 @@ const Layout = memo(function Layout() {
                     "app-main custom-scrollbar relative mx-auto w-full max-w-[1740px] flex-1 overflow-x-hidden overflow-y-auto p-4 sm:p-6 lg:p-8 lg:pb-10 xl:p-10",
                     location.pathname === '/pos' ? "pb-0" : "pb-24"
                 )}>
+                    <HotelOperationalBanner />
                     <PageTransition key={location.pathname}>
                         <Outlet />
                     </PageTransition>
@@ -197,6 +199,7 @@ const Layout = memo(function Layout() {
                             </div>
                             Hoteles & Staff
                         </DialogTitle>
+                        <DialogDescription className="sr-only">Administra propiedades y personal del hotel</DialogDescription>
                     </DialogHeader>
                     <GestionHotelesAdmin onClose={() => setGestionModal(false)} />
                 </DialogContent>

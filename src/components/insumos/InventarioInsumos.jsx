@@ -12,7 +12,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { cn } from '@/lib/utils';
-
+import { hoyLima } from '@/lib/limaDate';
 import { format } from 'date-fns';
 
 const Insumos = memo(function Insumos() {
@@ -156,10 +156,8 @@ const Insumos = memo(function Insumos() {
     const stats = useMemo(() => {
         const total = insumos.length;
         const bajoStock = insumos.filter(i => i.stock < 5).length;
-        const mHoy = movimientos.filter(m => {
-            const f = new Date(m.created_date).toLocaleDateString();
-            return f === new Date().toLocaleDateString();
-        });
+        const hoy = hoyLima();
+        const mHoy = movimientos.filter(m => (m.created_date || '').startsWith(hoy));
         const entradasHoy = mHoy.filter(m => m.tipo_movimiento === 'entrada').length;
         const salidasHoy = mHoy.filter(m => m.tipo_movimiento === 'salida').length;
 

@@ -16,6 +16,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/config/supabase';
 import { crearComprobante } from '@/api/facturacion';
 import { registrarLog } from '@/lib/auditLogger';
+import { hoyLima } from '@/lib/limaDate';
 import { toast } from 'sonner';
 import logger from '@/lib/logger';
 import {
@@ -176,7 +177,7 @@ function construirPayloadVenta(
         tipo_comprobante: formData.requiereComprobante ? formData.tipoComprobante : 'ninguno',
         ruc_cliente: formData.requiereComprobante && formData.tipoComprobante === 'factura' ? formData.rucCliente : '',
         razon_social: formData.requiereComprobante && formData.tipoComprobante === 'factura' ? formData.razonSocial : '',
-        fecha_pago: new Date().toLocaleDateString('sv-SE'),
+        fecha_pago: hoyLima(),
         codigo_referencia: formData.codigoReferencia?.trim() || '',
         notas: formData.codigoReferencia
             ? `[Ref ${formData.metodo.toUpperCase()}: ${formData.codigoReferencia}]`

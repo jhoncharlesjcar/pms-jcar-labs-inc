@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
+import { PieChart, Pie, Cell } from 'recharts';
 import { BedDouble, ArrowUpRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -31,9 +31,8 @@ export const InventoryStatus = ({
 
             <div className="flex items-center gap-6">
                 {/* Donut Chart */}
-                <div className="relative flex-shrink-0">
-                    <ResponsiveContainer width={140} height={140}>
-                        <PieChart>
+                <div className="relative h-[140px] w-[140px] flex-shrink-0">
+                    <PieChart width={140} height={140}>
                             <Pie
                                 data={donutData.length > 0 ? donutData : [{ name: 'Vacío', value: 1, fill: 'hsl(var(--muted))' }]}
                                 innerRadius={45}
@@ -48,8 +47,7 @@ export const InventoryStatus = ({
                                     <Cell key={`cell-${index}`} fill={entry.fill} />
                                 ))}
                             </Pie>
-                        </PieChart>
-                    </ResponsiveContainer>
+                    </PieChart>
                     {/* Center label */}
                     <div className="absolute inset-0 flex flex-col items-center justify-center">
                         <span className="text-2xl font-bold tabular-nums text-foreground leading-none">{totalHabitaciones}</span>

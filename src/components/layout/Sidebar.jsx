@@ -105,7 +105,7 @@ export default function Sidebar({
                 sidebarCollapsed ? "w-[17rem] lg:w-[76px]" : "w-[17rem]"
             )}>
                 {/* Header Marca & Logo */}
-                <div className={cn("flex min-h-[76px] items-center gap-3 border-b border-border/50 p-4 transition-all duration-300", sidebarCollapsed ? "justify-center px-2" : "")}>
+                <div className={cn("flex min-h-[76px] items-center gap-3 border-b border-border/50 p-4 transition-all duration-300", sidebarCollapsed ? "flex-col justify-center gap-2 px-2 py-3" : "")}>
                     <div className={cn(
                         "overflow-hidden rounded-xl shadow-xs flex-shrink-0 flex items-center justify-center bg-white border border-border/40 transition-all duration-300 p-0.5",
                         sidebarCollapsed ? "h-10 w-10" : "h-11 w-11"
@@ -125,6 +125,7 @@ export default function Sidebar({
                             <SelectorHotel />
                         </div>
                     )}
+                    {sidebarCollapsed && <SelectorHotel compact />}
                 </div>
 
                 {/* Búsqueda Global */}

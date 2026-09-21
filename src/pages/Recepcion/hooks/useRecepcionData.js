@@ -3,19 +3,22 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useHotelData } from '@/hooks/useHotelData';
 import { supabase } from '@/config/supabase';
 import { toast } from 'sonner';
-import { format, addDays, differenceInDays } from 'date-fns';
+import { differenceInDays } from 'date-fns';
+import { addDaysYmd, hoyLima } from '@/lib/limaDate';
 import logger from '@/lib/logger';
 import { useIdentity } from '@/hooks/useIdentity';
 import { useLoyaltyAccount } from '@/hooks/useLoyalty';
 import { roomStatusForReservationTransition } from '@/constants/roomStatus';
 import { buildReceptionSummary, matchesReceptionFilter, sortReservationsByOperationalPriority } from '@/lib/recepcionCockpit';
 
-export const createEmptyForm = () => ({
+export const createEmptyForm = () => {
+    const hoy = hoyLima();
+    return {
     habitacion_id: '', habitacion_numero: '', habitacion_tipo: '',
     huesped_nombre: '', huesped_dni: '', huesped_telefono: '', huesped_procedencia: '',
     nacionalidad: 'Peruana', motivo_viaje: 'turismo',
-    fecha_entrada: format(new Date(), 'yyyy-MM-dd'),
-    fecha_salida: format(addDays(new Date(), 1), 'yyyy-MM-dd'),
+    fecha_entrada: hoy,
+    fecha_salida: addDaysYmd(hoy, 1),
     noches: 1, precio_noche: 0, total: 0,
     num_adultos: 1, num_ninos: 0, observaciones: '', estado: 'activa',
     huesped_fecha_nacimiento: '',
@@ -24,7 +27,8 @@ export const createEmptyForm = () => ({
     huesped_destino: '',
     huesped_sexo: 'no_especificado',
     tipo_documento: 'DNI',
-});
+    };
+};
 
 export function useRecepcionData() {
     const qc = useQueryClient();
@@ -133,7 +137,7 @@ export function useRecepcionData() {
 
     const saveReserva = useMutation({
         mutationFn: async (/** @type {any} */ data) => {
-            if (data.estado === 'activa' && data.fecha_entrada > format(new Date(), 'yyyy-MM-dd')) {
+            if (data.estado === 'activa' && data.fecha_entrada > hoyLima()) {
                 throw new Error('No se puede iniciar hoy una estancia cuya fecha de entrada es futura');
             }
             const { data: nueva, error } = await supabase.rpc('create_reservation_atomic', {
@@ -193,7 +197,7 @@ export function useRecepcionData() {
     const actualizarEstado = useMutation({
         mutationFn: async (/** @type {any} */ { id, estado, hab_id, estadoAnterior }) => {
             const currentReservation = reservas.find(reserva => reserva.id === id);
-            if (estado === 'activa' && currentReservation?.fecha_entrada > format(new Date(), 'yyyy-MM-dd')) {
+            if (estado === 'activa' && currentReservation?.fecha_entrada > hoyLima()) {
                 throw new Error('La estancia no puede activarse antes de su fecha de entrada');
             }
             const nextRoomStatus = roomStatusForReservationTransition(estadoAnterior, estado);

@@ -39,7 +39,7 @@ export function useVentasData() {
         });
     }, [ventasHotel, ventasPOS]);
 
-    const hoy = new Date().toLocaleDateString('sv-SE');
+    const hoy = new Date().toLocaleDateString('sv-SE', { timeZone: 'America/Lima' });
     
     const totalesHoy = useMemo(() => {
         const deHoy = todasLasVentas.filter(v => {
