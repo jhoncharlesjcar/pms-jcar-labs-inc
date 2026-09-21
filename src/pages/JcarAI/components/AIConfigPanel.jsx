@@ -11,10 +11,10 @@ const inputClass = 'w-full rounded-md border border-input bg-background px-3 py-
 
 export default function AIConfigPanel({ hotelId }) {
     const queryClient = useQueryClient();
-    /** @type {Partial<AIHotelConfig>} */
-    const [draft, setDraft] = useState({});
-    /** @type {Record<string, string>} */
-    const [errors, setErrors] = useState({});
+    /** @type {{ [key: string]: any }} */
+    const openObject = { _: null };
+    const [draft, setDraft] = useState(openObject);
+    const [errors, setErrors] = useState(openObject);
     const { data: config, isLoading, isError, error } = useQuery({
         queryKey: ['ai-config', hotelId],
         queryFn: () => AIService.getConfig(hotelId),

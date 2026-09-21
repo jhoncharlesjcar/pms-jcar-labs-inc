@@ -48,10 +48,7 @@ export type TableName = typeof TABLE_MAP[EntityName];
  */
 export function createEntityProxy(tableName: TableName) {
   return {
-    /**
-     * Obtiene un registro por ID
-     */
-    async get(id: string, columns = '*') {
+    async get(id: any, columns = '*'): Promise<any> {
       const { data, error } = await supabase
         .from(tableName)
         .select(columns)
@@ -61,13 +58,7 @@ export function createEntityProxy(tableName: TableName) {
       return data;
     },
 
-    /**
-     * Lista registros con ordenamiento, límite y columnas opcionales
-     * @param orderBy - Campo de ordenamiento. Prefijo '-' para DESC (ej: '-created_date')
-     * @param limit - Límite de registros (por defecto 500)
-     * @param columns - Columnas a seleccionar (ej: 'id, nombre, precio')
-     */
-    async list(orderBy?: string, limit = 500, columns = '*') {
+    async list(orderBy?: string, limit = 500, columns = '*'): Promise<any[]> {
       let query = supabase.from(tableName).select(columns);
 
       if (orderBy) {
@@ -95,7 +86,7 @@ export function createEntityProxy(tableName: TableName) {
     /**
      * Crea un nuevo registro
      */
-    async create(record: Record<string, any>) {
+    async create(record: any): Promise<any> {
       const cleanData = { ...record };
       if (!cleanData.id) {
         cleanData.id = generateUUID();
@@ -113,7 +104,7 @@ export function createEntityProxy(tableName: TableName) {
     /**
      * Actualiza un registro por ID
      */
-    async update(id: string, updates: Record<string, any>) {
+    async update(id: any, updates: any): Promise<any> {
       const cleanUpdates = { ...updates };
       delete cleanUpdates.id;
       delete cleanUpdates.created_date;
@@ -133,19 +124,17 @@ export function createEntityProxy(tableName: TableName) {
     /**
      * Elimina un registro por ID
      */
-    async delete(id: string) {
+    async delete(id: any): Promise<any> {
       const { error } = await supabase
         .from(tableName)
         .delete()
         .eq('id', id);
 
       if (error) throw error;
+      return id;
     },
 
-    /**
-     * Filtra registros por condiciones simples (key-value)
-     */
-    async filter(filters: Record<string, any>, columns = '*', orderBy?: string) {
+    async filter(filters: any, columns = '*', orderBy?: string): Promise<any[]> {
       let query = supabase.from(tableName).select(columns);
 
       if (filters && typeof filters === 'object') {

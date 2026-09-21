@@ -25,7 +25,6 @@ const statusStyles = {
 
 export default function ConversationList({ hotelId }) {
     const [statusFilter, setStatusFilter] = useState('all');
-    /** @type {string | null} */
     const [selectedConversationId, setSelectedConversationId] = useState(null);
     const conversationsQuery = useQuery({
         queryKey: ['ai-conversations', hotelId, statusFilter],

@@ -3,20 +3,20 @@
 
 import { entities, TABLE_MAP, TABLE_DATE_COLUMN, createEntityProxy } from './entities';
 import type { EntityName, TableName, EntityProxy } from './entities';
+import { auth, users } from './auth';
+import { forHotel, clearScopedCache, onHotelChange } from './cache';
 
 export { entities, TABLE_MAP, TABLE_DATE_COLUMN, createEntityProxy };
 export type { EntityName, TableName, EntityProxy };
 export { enqueueOfflineMutation, getPendingCount, getDeadLetterCount, processQueue, purgeQueuesForIdentity, OfflineMutationError, getCurrentHotelId } from './offline';
-export { forHotel, clearScopedCache, onHotelChange } from './cache';
-export { auth, users } from './auth';
+export { forHotel, clearScopedCache, onHotelChange };
+export { auth, users };
 
-// Main db object for backward compatibility
 export const db = {
-  get entities() { return entities; },
-  forHotel: (hotelId: string) => import('./cache').then(m => m.forHotel(hotelId)),
-  clearScopedCache: () => import('./cache').then(m => m.clearScopedCache()),
-  get auth() { return import('./auth').then(m => m.auth); },
-  get users() { return import('./auth').then(m => m.users); },
-  get offline() { return import('./offline'); },
-  get cache() { return import('./cache'); },
+  entities,
+  auth,
+  users,
+  forHotel,
+  clearScopedCache,
+  onHotelChange,
 };

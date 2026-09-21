@@ -11,14 +11,14 @@ export function clearScopedCache(): void {
 }
 
 /**
- * Crea una instancia de entidades filtrada automáticamente por hotel_id
- * Usa cache interna para evitar re-crear objetos proxy en cada render
- * @param hotelId
+ * Crea una instancia de entidades filtrada automáticamente por hotel_id.
+ * Síncrono: los consumidores (useHotelData) acceden a hotelDb.Habitacion sin await.
  */
-export async function forHotel(hotelId: string): Promise<Record<string, EntityProxy>> {
+export function forHotel(hotelId: string): Record<string, EntityProxy> {
   if (!hotelId) return entities;
 
-  if (_scopedCache.has(hotelId)) return _scopedCache.get(hotelId)!;
+  const cached = _scopedCache.get(hotelId);
+  if (cached) return cached;
 
   const scoped: Record<string, EntityProxy> = {};
   for (const [name, proxy] of Object.entries(entities)) {
@@ -26,9 +26,11 @@ export async function forHotel(hotelId: string): Promise<Record<string, EntityPr
 
     scoped[name] = {
       ...proxy,
-      list: (orderBy?: string, limit?: number, columns?: string) => proxy.filter({ [filterKey]: hotelId }, columns, orderBy),
-      filter: (filters: Record<string, any>, columns?: string, orderBy?: string) => proxy.filter({ ...filters, [filterKey]: hotelId }, columns, orderBy),
-      create: (data: Record<string, any>) => proxy.create({ ...data, [filterKey]: hotelId }),
+      list: (orderBy?: string, limit?: number, columns?: string) =>
+        proxy.filter({ [filterKey]: hotelId }, columns, orderBy),
+      filter: (filters?: any, columns?: string, orderBy?: string) =>
+        proxy.filter({ ...filters, [filterKey]: hotelId }, columns, orderBy),
+      create: (data?: any) => proxy.create({ ...data, [filterKey]: hotelId }),
     };
   }
   _scopedCache.set(hotelId, scoped);

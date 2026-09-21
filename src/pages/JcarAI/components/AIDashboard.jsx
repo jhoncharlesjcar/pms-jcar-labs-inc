@@ -184,7 +184,7 @@ export default function AIDashboard({ hotelId }) {
     );
 }
 
-function KPIcard({ icon, iconBg, label, value, subtext, accent, gradient }) {
+function KPIcard({ icon, iconBg, label, value, subtext = null, accent = '', gradient = false }) {
     return (
         <div
             className={`rounded-xl border border-border/50 ${accent || ''} ${

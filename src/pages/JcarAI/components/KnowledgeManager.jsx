@@ -17,7 +17,6 @@ const CATEGORIES = [
 
 export default function KnowledgeManager({ hotelId }) {
     const queryClient = useQueryClient();
-    /** @type {Partial<AIKnowledge> | null} */
     const [editingItem, setEditingItem] = useState(null);
     const [searchTerm, setSearchTerm] = useState('');
     const [activeCategory, setActiveCategory] = useState('all');
@@ -28,8 +27,7 @@ export default function KnowledgeManager({ hotelId }) {
     });
 
     const upsertMutation = useMutation({
-            /** @param {Partial<AIKnowledge>} data */
-            mutationFn: (data) => AIService.upsertKnowledge(hotelId, data),
+            mutationFn: (/** @type {any} */ data) => AIService.upsertKnowledge(hotelId, data),
             onSuccess: () => {
                 queryClient.invalidateQueries({ queryKey: ['ai-knowledge', hotelId] });
                 setEditingItem(null);

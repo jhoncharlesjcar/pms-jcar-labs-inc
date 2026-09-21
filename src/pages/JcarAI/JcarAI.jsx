@@ -20,7 +20,6 @@ const tabs = [
 
 export default function JcarAI() {
     const { hotelId, isLoading } = useHotelData();
-    /** @type {string} */
     const [activeTab, setActiveTab] = useState('dashboard');
 
     if (isLoading) {

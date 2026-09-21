@@ -54,7 +54,6 @@ function ChannelCard({ definition, hotelId, connection, onSaved }) {
         response_delay_seconds: 0,
         max_concurrent_messages: 1,
     });
-    /** @type {{ credential_id: string; secret: string } | null} */
     const [issuedCredential, setIssuedCredential] = useState(null);
 
     useEffect(() => {
