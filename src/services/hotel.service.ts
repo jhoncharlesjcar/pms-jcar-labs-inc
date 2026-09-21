@@ -35,7 +35,7 @@ export const HotelService = {
       .limit(100);
 
     if (error) throw error;
-    return data || [];
+    return (data as unknown as Hotel[]) ?? [];
   },
 
   /**
