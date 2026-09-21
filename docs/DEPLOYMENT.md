@@ -1,6 +1,6 @@
 # Despliegue reproducible
 
-**Última revisión:** 7 de septiembre de 2026 (v3.2.0)
+**Última revisión:** 21 de septiembre de 2026 (v3.3.0)
 **Frontend:** Vercel SPA/PWA
 **Backend:** Supabase PostgreSQL, Auth y Edge Functions
 
@@ -14,7 +14,7 @@ El proyecto cuenta con dos flujos automatizados en GitHub Actions:
    - Verificación de código estático: `pnpm lint` (`--max-warnings=0`), `pnpm typecheck` y `pnpm typecheck:js`.
    - Seguridad y compliance: `pnpm check:secrets` (escaneo preventivo de secretos) y `pnpm check:migrations` (orden e higiene de 42 migraciones).
    - Edge Functions & Deno: `pnpm check:edge` (compilación y suite de pruebas nativas con Deno 2.x).
-   - Suite de pruebas: `pnpm test` (122 pruebas unitarias) y pruebas de humo E2E Playwright.
+   - Suite de pruebas: `pnpm test` (132 pruebas unitarias) y E2E Playwright (Chromium instalado en CI con `playwright install --with-deps chromium`).
    - Build de producción y PWA service worker generation.
 
 2. **`.github/workflows/staging-migrations.yml` (Staging Migrations Pipeline):**

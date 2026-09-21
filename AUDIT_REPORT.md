@@ -1,8 +1,10 @@
 # Informe de Auditoría Técnica — PMS JCAR LABS
 
-**Fecha:** 2026-09-20  
-**Versión auditada:** 3.0.0  
-**Puntuación Global de Salud:** **8.5 / 10**
+**Fecha original:** 2026-09-20  
+**Supersedido por:** v3.3.0 (21-09-2026) — ver [docs/PRODUCTION.md](docs/PRODUCTION.md) y [docs/CHANGELOG.md](docs/CHANGELOG.md)  
+**Versión auditada entonces:** 3.0.0  
+
+Este informe se conserva como histórico. Varios hallazgos (500 de `hoteles`, 403 de disponibilidad, `select('*')`, typecheck de hotel.service, seed vacío, GRANT de secretos) ya tienen migración o código en 3.3.0. Prevent leaked passwords sigue siendo feature Pro (WON'T FIX).
 
 ---
 

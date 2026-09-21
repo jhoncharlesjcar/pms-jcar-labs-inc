@@ -14,7 +14,7 @@ Ejemplos:
 - `refactor(layout): extraer sidebar a componente independiente`
 
 ## Pull Requests
-1. Debe pasar Quality Gate (lint + typecheck + tests + build)
+1. Debe pasar Quality Gate (`lint` + `typecheck` + `typecheck:js` + `test` + `build`)
 2. Mínimo 1 revisor
 3. No reducir coverage sin justificación
 4. Nuevas funciones de servicio → test unitario obligatorio
@@ -86,7 +86,7 @@ src/
   contexts/            # Auth + Hotel activo
   hooks/               # hooks transversales
   pages/<Dominio>/hooks/  # "Cerebro": hooks de dominio (v3.0+)
-  pages/<Dominio>.jsx  # "Músculo": componentes presentacionales
+  pages/<Dominio>.jsx  # "Músculo": JSX + JSDoc (Vite no parsea TypeScript en .jsx)
   services/            # lógica de negocio pura (sin side effects)
   store/               # Zustand: sesión + hotel activo
 supabase/

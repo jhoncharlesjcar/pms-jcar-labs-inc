@@ -1,300 +1,168 @@
-# PMS JCAR Labs Inc 🏨
+# PMS JCAR LABS
 
-**Property Management System** — A comprehensive hotel and lodging management platform built for modern hospitality businesses.
+Property Management System para hospedajes en Perú. SPA Vite + React, PostgreSQL/RLS en Supabase, facturación SUNAT y módulo JCAR AI.
 
-[![Live Demo](https://img.shields.io/badge/Live-Demo-brightgreen?style=flat-square)](https://pms-jcar-labs-inc.vercel.app)
-[![GitHub](https://img.shields.io/badge/GitHub-Repository-black?style=flat-square)](https://github.com/jhoncharlesjcar/pms-jcar-labs-inc)
+[![Live](https://img.shields.io/badge/Live-Vercel-black?style=flat-square)](https://pms-jcar-labs-inc.vercel.app)
+[![GitHub](https://img.shields.io/badge/GitHub-PMS--JCAR--LABS-181717?style=flat-square)](https://github.com/jhoncharlesjcar/PMS-JCAR-LABS)
 
----
-
-## 🎯 Overview
-
-PMS JCAR Labs Inc is a **full-stack property management solution** designed to help hotels, resorts, and vacation rentals manage operations efficiently. From reservations to guest management, billing, and reporting — everything you need in one platform.
-
-### Key Metrics
-- 📊 Manages **50+ properties**
-- 👥 Supports **1000+ monthly bookings**
-- 🌍 Multi-property management
-- 📱 Responsive & mobile-friendly
+**Versión documentada:** 3.3.0 (21 septiembre 2026)
 
 ---
 
-## ✨ Features
+## Qué hace
 
-### 🛏️ Reservation Management
-- Real-time booking system
-- Multiple room types & pricing tiers
-- Calendar-based availability
-- Guest preferences tracking
+Operación diaria de un hotel multi-propiedad:
 
-### 👤 Guest Management
-- Complete guest profiles
-- Contact information & history
-- Special requests & notes
-- Multi-language support
+| Módulo | Ruta | Roles |
+| --- | --- | --- |
+| Dashboard | `/` | admin, developer |
+| Recepción y reservas | `/recepcion` | admin, developer, recepcionista |
+| Habitaciones | `/habitaciones` | admin, developer, recepcionista, limpieza |
+| Huéspedes | `/huespedes` | admin, developer, recepcionista |
+| Limpieza | `/limpieza` | admin, developer, recepcionista, limpieza |
+| Ventas / tickets | `/ventas` | admin, developer, recepcionista |
+| Caja (día Lima) | `/caja` | admin, developer, recepcionista |
+| Punto de venta | `/pos` | admin, developer, recepcionista |
+| Insumos | `/insumos` | admin, developer |
+| Revenue | `/revenue` | admin, developer |
+| JCAR AI | `/jcar-ai` | admin, developer |
+| Reportes | `/reportes` | admin, developer, recepcionista |
+| Configuración | `/configuracion` | admin, developer |
 
-### 💳 Billing & Payments
-- Automated invoicing
-- Multiple payment methods
-- Tax calculations
-- Financial reporting
+Rutas públicas: booking, check-in y portal de huésped (Edge Functions con `verify_jwt` según el contrato de cada función).
 
-### 📊 Analytics & Reports
-- Occupancy rates
-- Revenue tracking
-- Guest statistics
-- Performance dashboards
-
-### 🔐 Security & Access Control
-- Role-based permissions
-- Secure authentication
-- Data encryption
-- Audit logs
+No hay API REST `/api/rooms`. El cliente habla con PostgREST (`supabase-js`), RPCs y Edge Functions.
 
 ---
 
-## 🛠️ Tech Stack
+## Stack
 
-| Layer | Technology |
-|-------|------------|
-| **Frontend** | React 18, TypeScript, Tailwind CSS, Vite |
-| **Backend** | Supabase (PostgreSQL, Auth, Realtime, Edge Functions) |
-| **Database** | PostgreSQL with RLS |
-| **Deployment** | Vercel, AWS |
-| **Authentication** | JWT, OAuth2, Supabase Auth |
-| **AI** | Qwen (DashScope), Google Gemini 2.0 |
-| **Payments** | Stripe, PayPal integration |
+| Capa | Tecnología |
+| --- | --- |
+| Frontend | React 18, Vite 6, Tailwind, páginas `.jsx` + JSDoc, servicios `.ts` |
+| Estado | TanStack Query, store de sesión, hotel activo |
+| Backend | Supabase (PostgreSQL + RLS, Auth, Realtime, Edge Functions) |
+| Fiscal | UBL 2.1, XMLDSig, SOAP SUNAT (`sunat-wrapper` + `facturacion`) |
+| IA | Edge Function `ai-gateway` (widget y staff). Las carpetas `ai-gateway-*` del repo no están en prod hasta que `list_edge_functions` las liste |
+| CI | GitHub Actions `deploy.yml` (lint, typecheck, typecheck:js, tests, Playwright Chromium, build) |
+| Hosting | Vercel (SPA/PWA) |
 
 ---
 
-## 🚀 Quick Start
+## Arranque local
 
-### Prerequisites
-- Node.js 22+
-- pnpm 9
-- Supabase account
-- PostgreSQL database
-
-### Installation
+Requisitos: Node 22+, pnpm 9.15.9. En Windows, si el shim de Corepack falla:
 
 ```bash
-# Clone repository
-git clone https://github.com/jhoncharlesjcar/pms-jcar-labs-inc.git
-cd pms-jcar-labs-inc
-
-# Install dependencies
-pnpm install --frozen-lockfile
-
-# Configure environment variables
+git clone https://github.com/jhoncharlesjcar/PMS-JCAR-LABS.git
+cd "PMS JCAR LABS"
+npm exec pnpm@9.15.9 install --frozen-lockfile
 cp .env.example .env.local
-
-# Run development server
-pnpm dev
+npm exec pnpm@9.15.9 dev
 ```
 
-Visit `http://localhost:5173` to access the application.
+App: `http://localhost:5173`
 
-### Environment Configuration
+Variables públicas (nunca `service_role` en `VITE_*`):
 
 ```env
-# Supabase
 VITE_SUPABASE_URL=https://<project-ref>.supabase.co
-VITE_SUPABASE_ANON_KEY=<anon-key>
-VITE_TURNSTILE_SITE_KEY=<turnstile-site-key>
-
-# AI Gateway (Edge Functions)
-DASHSCOPE_API_KEY=your_key
-GEMINI_API_KEY=your_key
+VITE_SUPABASE_ANON_KEY=<anon-or-publishable-key>
+VITE_TURNSTILE_SITE_KEY=<opcional>
 ```
 
 ---
 
-## 📁 Project Structure
-
-```
-pms-jcar-labs-inc/
-├── src/
-│   ├── api/              # Data access & multi-tenant scope
-│   ├── components/       # Shared & business components
-│   ├── constants/        # Permissions & operational states
-│   ├── contexts/         # Auth & active property context
-│   ├── hooks/            # Queries & UI orchestration
-│   ├── pages/            # App modules & routes
-│   ├── services/         # Reusable business logic
-│   └── store/            # Session & active hotel state
-├── supabase/
-│   ├── functions/        # Privileged operations & integrations
-│   └── migrations/       # Schema, RLS policies & data evolution
-├── docs/                 # Operations, design & deployment
-├── specs/                # Domain contracts
-└── public/               # Static assets
-```
-
----
-
-## 📚 API Documentation
-
-### Rooms
-```bash
-GET    /api/rooms          # List all rooms
-POST   /api/rooms          # Create new room
-GET    /api/rooms/:id      # Get room details
-PUT    /api/rooms/:id      # Update room
-DELETE /api/rooms/:id      # Delete room
-```
-
-### Bookings
-```bash
-GET    /api/bookings       # List bookings
-POST   /api/bookings       # Create booking
-GET    /api/bookings/:id   # Get booking details
-PUT    /api/bookings/:id   # Update booking
-DELETE /api/bookings/:id   # Cancel booking
-```
-
-### Billing & Payments
-```bash
-GET    /api/invoices       # List invoices
-POST   /api/invoices       # Create invoice
-GET    /api/invoices/:id   # Get invoice details
-POST   /api/payments       # Process payment
-```
-
-### AI Assistant
-```bash
-POST   /api/ai/chat        # Send message to AI assistant
-POST   /api/ai/tools       # Execute AI tool calling
-```
-
----
-
-## 🧪 Testing & Quality
+## Quality gate
 
 ```bash
-# Lint
-pnpm lint
+npm exec pnpm@9.15.9 run lint
+npm exec pnpm@9.15.9 run typecheck
+npm exec pnpm@9.15.9 run typecheck:js
+npm exec pnpm@9.15.9 run test
+npm exec pnpm@9.15.9 run build
+```
 
-# Type check
-pnpm typecheck
+En CI también: `check:ts-suppressions`, `check:secrets`, `check:migrations`, `check:edge`, `playwright install --with-deps chromium`, `test:e2e`.
 
-# Unit tests
-pnpm test:coverage
+Tests unitarios actuales: **132** (Vitest node). No importar `dompurify` en unit tests.
 
-# E2E tests
-pnpm test:e2e
+---
 
-# Check Edge Functions
-pnpm check:edge
+## Producción — operación
 
-# Check migrations
-pnpm check:migrations
+Zona horaria de caja, dashboard “hoy” y fechas de recepción: **America/Lima** (`src/lib/limaDate.ts` → `hoyLima()`).
 
-# Check secrets
-pnpm check:secrets
+### Hoteles de prueba
 
-# Full build
-pnpm build
+| Hotel | UUID | Contenido |
+| --- | --- | --- |
+| HOSPEDAJE ANGELICA FREY | `11111111-1111-1111-1111-111111111111` | Seed histórico (habitaciones, reservas, POS) |
+| PMS JCAR LABS | `6dbaf2c2-e294-460a-87f0-26e914a10a5d` | Seed operativo (10 hab, reservas de hoy, catálogo POS) |
+
+El selector del header muestra el **nombre** de la propiedad. Si un hotel no tiene habitaciones, `HotelOperationalBanner` ofrece cambiar de propiedad. No se cambia el hotel en silencio.
+
+Caja solo lista el **día civil Lima**. Reservas de meses pasados no aparecen ahí; en Recepción el filtro por defecto es **Todas**.
+
+### RPCs de staff vs IA
+
+- Recepción consulta `staff_search_availability` (SECURITY DEFINER, rol + hotel).
+- Esa función llama `ai_search_availability_v2`, que **no** tiene `EXECUTE` para `authenticated`.
+- Un 403 `permission denied for function ai_search_availability_v2` no es “sin cupo”: es GRANT/INVOKER mal puesto.
+
+`listHoteles()` no usa `select('*')` (columnas bytea de secretos rompen PostgREST y filtran credenciales).
+
+Funciones que devuelven secretos (`get_sunat_encryption_key`) solo `service_role`.
+
+---
+
+## Estructura
+
+```
+src/
+  api/           entidades, cache, offline, auth (capa síncrona db.forHotel)
+  components/    UI compartida, POS, layout
+  pages/         módulos (.jsx + JSDoc)
+  services/      reglas puras (.ts)
+  lib/           limaDate, logger, sync-queue
+supabase/
+  migrations/    esquema, RLS, seeds idempotentes
+  functions/     facturacion, ai-gateway, public-booking, …
+sunat-wrapper/   microservicio SOAP/UBL
+docs/            operación, diseño, despliegue
+specs/           contratos de dominio
+tests/unit/      Vitest
+tests/e2e/       Playwright
 ```
 
 ---
 
-## 🚀 Deployment
+## Documentación
 
-### Deploy to Vercel
-
-```bash
-npm install -g vercel
-vercel login
-vercel deploy
-```
-
-### Deploy to AWS
-
-```bash
-# Build for production
-pnpm build
-
-# Deploy using AWS CLI
-aws lambda deploy-function ...
-```
-
-### Production Quality Gate
-
-The workflow `Production Quality Gate` in `.github/workflows/deploy.yml` runs:
-- Reproducible installation
-- Linting & type checking
-- Secret scanning
-- Migration validation
-- Unit tests (122+ tests)
-- Edge Function validation
-- Production build verification
+| Documento | Uso |
+| --- | --- |
+| [Índice](docs/README.md) | Mapa de docs |
+| [Producción](docs/PRODUCTION.md) | Estado live, incidentes frecuentes |
+| [Changelog](docs/CHANGELOG.md) | Historial |
+| [Flujo de negocio](docs/FLUJO_NEGOCIO.md) | Reserva → caja |
+| [Despliegue](docs/DEPLOYMENT.md) | CI, Vercel, migraciones |
+| [Runbook](docs/OPERATIONS_RUNBOOK.md) | Backups, crons, incidentes |
+| [Arquitectura](specs/architecture.md) | Capas y seguridad |
+| [Contribuir](CONTRIBUTING.md) | Ramas, commits, gates |
 
 ---
 
-## 🤝 Contributing
+## Seguridad
 
-Contributions are welcome! Please follow these steps:
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+- No commitear `.env` ni `service_role`.
+- No editar migraciones ya aplicadas; crear otra.
+- Toda query de negocio filtra `hotel_id` (RLS + RPC).
+- Prevent leaked passwords de Supabase Auth es feature **Pro**; no se habilita en este plan.
 
 ---
 
-## 📖 Documentation
+## Licencia
 
-- [Complete Documentation Index](docs/README.md)
-- [Changelog](docs/CHANGELOG.md)
-- [Architecture](specs/architecture.md)
-- [Business Flow](docs/FLUJO_NEGOCIO.md)
-- [Design System](docs/DESIGN_SYSTEM.md)
-- [Deployment Guide](docs/DEPLOYMENT.md)
-- [Operations Runbook](docs/OPERATIONS_RUNBOOK.md)
+Uso interno JCAR Labs. Consultar al autor antes de redistribuir.
 
----
-
-## 🔐 Security
-
-- Never commit `.env` files or credentials
-- Don't use `service_role` in browser
-- Don't edit applied migrations
-- All queries must preserve `hotel_id` context
-- Public routes must never depend on direct anonymous queries to sensitive tables
-- User cache is purged on identity change
-
----
-
-## 📝 License
-
-MIT License — See [LICENSE](LICENSE) for details
-
----
-
-## 🆘 Support
-
-For issues, questions, or feature requests:
-- 📧 [Open an Issue](https://github.com/jhoncharlesjcar/pms-jcar-labs-inc/issues)
-- 💬 [Start a Discussion](https://github.com/jhoncharlesjcar/pms-jcar-labs-inc/discussions)
-- 🐦 [@jhoncharlesjcar](https://github.com/jhoncharlesjcar)
-
----
-
-## 👤 Author
-
-**Jhon Charles Almanacén Romero** — Full-Stack Developer
-
-- 🌐 [GitHub](https://github.com/jhoncharlesjcar)
-- 💼 [LinkedIn](#)
-- 📧 [Email](#)
-
----
-
-<div align="center">
-
-Made with ❤️ by [JCAR Labs](https://jcarlabs.com)
-
-⭐ If you find this project useful, please consider starring it!
-
-</div>
+**Jhon Charles Almanacén Romero** — [GitHub](https://github.com/jhoncharlesjcar)

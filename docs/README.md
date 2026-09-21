@@ -1,7 +1,7 @@
 # Documentación del PMS JCAR LABS
 
-**Estado:** vigente para la versión 3.2.0
-**Última revisión:** 7 de septiembre de 2026
+**Estado:** vigente para la versión 3.3.0
+**Última revisión:** 21 de septiembre de 2026
 
 Este directorio contiene las guías operativas y técnicas permanentes. Las reglas detalladas de negocio viven en `specs/`.
 
@@ -10,6 +10,7 @@ Este directorio contiene las guías operativas y técnicas permanentes. Las regl
 | Documento | Alcance |
 | --- | --- |
 | [README del proyecto](../README.md) | Instalación, comandos, módulos y acceso rápido |
+| [Producción](PRODUCTION.md) | Estado live, hoteles de prueba, incidentes 403/500 |
 | [Historial de Cambios (Changelog)](CHANGELOG.md) | Registro histórico de novedades, arquitectura y parches |
 | [Arquitectura](../specs/architecture.md) | Capas, rutas, seguridad y sincronización |
 | [Flujo de negocio](FLUJO_NEGOCIO.md) | Ciclo operativo desde reserva hasta cierre |
@@ -54,4 +55,4 @@ Cuando una explicación contradiga el código o una migración aplicada, debe co
 - No editar migraciones ya aplicadas; crear una nueva.
 - Conservar los escenarios de validación de los specs aunque el repositorio productivo no incluya suites de pruebas.
 - Eliminar auditorías temporales, TODO históricos y documentación duplicada.
-- Verificar enlaces, `pnpm lint`, `pnpm typecheck` y `pnpm build` antes de publicar una versión.
+- Verificar enlaces y el quality gate (`lint`, `typecheck`, `typecheck:js`, `test`, `build`) antes de publicar una versión.

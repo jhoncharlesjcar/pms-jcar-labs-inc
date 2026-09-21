@@ -2,6 +2,21 @@
 
 Este documento registra los cambios más relevantes, mejoras arquitectónicas y soluciones a errores en el PMS JCAR LABS.
 
+## [3.3.0] - 21 de septiembre de 2026
+
+### Estabilización de producción
+- **RLS hoteles:** helpers `get_user_hotel_id` / `get_user_role` / `is_user_active` en `SECURITY DEFINER` con `row_security off` para cortar recursión (`stack depth limit exceeded`, HTTP 500 en `GET /hoteles`).
+- **Recepción / disponibilidad:** `staff_search_availability` pasa a DEFINER. `ai_search_availability_v2` permanece sin `EXECUTE` para `authenticated`.
+- **Tipado:** `HotelService.listHoteles` castea el `select` de columnas a `Hotel[]` vía `unknown` (supabase-js infiere `GenericStringError[]`).
+- **Listado de hoteles:** columnas operativas, sin bytea/secretos.
+- **Fechas:** `hoyLima()` (`America/Lima`) en recepción, caja, ventas, checkout e insumos.
+- **UX hotel:** selector con nombre de propiedad; `HotelOperationalBanner` si el hotel no tiene habitaciones.
+- **Seed:** inventario operativo en hotel PMS JCAR LABS (`6dbaf2c2-…`): 10 habitaciones, reservas del día, catálogo POS.
+- **Secretos:** `get_sunat_encryption_key` y `get_dashboard_stats` sin GRANT a `anon`; dashboard stats DEFINER con chequeo de hotel.
+- **POS:** totales numéricos; diálogos con `Description`.
+- **CI:** Playwright instala Chromium; 132 tests unitarios.
+- **Docs:** README alineado al código (sin API REST ficticia); `docs/PRODUCTION.md`.
+
 ## [3.2.0] - 7 de Septiembre de 2026
 
 ### Auditoría Técnica y Remediación Integral

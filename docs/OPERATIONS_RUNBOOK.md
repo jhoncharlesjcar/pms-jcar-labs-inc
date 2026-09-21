@@ -1,6 +1,6 @@
 # Runbook de operaciones y continuidad
 
-**Vigencia:** 7 de septiembre de 2026 (v3.2.0)
+**Vigencia:** 21 de septiembre de 2026 (v3.3.0)
 **Alcance:** frontend Vercel, Supabase, Edge Functions y conectores JcarAI
 
 ## Objetivos de continuidad
@@ -96,6 +96,26 @@ Alertas mínimas:
 - Confirmar que el lease expiró antes de reintentar.
 - Usar ACK/NACK con el mismo `worker_id`; no insertar un mensaje nuevo.
 - Tras el máximo de intentos, revisar la DLQ, corregir la causa y reencolar de forma explícita.
+
+### GET `/hoteles` HTTP 500 (`stack depth limit exceeded`)
+
+- Logs postgres: `stack depth limit exceeded` al listar `hoteles`.
+- Causa: policies de `hoteles` llaman helpers INVOKER que JOIN `hoteles`.
+- Comprobar `prosecdef` de `get_user_hotel_id`, `get_user_role`, `is_user_active`. Deben ser DEFINER con `row_security off`.
+- No reabrir esas funciones como INVOKER.
+
+### Recepción 403 — `permission denied for function ai_search_availability_v2`
+
+- El formulario llama `staff_search_availability`, no la RPC de IA.
+- `staff_search_availability` debe ser DEFINER. No otorgar `ai_search_availability_v2` a `authenticated`.
+- Tras el fix: recarga dura del SPA. Fechas hoy→mañana (`hoyLima()`).
+
+### Pantalla vacía / “no hay datos”
+
+- Confirmar hotel en el selector (nombre visible).
+- Recepción: filtro **Todas**.
+- Caja: solo el día America/Lima.
+- Si 0 habitaciones: banner para cambiar de propiedad.
 
 ### Comprobante SUNAT pendiente
 

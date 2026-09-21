@@ -1,6 +1,6 @@
 # Sistema de diseño
 
-**Última revisión:** 7 de septiembre de 2026 (v3.2.0)
+**Última revisión:** 21 de septiembre de 2026 (v3.3.0)
 **Implementación principal:** `src/index.css`, `tailwind.config.js` y `src/components/ui/`
 
 ## Principios

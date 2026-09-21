@@ -1,6 +1,6 @@
 # Flujo de negocio hotelero
 
-**Última revisión:** 7 de septiembre de 2026 (v3.2.0)
+**Última revisión:** 21 de septiembre de 2026 (v3.3.0)
 
 Este documento resume el ciclo operativo que debe conservarse al evolucionar la interfaz o la arquitectura. Las reglas detalladas se encuentran en `specs/domain-*.md`.
 
@@ -18,7 +18,7 @@ Este documento resume el ciclo operativo que debe conservarse al evolucionar la 
 
 La reserva puede originarse en recepción o en `/booking/:hotelId`.
 
-1. Se consulta disponibilidad para el rango solicitado.
+1. Se consulta disponibilidad para el rango solicitado (`staff_search_availability`, fechas en America/Lima).
 2. Se registran huésped, fechas, ocupación y habitación.
 3. La reserva queda pendiente o confirmada según el canal.
 4. La habitación pasa de disponible a reservada cuando corresponde.
