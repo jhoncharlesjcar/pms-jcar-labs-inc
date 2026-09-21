@@ -4,7 +4,7 @@ import { Plus, Settings2, Pencil, Trash2, FolderPlus, Loader2, ShoppingBag } fro
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
 import { useHotelData } from '@/hooks/useHotelData';
@@ -255,6 +255,7 @@ const CatalogoMinimarket = memo(function CatalogoMinimarket(/** @type {any} */ {
                 <DialogContent className="max-w-sm">
                     <DialogHeader>
                         <DialogTitle>{editando ? 'Editar Producto' : 'Nuevo Producto'}</DialogTitle>
+                        <DialogDescription className="sr-only">Formulario de producto del minimarket</DialogDescription>
                     </DialogHeader>
                     <div className="space-y-3">
                         <div>

@@ -56,7 +56,7 @@ const CarritoMinimarket = memo(function CarritoMinimarket(/** @type {any} */ { i
         );
     }
 
-    const total = items.reduce((s, i) => s + i.precio * i.cantidad, 0);
+    const total = items.reduce((s, i) => s + Number(i.precio || 0) * Number(i.cantidad || 0), 0);
 
     return (
         <div className="flex flex-col h-full justify-between">

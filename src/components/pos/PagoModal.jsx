@@ -1,6 +1,6 @@
 import { useState, useEffect, memo } from 'react';
 import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import logger from '@/lib/logger';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -171,8 +171,11 @@ const PagoModal = memo(function PagoModal(/** @type {any} */ { open, onClose, re
             <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto rounded-xl glass-panel border-border/80 shadow-xl max-sm:left-0 max-sm:top-0 max-sm:h-[100dvh] max-sm:max-h-none max-sm:w-full max-sm:max-w-none max-sm:translate-x-0 max-sm:translate-y-0 max-sm:rounded-none">
                 <DialogHeader>
                     <DialogTitle className="font-display">
-                        {ventaCreada ? '✅ Venta Registrada' : 'Confirmar Cobro'}
+                        {ventaCreada ? 'Venta registrada' : 'Confirmar cobro'}
                     </DialogTitle>
+                    <DialogDescription className="sr-only">
+                        {ventaCreada ? 'Resumen del cobro POS' : 'Confirma método de pago y comprobante'}
+                    </DialogDescription>
                 </DialogHeader>
 
                 {!ventaCreada ? (

@@ -32,7 +32,7 @@ export function usePuntoVentaLogic() {
     const limpiarCarrito = () => { setItems([]); };
 
     const totalItems = items.reduce((s, i) => s + i.cantidad, 0);
-    const totalGeneral = items.reduce((s, i) => s + i.precio * i.cantidad, 0);
+    const totalGeneral = items.reduce((s, i) => s + Number(i.precio || 0) * Number(i.cantidad || 0), 0);
 
     const resumenPago = {
         items,
