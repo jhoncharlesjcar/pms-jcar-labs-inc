@@ -1,6 +1,27 @@
 import { supabase } from '@/config/supabase';
 import { Hotel } from '@/types';
 
+/** Columnas operativas. No incluir bytea/secretos: PostgREST 500 y fuga de credenciales. */
+const HOTEL_LIST_COLUMNS = [
+  'id',
+  'nombre',
+  'activo',
+  'ciudad',
+  'ruc',
+  'razon_social',
+  'direccion',
+  'telefono',
+  'email',
+  'aplica_igv',
+  'modo_sunat',
+  'logo_url',
+  'hora_checkin',
+  'hora_checkout',
+  'loyalty_program_enabled',
+  'moneda_base',
+  'created_at',
+].join(',');
+
 export const HotelService = {
   /**
    * Lista todos los hoteles asociados al tenant actual
@@ -8,7 +29,7 @@ export const HotelService = {
   async listHoteles(): Promise<Hotel[]> {
     const { data, error } = await supabase
       .from('hoteles')
-      .select('*')
+      .select(HOTEL_LIST_COLUMNS)
       .eq('activo', true)
       .order('nombre')
       .limit(100);

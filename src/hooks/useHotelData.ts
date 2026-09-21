@@ -9,38 +9,36 @@ import { HotelService } from '@/services/hotel.service';
  * Evita tener que pasar hotel_id manualmente en cada llamada.
  */
 export function useHotelData() {
-  const { hotelId, setHotelId } = useAuthStore();
+  const { hotelId, setHotelId, user } = useAuthStore();
 
-  // Query para obtener todos los hoteles del tenant
   const { data: hoteles = [], isLoading: isLoadingHoteles } = useQuery({
     queryKey: ['hoteles'],
     queryFn: () => HotelService.listHoteles(),
-    staleTime: 1000 * 60 * 60, // 1 hora
+    staleTime: 1000 * 60 * 5,
   });
 
+  const resolvedHotelId = hotelId || user?.hotel_id || null;
+
   const hotelActual = useMemo(() => {
-    let actual = hoteles.find(h => h.id === hotelId);
-    if (!actual && hoteles.length > 0) {
-      // Intentar recuperar del localStorage clásico o default al primero
-      const savedId = localStorage.getItem('hotel_activo_id');
-      actual = hoteles.find(h => h.id === savedId) || hoteles[0];
-      
-      // Sincronizar el store si encontramos un fallback válido
+    if (!hoteles.length) return null;
+    const preferredId = hotelId || user?.hotel_id || localStorage.getItem('hotel_activo_id');
+    let actual = hoteles.find(h => h.id === preferredId);
+    if (!actual) {
+      actual = hoteles[0];
       if (actual && hotelId !== actual.id) {
-        // Envolver en setTimeout para evitar Warning de actualización de estado en el render
         setTimeout(() => setHotelId(actual.id), 0);
       }
     }
     return actual || null;
-  }, [hoteles, hotelId, setHotelId]);
+  }, [hoteles, hotelId, user?.hotel_id, setHotelId]);
 
   const hotelDb = useMemo(() => {
-    return db.forHotel(hotelId || '');
-  }, [hotelId]);
+    return db.forHotel(resolvedHotelId || hotelActual?.id || '');
+  }, [resolvedHotelId, hotelActual?.id]);
 
   return {
     db: hotelDb,
-    hotelId,
+    hotelId: resolvedHotelId || hotelActual?.id || null,
     hotelActual,
     hoteles,
     isLoading: isLoadingHoteles,

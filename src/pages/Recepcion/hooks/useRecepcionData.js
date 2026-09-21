@@ -34,7 +34,7 @@ export function useRecepcionData() {
     const [createdReserva, setCreatedReserva] = useState(null);
     const [form, setForm] = useState(createEmptyForm);
     const [busqueda, setBusqueda] = useState('');
-    const [filtro, setFiltro] = useState('atencion');
+    const [filtro, setFiltro] = useState('todas');
     const [vista, setVista] = useState('lista'); // 'lista' | 'timeline'
     const [scannerOpen, setScannerOpen] = useState(false);
 

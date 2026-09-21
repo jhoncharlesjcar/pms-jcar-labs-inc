@@ -22,7 +22,7 @@ describe('hotel.service.ts', () => {
 
     const hoteles = await HotelService.listHoteles();
     expect(supabase.from).toHaveBeenCalledWith('hoteles');
-    expect(mockSelect).toHaveBeenCalledWith('*');
+    expect(mockSelect).toHaveBeenCalledWith(expect.stringContaining('id,nombre,activo'));
     expect(mockEq).toHaveBeenCalledWith('activo', true);
     expect(mockOrder).toHaveBeenCalledWith('nombre');
     expect(mockLimit).toHaveBeenCalledWith(100);
