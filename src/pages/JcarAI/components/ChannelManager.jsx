@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Activity, Copy, Facebook, Globe2, Instagram, KeyRound, MessageCircle, Save } from 'lucide-react';
 import { toast } from 'sonner';
 import { AIService } from '@/services/ai.service';
+import { ChannelFormSchema } from '@/pages/JcarAI/validation';
 
 const channelDefinitions = [
     { id: 'whatsapp', name: 'WhatsApp', icon: MessageCircle },
@@ -67,11 +68,16 @@ function ChannelCard({ definition, hotelId, connection, onSaved }) {
 
     const saveMutation = useMutation({
         mutationFn: () => {
-            if (form.enabled && definition.id !== 'web' && !form.external_account_id.trim()) {
-                throw new Error('Ingresa el ID de cuenta antes de activar el canal');
-            }
-            if (form.enabled && definition.id !== 'web' && connection?.status !== 'connected') {
-                throw new Error('Ejecuta una prueba de conexión satisfactoria antes de activar el canal');
+            const parsed = ChannelFormSchema.safeParse({
+                channelId: definition.id,
+                enabled: form.enabled,
+                external_account_id: form.external_account_id,
+                response_delay_seconds: Number(form.response_delay_seconds),
+                max_concurrent_messages: Number(form.max_concurrent_messages),
+                connectionStatus: connection?.status,
+            });
+            if (!parsed.success) {
+                throw new Error(parsed.error.issues[0]?.message || 'Datos de canal inválidos');
             }
             return AIService.saveChannelConnection(hotelId, definition.id, {
                 ...form, name: definition.name,
