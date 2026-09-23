@@ -45,6 +45,10 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Warn if production deploy secret is missing
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push' && env.VERCEL_TOKEN == ''
+        run: echo "::warning::VERCEL_TOKEN ausente. El quality gate no publica en Vercel."
+
       - name: Install Playwright browsers
         run: pnpm exec playwright install --with-deps chromium
       - name: Lint

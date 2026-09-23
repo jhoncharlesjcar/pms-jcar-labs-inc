@@ -2,6 +2,13 @@
 
 Este documento registra los cambios más relevantes, mejoras arquitectónicas y soluciones a errores en el PMS JCAR LABS.
 
+## [3.3.1] - 23 de septiembre de 2026
+
+- `ai-gateway` vuelve a aceptar `{ action }` en el body. El router por path respondía 404 y no debe desplegarse.
+- La clave SUNAT sale del cuerpo de `get_sunat_encryption_key` y queda en Vault. Sigue sin GRANT a `anon`/`authenticated`.
+- `anon` ya no ejecuta helpers RLS ni `consume_unlock_code`.
+- Recepción: el error de disponibilidad no se pinta como “sin habitaciones”.
+
 ## [3.3.0] - 21 de septiembre de 2026
 
 ### Estabilización de producción

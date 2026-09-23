@@ -28,6 +28,8 @@ Este archivo describe lo que está **live**, no un wishlist. Si contradice el c�
 
 Cambiar de hotel: botón con el nombre en el header (sidebar / móvil).
 
+El entrypoint de producción y del repo debe aceptar `POST /functions/v1/ai-gateway` con `{ action }` en el body (`bootstrap`, `message`, `channel_healthcheck`, `provision_channel_credential`). No desplegar un router por path (`/bootstrap`) mientras el cliente no lo use: responde 404 y tumba JCAR AI.
+
 ## Incidentes frecuentes
 
 ### 1. Recepción: “No hay habitaciones” + consola 403
