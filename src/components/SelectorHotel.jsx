@@ -1,7 +1,7 @@
 import { useState, memo } from 'react';
 import { useHotel } from '@/contexts/HotelContext';
 import { useAuth } from '@/contexts/AuthContext';
-import { Building2, Check } from 'lucide-react';
+import { Building2, Check, ChevronsUpDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const SelectorHotel = memo(function SelectorHotel(/** @type {any} */ { mobile = false, compact = false }) {
@@ -13,9 +13,10 @@ const SelectorHotel = memo(function SelectorHotel(/** @type {any} */ { mobile = 
     if (!puedeVerSelector || !hotelActual) return null;
 
     const nombre = (hotelActual.nombre || 'Hotel').trim();
+    const iconOnly = compact || mobile;
 
     return (
-        <div className="relative">
+        <div className={cn('relative', !iconOnly && 'w-full min-w-0')}>
             <button
                 type="button"
                 aria-haspopup="listbox"
@@ -24,22 +25,34 @@ const SelectorHotel = memo(function SelectorHotel(/** @type {any} */ { mobile = 
                 title={nombre}
                 onClick={() => setOpen(!open)}
                 className={cn(
-                    "flex items-center justify-center rounded-lg bg-primary text-primary-foreground shadow-sm transition-[transform,background-color] hover:bg-primary/90",
-                    compact || mobile ? "h-8 w-8" : "h-8 max-w-[11.5rem] gap-1.5 px-2.5"
+                    'flex items-center rounded-lg border text-left transition-colors',
+                    iconOnly
+                        ? 'h-8 w-8 justify-center border-border/70 bg-secondary/70 text-foreground hover:bg-secondary'
+                        : 'h-9 w-full min-w-0 gap-2 border-border/80 bg-secondary/50 px-2.5 text-foreground hover:bg-secondary'
                 )}
             >
-                <Building2 className="h-3.5 w-3.5 shrink-0" />
-                {!compact && !mobile && (
-                    <span className="truncate text-[11px] font-semibold leading-none tracking-tight">{nombre}</span>
+                <Building2 className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+                {!iconOnly && (
+                    <>
+                        <span className="min-w-0 flex-1 truncate text-xs font-semibold leading-none">{nombre}</span>
+                        <ChevronsUpDown className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+                    </>
                 )}
             </button>
 
             {open && (
                 <>
                     <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
-                    <div role="listbox" aria-label="Propiedades disponibles" className="absolute right-0 top-full mt-2 w-64 bg-card border border-border rounded-xl shadow-lg z-50 overflow-hidden">
-                        <div className="p-2 space-y-1">
-                            <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-widest px-2 py-1">Propiedad activa</p>
+                    <div
+                        role="listbox"
+                        aria-label="Propiedades disponibles"
+                        className={cn(
+                            'absolute top-full z-50 mt-2 overflow-hidden rounded-xl border border-border bg-card shadow-lg',
+                            iconOnly ? 'right-0 w-64' : 'left-0 w-full min-w-[14rem]'
+                        )}
+                    >
+                        <div className="space-y-1 p-2">
+                            <p className="px-2 py-1 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">Propiedad activa</p>
                             {hoteles.map(h => (
                                 <button
                                     type="button"
@@ -48,18 +61,18 @@ const SelectorHotel = memo(function SelectorHotel(/** @type {any} */ { mobile = 
                                     key={h.id}
                                     onClick={() => { cambiarHotel(h.id); setOpen(false); }}
                                     className={cn(
-                                        "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left transition-[transform,opacity]",
+                                        'flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left',
                                         hotelActual?.id === h.id
-                                            ? "bg-primary/10 text-primary"
-                                            : "hover:bg-secondary text-foreground"
+                                            ? 'bg-primary/10 text-primary'
+                                            : 'text-foreground hover:bg-secondary'
                                     )}
                                 >
-                                    <Building2 className="w-4 h-4 flex-shrink-0" />
-                                    <div className="flex-1 min-w-0">
-                                        <p className="text-sm font-medium truncate">{(h.nombre || '').trim()}</p>
+                                    <Building2 className="h-4 w-4 flex-shrink-0" />
+                                    <div className="min-w-0 flex-1">
+                                        <p className="truncate text-sm font-medium">{(h.nombre || '').trim()}</p>
                                         {h.ciudad && <p className="text-xs text-muted-foreground">{h.ciudad}</p>}
                                     </div>
-                                    {hotelActual?.id === h.id && <Check className="w-4 h-4 flex-shrink-0" />}
+                                    {hotelActual?.id === h.id && <Check className="h-4 w-4 flex-shrink-0" />}
                                 </button>
                             ))}
                         </div>

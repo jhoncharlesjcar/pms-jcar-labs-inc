@@ -105,7 +105,8 @@ export default function Sidebar({
                 sidebarCollapsed ? "w-[17rem] lg:w-[76px]" : "w-[17rem]"
             )}>
                 {/* Header Marca & Logo */}
-                <div className={cn("flex min-h-[76px] items-center gap-3 border-b border-border/50 p-4 transition-all duration-300", sidebarCollapsed ? "flex-col justify-center gap-2 px-2 py-3" : "")}>
+                <div className={cn("flex min-h-[76px] flex-col justify-center gap-3 border-b border-border/50 p-4 transition-all duration-300", sidebarCollapsed ? "items-center px-2 py-3" : "")}>
+                    <div className={cn("flex w-full items-center gap-3", sidebarCollapsed && "justify-center")}>
                     <div className={cn(
                         "overflow-hidden rounded-xl shadow-xs flex-shrink-0 flex items-center justify-center bg-white border border-border/40 transition-all duration-300 p-0.5",
                         sidebarCollapsed ? "h-10 w-10" : "h-11 w-11"
@@ -117,14 +118,13 @@ export default function Sidebar({
                         />
                     </div>
                     {!sidebarCollapsed && (
-                        <div className="min-w-0 flex-1 opacity-100 transition-opacity duration-300 flex items-center justify-between gap-2">
-                            <div className="min-w-0 pr-2">
-                                <p className="truncate text-[14px] font-extrabold leading-tight tracking-[-0.02em] text-foreground">PMS JCAR LABS</p>
-                                <p className="mt-0.5 truncate text-[9px] font-bold uppercase tracking-[0.16em] text-muted-foreground">Hospitality OS</p>
-                            </div>
-                            <SelectorHotel />
+                        <div className="min-w-0 flex-1">
+                            <p className="truncate text-[14px] font-extrabold leading-tight tracking-[-0.02em] text-foreground">PMS JCAR LABS</p>
+                            <p className="mt-0.5 truncate text-[9px] font-bold uppercase tracking-[0.16em] text-muted-foreground">Hospitality OS</p>
                         </div>
                     )}
+                    </div>
+                    {!sidebarCollapsed && <SelectorHotel />}
                     {sidebarCollapsed && <SelectorHotel compact />}
                 </div>
 
