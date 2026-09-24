@@ -101,30 +101,30 @@ export function ConfigPagos({ form, setForm }) {
                     </div>
                     <div>
                         <h2 className="font-extrabold text-lg text-foreground tracking-tight">Métodos de Cobro</h2>
-                        <p className="text-[9px] font-black uppercase tracking-widest text-muted-foreground mt-0.5">Automático o Manual</p>
+                        <p className="text-xs font-black uppercase tracking-widest text-muted-foreground mt-0.5">Automático o Manual</p>
                     </div>
                 </div>
                 <div className="flex items-center gap-3">
-                    <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Manual</span>
+                    <span className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Manual</span>
                     <Switch 
                         checked={form.modo_automatico} 
                         onCheckedChange={v => setForm({ ...form, modo_automatico: v })} 
                         className="data-[state=checked]:bg-amber-500"
                     />
-                    <span className="text-[10px] font-bold uppercase tracking-widest text-amber-500">Pasarela</span>
+                    <span className="text-xs font-bold uppercase tracking-widest text-amber-500">Pasarela</span>
                 </div>
             </div>
 
             {!form.modo_automatico ? (
                 // MODO MANUAL (HU-07)
                 <div className="space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
-                    <div className="bg-amber-500/10 border border-amber-500/20 rounded-xl p-3 text-[10px] text-amber-600 dark:text-amber-400 font-bold">
+                    <div className="bg-amber-500/10 border border-amber-500/20 rounded-xl p-3 text-xs text-amber-600 dark:text-amber-400 font-bold">
                         Modo Manual: Sube los códigos QR estáticos de tus cuentas de Yape o Plin. Se mostrarán al cliente en la pantalla de cobro.
                     </div>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                         {/* QR Yape */}
                         <div className="space-y-2">
-                            <Label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">QR Yape</Label>
+                            <Label className="text-xs font-black text-muted-foreground uppercase tracking-widest">QR Yape</Label>
                             <div 
                                 className="border-2 border-dashed border-border/60 hover:border-primary/50 bg-background/30 rounded-xl p-4 flex flex-col items-center justify-center text-center cursor-pointer transition-colors group relative h-40"
                                 onClick={() => yapeInputRef.current?.click()}
@@ -151,7 +151,7 @@ export function ConfigPagos({ form, setForm }) {
 
                         {/* QR Plin */}
                         <div className="space-y-2">
-                            <Label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">QR Plin</Label>
+                            <Label className="text-xs font-black text-muted-foreground uppercase tracking-widest">QR Plin</Label>
                             <div 
                                 className="border-2 border-dashed border-border/60 hover:border-primary/50 bg-background/30 rounded-xl p-4 flex flex-col items-center justify-center text-center cursor-pointer transition-colors group relative h-40"
                                 onClick={() => plinInputRef.current?.click()}
@@ -180,14 +180,14 @@ export function ConfigPagos({ form, setForm }) {
             ) : (
                 // MODO AUTOMÁTICO PASARELA (HU-06)
                 <div className="space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
-                    <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-xl p-3 text-[10px] text-emerald-600 dark:text-emerald-400 font-bold">
+                    <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-xl p-3 text-xs text-emerald-600 dark:text-emerald-400 font-bold">
                         Modo Automático: El sistema generará links de pago dinámicos. Las llaves se guardarán cifradas.
                     </div>
                     
                     <div className="p-4 rounded-xl bg-card/60 border border-border/40 space-y-4 shadow-sm">
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div className="space-y-1.5 sm:col-span-2">
-                                <Label className="text-[9px] font-black text-muted-foreground uppercase tracking-widest ml-1">Pasarela de Pago *</Label>
+                                <Label className="text-xs font-black text-muted-foreground uppercase tracking-widest ml-1">Pasarela de Pago *</Label>
                                 <Select value={form.pasarela_activa} onValueChange={v => setForm({ ...form, pasarela_activa: v })}>
                                     <SelectTrigger className="h-9 bg-background/50 rounded-md border-border/40 text-xs font-bold shadow-inner">
                                         <SelectValue />
@@ -201,7 +201,7 @@ export function ConfigPagos({ form, setForm }) {
                             </div>
                             
                             <div className="space-y-1.5">
-                                <Label className="text-[9px] font-black text-muted-foreground uppercase tracking-widest ml-1">Llave Pública (PK) *</Label>
+                                <Label className="text-xs font-black text-muted-foreground uppercase tracking-widest ml-1">Llave Pública (PK) *</Label>
                                 <Input 
                                     value={form.pasarela_public_key} 
                                     onChange={e => setForm({ ...form, pasarela_public_key: e.target.value })} 
@@ -211,7 +211,7 @@ export function ConfigPagos({ form, setForm }) {
                             </div>
                             
                             <div className="space-y-1.5">
-                                <Label className="text-[9px] font-black text-muted-foreground uppercase tracking-widest ml-1">Llave Privada (SK) *</Label>
+                                <Label className="text-xs font-black text-muted-foreground uppercase tracking-widest ml-1">Llave Privada (SK) *</Label>
                                 <Input 
                                     type="password"
                                     value={form.pasarela_private_key} 

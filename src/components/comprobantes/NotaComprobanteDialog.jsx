@@ -92,7 +92,7 @@ const NotaComprobanteDialog = memo(function NotaComprobanteDialog(/** @type {any
 
         <div className="space-y-3">
           <div className="space-y-1.5">
-            <Label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">Tipo de nota</Label>
+            <Label className="text-xs font-black text-muted-foreground uppercase tracking-widest">Tipo de nota</Label>
             <Select value={tipo} onValueChange={handleTipoChange}>
               <SelectTrigger className="h-9 rounded-lg bg-background/50"><SelectValue /></SelectTrigger>
               <SelectContent>
@@ -103,7 +103,7 @@ const NotaComprobanteDialog = memo(function NotaComprobanteDialog(/** @type {any
           </div>
 
           <div className="space-y-1.5">
-            <Label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">Motivo (Catálogo 09)</Label>
+            <Label className="text-xs font-black text-muted-foreground uppercase tracking-widest">Motivo (Catálogo 09)</Label>
             <Select value={tipoNota} onValueChange={setTipoNota}>
               <SelectTrigger className="h-9 rounded-lg bg-background/50"><SelectValue /></SelectTrigger>
               <SelectContent>
@@ -115,26 +115,26 @@ const NotaComprobanteDialog = memo(function NotaComprobanteDialog(/** @type {any
           </div>
 
           <div className="space-y-1.5">
-            <Label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">Descripción / motivo</Label>
+            <Label className="text-xs font-black text-muted-foreground uppercase tracking-widest">Descripción / motivo</Label>
             <Input value={motivo} onChange={(e) => setMotivo(e.target.value)} placeholder="Ej. Anulación de boleta por error" className="h-9 rounded-lg bg-background/50 text-xs" />
           </div>
 
           <div className="grid grid-cols-3 gap-2">
             <div className="space-y-1.5">
-              <Label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">Base (S/)</Label>
+              <Label className="text-xs font-black text-muted-foreground uppercase tracking-widest">Base (S/)</Label>
               <Input value={subtotal} onChange={(e) => setSubtotal(e.target.value)} inputMode="decimal" className="h-9 rounded-lg bg-background/50 text-xs tabular-nums" />
             </div>
             <div className="space-y-1.5">
-              <Label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">IGV (S/)</Label>
+              <Label className="text-xs font-black text-muted-foreground uppercase tracking-widest">IGV (S/)</Label>
               <Input value={igv} onChange={(e) => setIgv(e.target.value)} inputMode="decimal" className="h-9 rounded-lg bg-background/50 text-xs tabular-nums" />
             </div>
             <div className="space-y-1.5">
-              <Label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">Total (S/)</Label>
+              <Label className="text-xs font-black text-muted-foreground uppercase tracking-widest">Total (S/)</Label>
               <Input value={total} onChange={(e) => setTotal(e.target.value)} inputMode="decimal" className="h-9 rounded-lg bg-background/50 text-xs tabular-nums" />
             </div>
           </div>
 
-          <p className="text-[10px] text-muted-foreground">
+          <p className="text-xs text-muted-foreground">
             Para anulación total, deja los montos iguales a los del comprobante original.
           </p>
         </div>

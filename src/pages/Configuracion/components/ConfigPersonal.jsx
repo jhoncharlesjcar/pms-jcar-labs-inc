@@ -142,7 +142,7 @@ export const ConfigPersonal = memo(function ConfigPersonal({ hotelId }) {
                     </div>
                     <div>
                         <h2 className="font-extrabold text-foreground text-lg tracking-tight">Personal y Roles</h2>
-                        <p className="text-[9px] font-black uppercase tracking-widest text-muted-foreground mt-0.5">Gestión de accesos y permisos de colaboradores</p>
+                        <p className="text-xs font-black uppercase tracking-widest text-muted-foreground mt-0.5">Gestión de accesos y permisos de colaboradores</p>
                     </div>
                 </div>
                 <Button 
@@ -150,7 +150,7 @@ export const ConfigPersonal = memo(function ConfigPersonal({ hotelId }) {
                         setStaffForm({ full_name: '', email: '', role: 'recepcionista' });
                         setShowStaffModal(true);
                     }} 
-                    className="gap-2 shadow-xs text-indigo-500 border-indigo-500/20 bg-indigo-500/5 hover:bg-indigo-500/10 rounded-md h-9 text-[9px] font-extrabold uppercase tracking-widest px-4 active:scale-95 transition-all"
+                    className="gap-2 shadow-xs text-indigo-500 border-indigo-500/20 bg-indigo-500/5 hover:bg-indigo-500/10 rounded-md h-9 text-xs font-extrabold uppercase tracking-widest px-4 active:scale-95 transition-all"
                 >
                     <UserPlus className="w-3.5 h-3.5" /> Agregar Personal
                 </Button>
@@ -167,7 +167,7 @@ export const ConfigPersonal = memo(function ConfigPersonal({ hotelId }) {
                                 </div>
                                 <div className="min-w-0 flex-1">
                                     <p className="font-extrabold text-foreground text-sm truncate tracking-tight">{u.full_name || '(Sin Nombre)'}</p>
-                                    <p className="text-[9px] font-black uppercase tracking-widest text-muted-foreground truncate">{u.email}</p>
+                                    <p className="text-xs font-black uppercase tracking-widest text-muted-foreground truncate">{u.email}</p>
                                 </div>
                             </div>
                             <div className="flex items-center gap-2 justify-end">
@@ -203,17 +203,17 @@ export const ConfigPersonal = memo(function ConfigPersonal({ hotelId }) {
                 })}
                 {personal.length === 0 && (
                     <div className="text-center py-8 border border-dashed border-border/50 rounded-xl bg-background/20">
-                        <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold">Cargando personal...</p>
+                        <p className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">Cargando personal...</p>
                     </div>
                 )}
             </div>
 
             <div className="mt-4 border border-border/40 rounded-xl bg-card/40 overflow-hidden shadow-sm">
                 <div className="p-4 bg-card/60 border-b border-border/40">
-                    <p className="text-[9px] font-black uppercase tracking-widest text-foreground">Matriz de Permisos por Rol</p>
+                    <p className="text-xs font-black uppercase tracking-widest text-foreground">Matriz de Permisos por Rol</p>
                 </div>
                 <div className="overflow-x-auto no-scrollbar">
-                    <table className="w-full text-left border-collapse text-[10px]">
+                    <table className="w-full text-left border-collapse text-xs">
                         <thead>
                             <tr className="border-b border-border/40 text-muted-foreground bg-background/30">
                                 <th className="p-3 font-black uppercase tracking-widest">Módulo</th>
@@ -278,7 +278,7 @@ export const ConfigPersonal = memo(function ConfigPersonal({ hotelId }) {
                         </DialogHeader>
                         <div className="space-y-4 py-4">
                             <div className="space-y-1.5">
-                                <Label htmlFor="staff_fullname" className="text-[9px] font-black text-muted-foreground uppercase tracking-widest ml-1">Nombre Completo *</Label>
+                                <Label htmlFor="staff_fullname" className="text-xs font-black text-muted-foreground uppercase tracking-widest ml-1">Nombre Completo *</Label>
                                 <Input 
                                     id="staff_fullname"
                                     value={staffForm.full_name} 
@@ -288,7 +288,7 @@ export const ConfigPersonal = memo(function ConfigPersonal({ hotelId }) {
                                 />
                             </div>
                             <div className="space-y-1.5">
-                                <Label htmlFor="staff_email" className="text-[9px] font-black text-muted-foreground uppercase tracking-widest ml-1">Email / Usuario *</Label>
+                                <Label htmlFor="staff_email" className="text-xs font-black text-muted-foreground uppercase tracking-widest ml-1">Email / Usuario *</Label>
                                 <Input 
                                     id="staff_email"
                                     value={staffForm.email} 
@@ -299,7 +299,7 @@ export const ConfigPersonal = memo(function ConfigPersonal({ hotelId }) {
                                 />
                             </div>
                             <div className="space-y-1.5">
-                                <Label htmlFor="staff_role" className="text-[9px] font-black text-muted-foreground uppercase tracking-widest ml-1">Rol / Acceso *</Label>
+                                <Label htmlFor="staff_role" className="text-xs font-black text-muted-foreground uppercase tracking-widest ml-1">Rol / Acceso *</Label>
                                 <select 
                                     id="staff_role"
                                     value={staffForm.role} 
@@ -317,14 +317,14 @@ export const ConfigPersonal = memo(function ConfigPersonal({ hotelId }) {
                             <Button 
                                 variant="outline" 
                                 onClick={() => setShowStaffModal(false)}
-                                className="rounded-md font-bold h-9 px-4 text-[9px] uppercase tracking-widest active:scale-95 transition-all border-border/40"
+                                className="rounded-md font-bold h-9 px-4 text-xs uppercase tracking-widest active:scale-95 transition-all border-border/40"
                             >
                                 Cancelar
                             </Button>
                             <Button 
                                 onClick={() => agregarPersonal.mutate(staffForm)}
                                 disabled={!staffForm.full_name || !staffForm.email || agregarPersonal.isPending}
-                                className="rounded-md font-extrabold text-[9px] uppercase tracking-widest h-9 px-4 bg-indigo-600 hover:bg-indigo-700 text-white active:scale-95 transition-all shadow-sm"
+                                className="rounded-md font-extrabold text-xs uppercase tracking-widest h-9 px-4 bg-indigo-600 hover:bg-indigo-700 text-white active:scale-95 transition-all shadow-sm"
                             >
                                 {agregarPersonal.isPending ? 'Registrando...' : 'Registrar'}
                             </Button>

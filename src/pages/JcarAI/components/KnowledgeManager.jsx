@@ -158,7 +158,7 @@ export default function KnowledgeManager({ hotelId }) {
                         <div key={item.id} className={`bg-card border rounded-xl p-4 flex flex-col hover:border-primary/50 transition-colors ${!item.activo ? 'opacity-60 grayscale-[50%]' : 'border-border'}`}>
                             <div className="flex justify-between items-start mb-2 gap-2">
                                 <div>
-                                    <span className="text-[10px] font-bold uppercase tracking-wider text-primary bg-primary/10 px-2 py-0.5 rounded-sm">{CATEGORIES.find(c => c.id === item.category)?.label || item.category}</span>
+                                    <span className="text-xs font-bold uppercase tracking-wider text-primary bg-primary/10 px-2 py-0.5 rounded-sm">{CATEGORIES.find(c => c.id === item.category)?.label || item.category}</span>
                                     <h3 className="font-semibold text-foreground mt-1 line-clamp-1" title={item.title}>{item.title}</h3>
                                 </div>
                                 <div className="flex items-center gap-1">

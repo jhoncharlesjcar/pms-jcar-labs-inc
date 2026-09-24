@@ -10,7 +10,7 @@ function SecretFileField({ id, label, accept, hint, value, onContent }) {
     const ref = useRef(null);
     return (
         <div className="space-y-1.5">
-            <Label htmlFor={id} className="text-[9px] font-black text-muted-foreground uppercase tracking-widest ml-1">{label}</Label>
+            <Label htmlFor={id} className="text-xs font-black text-muted-foreground uppercase tracking-widest ml-1">{label}</Label>
             <div className="flex items-center gap-2">
                 <input
                     ref={ref}
@@ -34,11 +34,11 @@ function SecretFileField({ id, label, accept, hint, value, onContent }) {
                 <button
                     type="button"
                     onClick={() => ref.current?.click()}
-                    className="inline-flex items-center gap-2 rounded-lg border border-border/60 bg-background/60 px-3 py-2 text-[10px] font-bold text-foreground hover:bg-muted/40 transition-colors"
+                    className="inline-flex items-center gap-2 rounded-lg border border-border/60 bg-background/60 px-3 py-2 text-xs font-bold text-foreground hover:bg-muted/40 transition-colors"
                 >
                     <Upload className="h-3.5 w-3.5" /> Subir {label}
                 </button>
-                <span className={cn('text-[9px] font-bold truncate', value ? 'text-emerald-500' : 'text-muted-foreground')}>
+                <span className={cn('text-xs font-bold truncate', value ? 'text-emerald-500' : 'text-muted-foreground')}>
                     {value ? '✓ Cargado' : (hint || 'Ningún archivo')}
                 </span>
             </div>
@@ -62,12 +62,12 @@ export function ConfigSunat({ form, setForm }) {
                     </div>
                     <div>
                         <h2 className="font-extrabold text-lg text-foreground tracking-tight">Módulo SUNAT</h2>
-                        <p className="text-[9px] font-black uppercase tracking-widest text-muted-foreground mt-0.5">Facturación electrónica SOAP directa</p>
+                        <p className="text-xs font-black uppercase tracking-widest text-muted-foreground mt-0.5">Facturación electrónica SOAP directa</p>
                     </div>
                 </div>
                 <button
                     onClick={() => window.open('https://e-menu.sunat.gob.pe/cl-ti-itmenu/MenuInternet.htm', '_blank')}
-                    className="text-[9px] font-black uppercase tracking-widest text-blue-500 hover:text-blue-600 dark:hover:text-blue-400 flex items-center gap-1 transition-colors"
+                    className="text-xs font-black uppercase tracking-widest text-blue-500 hover:text-blue-600 dark:hover:text-blue-400 flex items-center gap-1 transition-colors"
                 >
                     <ExternalLink className="w-3.5 h-3.5" /> Portal SUNAT
                 </button>
@@ -94,7 +94,7 @@ export function ConfigSunat({ form, setForm }) {
                             </div>
                             <div>
                                 <p className="font-extrabold text-foreground text-sm tracking-tight">{info.label}</p>
-                                <p className="text-[10px] font-bold text-muted-foreground mt-0.5">{info.desc}</p>
+                                <p className="text-xs font-bold text-muted-foreground mt-0.5">{info.desc}</p>
                             </div>
                         </div>
                     </button>
@@ -103,10 +103,10 @@ export function ConfigSunat({ form, setForm }) {
 
             {form.modo_sunat !== 'desactivado' && (
                 <div className="p-4 rounded-xl bg-card/60 border border-border/40 space-y-4 overflow-hidden shadow-sm">
-                    <p className="text-[9px] font-black uppercase tracking-widest text-foreground">Credenciales SOL SUNAT</p>
+                    <p className="text-xs font-black uppercase tracking-widest text-foreground">Credenciales SOL SUNAT</p>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div className="space-y-1.5">
-                            <Label htmlFor="sunat_ruc" className="text-[9px] font-black text-muted-foreground uppercase tracking-widest ml-1">RUC Emisor *</Label>
+                            <Label htmlFor="sunat_ruc" className="text-xs font-black text-muted-foreground uppercase tracking-widest ml-1">RUC Emisor *</Label>
                             <Input
                                 id="sunat_ruc"
                                 type="text"
@@ -119,7 +119,7 @@ export function ConfigSunat({ form, setForm }) {
                             />
                         </div>
                         <div className="space-y-1.5">
-                            <Label htmlFor="sunat_usuario_sol" className="text-[9px] font-black text-muted-foreground uppercase tracking-widest ml-1">Usuario SOL *</Label>
+                            <Label htmlFor="sunat_usuario_sol" className="text-xs font-black text-muted-foreground uppercase tracking-widest ml-1">Usuario SOL *</Label>
                             <Input
                                 id="sunat_usuario_sol"
                                 value={form.sunat_usuario_sol}
@@ -129,7 +129,7 @@ export function ConfigSunat({ form, setForm }) {
                             />
                         </div>
                         <div className="sm:col-span-2 space-y-1.5">
-                            <Label htmlFor="sunat_clave_sol" className="text-[9px] font-black text-muted-foreground uppercase tracking-widest ml-1">Clave SOL *</Label>
+                            <Label htmlFor="sunat_clave_sol" className="text-xs font-black text-muted-foreground uppercase tracking-widest ml-1">Clave SOL *</Label>
                             <Input
                                 id="sunat_clave_sol"
                                 type="password"
@@ -142,7 +142,7 @@ export function ConfigSunat({ form, setForm }) {
                     </div>
 
                     <div className="border-t border-border/40 pt-4 space-y-3">
-                        <p className="text-[9px] font-black uppercase tracking-widest text-foreground">Certificado digital ICP</p>
+                        <p className="text-xs font-black uppercase tracking-widest text-foreground">Certificado digital ICP</p>
                         <SecretFileField
                             id="sunat_cert"
                             label="Certificado (.pem/.cer/.crt)"
@@ -159,16 +159,16 @@ export function ConfigSunat({ form, setForm }) {
                             value={form.sunat_cert_private_key_pem}
                             onContent={(v) => setForm({ ...form, sunat_cert_private_key_pem: v })}
                         />
-                        <p className="text-[9px] text-muted-foreground font-medium leading-relaxed">
+                        <p className="text-xs text-muted-foreground font-medium leading-relaxed">
                             Si tu ICP te entregó un archivo <strong>.pfx</strong>, conviértelo con OpenSSL:
-                            <code className="block mt-1 bg-background/60 rounded px-2 py-1 text-[9px]">openssl pkcs12 -in certificado.pfx -out cert.pem -clcerts -nokeys && openssl pkcs12 -in certificado.pfx -out key.pem -nocerts -nodes</code>
+                            <code className="block mt-1 bg-background/60 rounded px-2 py-1 text-xs">openssl pkcs12 -in certificado.pfx -out cert.pem -clcerts -nokeys && openssl pkcs12 -in certificado.pfx -out key.pem -nocerts -nodes</code>
                         </p>
                     </div>
 
                     <div className="flex items-center justify-between p-4 bg-card/60 rounded-xl border border-border/40 shadow-sm">
                         <div className="space-y-1">
                             <Label htmlFor="sunat_modo_prueba" className="text-sm font-extrabold text-foreground tracking-tight">Modo de prueba (sandbox)</Label>
-                            <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">Actívalo para probar con SUNAT beta. Desactívalo para producción real.</p>
+                            <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Actívalo para probar con SUNAT beta. Desactívalo para producción real.</p>
                         </div>
                         <Switch
                             id="sunat_modo_prueba"
@@ -180,7 +180,7 @@ export function ConfigSunat({ form, setForm }) {
                 </div>
             )}
 
-            <div className="bg-blue-500/10 border border-blue-500/20 rounded-xl p-4 text-[10px] text-blue-600 dark:text-blue-400 leading-relaxed font-bold shadow-xs">
+            <div className="bg-blue-500/10 border border-blue-500/20 rounded-xl p-4 text-xs text-blue-600 dark:text-blue-400 leading-relaxed font-bold shadow-xs">
                 <strong className="font-black uppercase tracking-widest">Nota SUNAT Perú:</strong> El sistema firma el XML con tu certificado ICP y envía directo a SUNAT por SOAP. En producción desactiva el modo de prueba y verifica que tu RUC, ubigeo y dirección fiscal sean correctos.
             </div>
         </div>

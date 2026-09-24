@@ -52,7 +52,7 @@ const SelectorHotel = memo(function SelectorHotel(/** @type {any} */ { mobile = 
                         )}
                     >
                         <div className="space-y-1 p-2">
-                            <p className="px-2 py-1 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">Propiedad activa</p>
+                            <p className="px-2 py-1 text-xs font-semibold uppercase tracking-widest text-muted-foreground">Propiedad activa</p>
                             {hoteles.map(h => (
                                 <button
                                     type="button"

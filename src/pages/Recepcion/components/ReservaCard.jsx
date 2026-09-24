@@ -44,25 +44,25 @@ export const ReservaCard = React.memo((/** @type {any} */ { r, hotelActual, hote
                     <div className="min-w-0 flex flex-col gap-0.5">
                         <div className="flex items-center gap-2 flex-wrap mb-0.5">
                             <p className="font-bold text-sm text-foreground tracking-tight leading-none">{r.huesped_nombre}</p>
-                            <StatusBadge status={r.estado} className="text-[10px] px-1.5 py-0.5 rounded-sm" />
+                            <StatusBadge status={r.estado} className="text-xs px-1.5 py-0.5 rounded-sm" />
                             {(r.estado_pago === 'pagado' || r.estado === 'finalizada') && (
-                                <span className="rounded-sm border border-emerald-500/20 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 px-1.5 py-0.5 text-[10px] font-semibold flex items-center gap-1" title="El alojamiento ha sido pagado">
+                                <span className="rounded-sm border border-emerald-500/20 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 px-1.5 py-0.5 text-xs font-semibold flex items-center gap-1" title="El alojamiento ha sido pagado">
                                     <Wallet className="w-3 h-3" /> Pagado
                                 </span>
                             )}
                             {((r.estado_pago === 'pendiente' || !r.estado_pago) && ['activa', 'pendiente'].includes(r.estado)) && (
-                                <span className="rounded-sm border border-amber-500/20 bg-amber-500/10 text-amber-700 dark:text-amber-400 px-1.5 py-0.5 text-[10px] font-semibold flex items-center gap-1" title="El pago del alojamiento está pendiente">
+                                <span className="rounded-sm border border-amber-500/20 bg-amber-500/10 text-amber-700 dark:text-amber-400 px-1.5 py-0.5 text-xs font-semibold flex items-center gap-1" title="El pago del alojamiento está pendiente">
                                     <CreditCard className="w-3 h-3" /> Pendiente
                                 </span>
                             )}
                             {(r.huesped_fecha_nacimiento || (r.tipo_documento === 'RUC' && r.huesped_email)) && r.estado === 'pendiente' && (
-                                <span className="rounded-sm border border-emerald-500/20 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 px-1.5 py-0.5 text-[10px] font-semibold flex items-center gap-1" title="El huésped ya completó sus datos digitalmente">
+                                <span className="rounded-sm border border-emerald-500/20 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 px-1.5 py-0.5 text-xs font-semibold flex items-center gap-1" title="El huésped ya completó sus datos digitalmente">
                                     <CheckCircle2 className="w-3 h-3" /> Auto-registro
                                 </span>
                             )}
                             {operationalState !== 'history' && (
                                 <span className={cn(
-                                    'rounded-sm border px-1.5 py-0.5 text-[10px] font-semibold',
+                                    'rounded-sm border px-1.5 py-0.5 text-xs font-semibold',
                                     operationalStateClasses[operationalConfig.tone]
                                 )}>
                                     {operationalConfig.label}
@@ -81,7 +81,7 @@ export const ReservaCard = React.memo((/** @type {any} */ { r, hotelActual, hote
                 <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between lg:justify-end gap-4 mt-1 lg:mt-0 pt-3 lg:pt-0 border-t lg:border-0 border-border/40">
                     <div className="text-left sm:text-right">
                         <p className="text-xl font-bold text-foreground tracking-dense tabular-dense leading-none whitespace-nowrap">S/ {r.total?.toFixed(2)}</p>
-                        <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider mt-1 tabular-dense">Ref: #{r.numero_reserva}</p>
+                        <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider mt-1 tabular-dense">Ref: #{r.numero_reserva}</p>
                     </div>
                     <div className="w-px h-8 bg-border/40 hidden sm:block mx-1" />
                     <div className="grid w-full grid-cols-2 gap-2 sm:flex sm:w-auto sm:flex-nowrap sm:items-center">

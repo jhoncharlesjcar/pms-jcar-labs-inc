@@ -85,7 +85,7 @@ export function ConfigChannelManager() {
                 
                 <div className="space-y-4">
                     <div className="space-y-1.5">
-                        <Label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest ml-1">Hotel ID (Booking)</Label>
+                        <Label className="text-xs font-black text-muted-foreground uppercase tracking-widest ml-1">Hotel ID (Booking)</Label>
                         <Input 
                             value={config.hotel_code_ota}
                             onChange={e => setChannels({...channels, [name]: { ...config, hotel_code_ota: e.target.value }})}
@@ -95,7 +95,7 @@ export function ConfigChannelManager() {
                         />
                     </div>
                     <div className="space-y-1.5">
-                        <Label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest ml-1">API Key / Token</Label>
+                        <Label className="text-xs font-black text-muted-foreground uppercase tracking-widest ml-1">API Key / Token</Label>
                         <Input 
                             type="password"
                             value={config.api_key}
@@ -122,7 +122,7 @@ export function ConfigChannelManager() {
                 </div>
                 <div>
                     <h2 className="font-extrabold text-lg text-foreground tracking-tight">Channel Manager (OTAs)</h2>
-                    <p className="text-[10px] font-bold text-muted-foreground">Sincronización de inventario con agencias</p>
+                    <p className="text-xs font-bold text-muted-foreground">Sincronización de inventario con agencias</p>
                 </div>
             </div>
 

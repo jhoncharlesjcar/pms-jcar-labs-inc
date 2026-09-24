@@ -120,7 +120,7 @@ export default function Sidebar({
                     {!sidebarCollapsed && (
                         <div className="min-w-0 flex-1">
                             <p className="truncate text-[14px] font-extrabold leading-tight tracking-[-0.02em] text-foreground">PMS JCAR LABS</p>
-                            <p className="mt-0.5 truncate text-[9px] font-bold uppercase tracking-[0.16em] text-muted-foreground">Hospitality OS</p>
+                            <p className="mt-0.5 truncate text-xs font-medium text-muted-foreground">Hospitality OS</p>
                         </div>
                     )}
                     </div>
@@ -140,7 +140,7 @@ export default function Sidebar({
                     {visibleNavGroups.map((group) => (
                         <div key={group.title} className="space-y-1">
                             {!sidebarCollapsed ? (
-                                <p className="animate-in fade-in mb-2 px-3 text-[9px] font-extrabold uppercase tracking-[0.15em] text-muted-foreground/65 select-none">
+                                <p className="mb-2 px-3 text-xs font-medium text-muted-foreground select-none">
                                     {group.title}
                                 </p>
                             ) : (
@@ -157,7 +157,7 @@ export default function Sidebar({
                                         aria-current={active ? 'page' : undefined}
                                         title={sidebarCollapsed ? label : undefined}
                                         className={cn(
-                                            "group relative flex items-center rounded-xl text-[13px] font-semibold transition-[color,background-color,box-shadow,transform]",
+                                            "group relative flex min-h-11 items-center rounded-xl text-sm font-semibold transition-[color,background-color,box-shadow]",
                                             sidebarCollapsed ? "justify-center p-3" : "gap-3 px-3 py-2.5",
                                             active
                                                 ? "bg-primary text-primary-foreground shadow-[0_8px_20px_-12px_hsl(var(--primary)/0.8)]"
@@ -174,7 +174,7 @@ export default function Sidebar({
                                             <>
                                                 <span className="flex-1 truncate animate-in fade-in duration-300">{label}</span>
                                                 {badge > 0 && (
-                                                    <span className="ml-auto px-1.5 py-0.5 text-[9px] font-black bg-destructive text-destructive-foreground rounded-full min-w-[18px] text-center shadow-xs animate-in fade-in zoom-in">
+                                                    <span className="ml-auto px-1.5 py-0.5 text-xs font-black bg-destructive text-destructive-foreground rounded-full min-w-[18px] text-center shadow-xs animate-in fade-in zoom-in">
                                                         {badge}
                                                     </span>
                                                 )}

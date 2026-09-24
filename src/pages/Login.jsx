@@ -146,7 +146,7 @@ const Login = memo(function Login() {
 
                     <form ref={formRef} onSubmit={handleEmailLogin} className="space-y-4 sm:space-y-5" noValidate>
                         <div className="space-y-1.5 sm:space-y-2">
-                            <label htmlFor="login_email" className="text-[10px] sm:text-xs font-bold uppercase tracking-widest text-white/70 ml-1">
+                            <label htmlFor="login_email" className="text-xs sm:text-xs font-bold uppercase tracking-widest text-white/70 ml-1">
                                 Correo Electrónico
                             </label>
                             <div className="relative group">
@@ -169,7 +169,7 @@ const Login = memo(function Login() {
                                 />
                             </div>
                             {fieldErrors.email && (
-                                <p className="text-[10px] sm:text-xs font-bold text-red-400 ml-1 mt-1 animate-in slide-in-from-top-1">
+                                <p className="text-xs sm:text-xs font-bold text-red-400 ml-1 mt-1 animate-in slide-in-from-top-1">
                                     {fieldErrors.email}
                                 </p>
                             )}
@@ -177,7 +177,7 @@ const Login = memo(function Login() {
 
                         <div className="space-y-1.5 sm:space-y-2">
                             <div className="flex items-center justify-between ml-1">
-                                <label htmlFor="login_password" className="text-[10px] sm:text-xs font-bold uppercase tracking-widest text-white/70">
+                                <label htmlFor="login_password" className="text-xs sm:text-xs font-bold uppercase tracking-widest text-white/70">
                                     Contraseña
                                 </label>
                             </div>
@@ -209,7 +209,7 @@ const Login = memo(function Login() {
                                 </button>
                             </div>
                             {fieldErrors.password && (
-                                <p className="text-[10px] sm:text-xs font-bold text-red-400 ml-1 mt-1 animate-in slide-in-from-top-1">
+                                <p className="text-xs sm:text-xs font-bold text-red-400 ml-1 mt-1 animate-in slide-in-from-top-1">
                                     {fieldErrors.password}
                                 </p>
                             )}
@@ -246,10 +246,10 @@ const Login = memo(function Login() {
                     ref={footerRef}
                     className="mt-8 sm:mt-12 text-center"
                 >
-                    <p className="text-[10px] sm:text-xs font-bold uppercase tracking-widest text-white/30">
+                    <p className="text-xs sm:text-xs font-bold uppercase tracking-widest text-white/30">
                         Solo personal autorizado
                     </p>
-                    <p className="text-[9px] sm:text-[10px] text-white/20 mt-1">
+                    <p className="text-xs sm:text-xs text-white/20 mt-1">
                         &copy; {new Date().getFullYear()} PMS JCAR LABS. Todos los derechos reservados.
                     </p>
                 </div>

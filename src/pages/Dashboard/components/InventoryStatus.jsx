@@ -25,7 +25,7 @@ export const InventoryStatus = ({
                     <h3 className="text-sm font-bold text-foreground tracking-tight leading-tight">Estado del Inventario</h3>
                 </div>
                 <Link to="/habitaciones">
-                    <span className="text-[10px] font-medium text-primary hover:text-primary/80 transition-colors flex items-center gap-1">Ver todas <ArrowUpRight className="w-3 h-3" /></span>
+                    <span className="text-xs font-medium text-primary hover:text-primary/80 transition-colors flex items-center gap-1">Ver todas <ArrowUpRight className="w-3 h-3" /></span>
                 </Link>
             </div>
 
@@ -51,7 +51,7 @@ export const InventoryStatus = ({
                     {/* Center label */}
                     <div className="absolute inset-0 flex flex-col items-center justify-center">
                         <span className="text-2xl font-bold tabular-nums text-foreground leading-none">{totalHabitaciones}</span>
-                        <span className="text-[9px] font-medium text-muted-foreground mt-0.5">Total</span>
+                        <span className="text-xs font-medium text-muted-foreground mt-0.5">Total</span>
                     </div>
                 </div>
 
@@ -73,7 +73,7 @@ export const InventoryStatus = ({
                     {/* Occupancy bar */}
                     <div className="pt-2 border-t border-border/50">
                         <div className="flex justify-between items-center mb-1">
-                            <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Ocupación</span>
+                            <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Ocupación</span>
                             <span className="text-sm font-bold text-blue-500 tabular-nums">{ocupacionPct}%</span>
                         </div>
                         <div className="w-full h-1.5 bg-muted rounded-full overflow-hidden">

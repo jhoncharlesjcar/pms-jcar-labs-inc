@@ -24,8 +24,8 @@ export const WeeklyAnalysisChart = ({ chartData, cardRef }) => {
                                 <stop offset="95%" stopColor="hsl(var(--amber-500))" stopOpacity={0} />
                             </linearGradient>
                         </defs>
-                        <XAxis dataKey="name" stroke="currentColor" className="text-muted-foreground text-[10px] font-medium" tickLine={false} axisLine={false} dy={6} />
-                        <YAxis stroke="currentColor" className="text-muted-foreground text-[10px] font-medium" tickLine={false} axisLine={false} tickFormatter={r => `S/${r}`} domain={[0, dataMax => Math.max(dataMax || 0, 1000)]} allowDecimals={false} />
+                        <XAxis dataKey="name" stroke="currentColor" className="text-muted-foreground text-xs font-medium" tickLine={false} axisLine={false} dy={6} />
+                        <YAxis stroke="currentColor" className="text-muted-foreground text-xs font-medium" tickLine={false} axisLine={false} tickFormatter={r => `S/${r}`} domain={[0, dataMax => Math.max(dataMax || 0, 1000)]} allowDecimals={false} />
                         <Tooltip cursor={{ fill: "rgba(var(--foreground), 0.03)" }} contentStyle={{ background: "hsl(var(--card))", backdropFilter: "blur(16px)", border: "1px solid hsl(var(--border))", borderRadius: "1rem", color: "hsl(var(--foreground))", fontSize: "12px", fontWeight: "bold" }} />
                         <Area type="monotone" dataKey="Hospedaje" stackId="a" fill="url(#colorHospedaje)" stroke="hsl(var(--primary))" strokeWidth={3} activeDot={{ r: 6, strokeWidth: 4, stroke: 'hsl(var(--background))' }} />
                         <Area type="monotone" dataKey="Minimarket" stackId="a" fill="url(#colorMinimarket)" stroke="hsl(var(--amber-500))" strokeWidth={3} activeDot={{ r: 6, strokeWidth: 4, stroke: 'hsl(var(--background))' }} />

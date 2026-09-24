@@ -47,8 +47,8 @@ export default function Caja() {
                         </div>
                         <div>
                             <h1 className="text-2xl sm:text-3xl font-extrabold text-foreground tracking-tighter leading-none">Caja</h1>
-                            <p className="mt-1.5 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
-                                Gestión diaria y flujos de efectivo · Auditoría y arqueo
+                            <p className="mt-1.5 text-xs text-muted-foreground">
+                                Movimientos de hoy, hora de Lima. El historial está en Ventas.
                             </p>
                         </div>
                     </div>
@@ -57,7 +57,7 @@ export default function Caja() {
                 <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto">
                     <div className="hidden h-11 items-center gap-2 rounded-lg border border-border/50 bg-card px-3 text-xs text-muted-foreground lg:flex">
                         <Calendar className="h-4 w-4" />
-                        {new Date().toLocaleDateString('es-PE', { day: '2-digit', month: 'short', year: 'numeric' })}
+                        {new Date().toLocaleDateString('es-PE', { timeZone: 'America/Lima', day: '2-digit', month: 'short', year: 'numeric' })}
                     </div>
                     <Button 
                         variant="outline" 

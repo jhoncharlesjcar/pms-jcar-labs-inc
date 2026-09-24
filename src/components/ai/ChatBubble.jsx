@@ -195,7 +195,7 @@ export default function ChatBubble({ hotelId }) {
                             </button>
                         </form>
                     </div>
-                    <div className="bg-muted py-1.5 text-center text-[10px] text-muted-foreground/70">Desarrollado por JCAR LABS</div>
+                    <div className="bg-muted py-1.5 text-center text-xs text-muted-foreground/70">Desarrollado por JCAR LABS</div>
                 </div>
             )}
         </div>

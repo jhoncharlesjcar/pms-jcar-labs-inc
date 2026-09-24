@@ -56,7 +56,7 @@ const Huespedes = memo(function Huespedes() {
                         </div>
                         <div>
                             <h1 className="text-2xl sm:text-3xl font-extrabold text-foreground tracking-tighter leading-none">Huéspedes</h1>
-                            <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mt-1.5">
+                            <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground mt-1.5">
                                 Directorio y gestión de clientes
                             </p>
                         </div>
@@ -65,8 +65,8 @@ const Huespedes = memo(function Huespedes() {
                 
                 <div className="flex items-center justify-center sm:justify-end gap-3">
                     <div className="enterprise-card px-4 py-2 rounded-xl shadow-sm text-right flex flex-col justify-center">
-                        <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest mb-0.5">Total Registrados</p>
-                        <p className="text-2xl font-extrabold text-primary leading-none tabular-nums tracking-tighter">{listaHuespedes.length} <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Pers.</span></p>
+                        <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest mb-0.5">Total Registrados</p>
+                        <p className="text-2xl font-extrabold text-primary leading-none tabular-nums tracking-tighter">{listaHuespedes.length} <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Pers.</span></p>
                     </div>
                 </div>
             </div>
@@ -120,7 +120,7 @@ const Huespedes = memo(function Huespedes() {
                     <Button 
                         variant="outline" 
                         className={cn(
-                            "flex-1 h-9 rounded-md gap-2 text-[10px] uppercase tracking-widest font-bold transition-all border-border/40 shadow-sm active:scale-95",
+                            "flex-1 h-9 rounded-md gap-2 text-xs uppercase tracking-widest font-bold transition-all border-border/40 shadow-sm active:scale-95",
                             orden === 'nombre' ? "bg-primary text-primary-foreground border-primary" : "bg-card/40 text-muted-foreground hover:bg-muted"
                         )}
                         onClick={() => setOrden('nombre')}
@@ -131,7 +131,7 @@ const Huespedes = memo(function Huespedes() {
                         <DialogTrigger asChild>
                             <Button 
                                 variant="outline" 
-                                className="flex-1 h-9 rounded-md gap-2 text-[10px] uppercase tracking-widest font-bold transition-all border-border/40 bg-card/40 text-muted-foreground shadow-sm hover:bg-primary/10 hover:text-primary hover:border-primary/30 active:scale-95"
+                                className="flex-1 h-9 rounded-md gap-2 text-xs uppercase tracking-widest font-bold transition-all border-border/40 bg-card/40 text-muted-foreground shadow-sm hover:bg-primary/10 hover:text-primary hover:border-primary/30 active:scale-95"
                             >
                                 <FileText className="w-3.5 h-3.5" /> DIRCETUR
                             </Button>
@@ -204,10 +204,10 @@ const Huespedes = memo(function Huespedes() {
                                             <div>
                                                 <h3 className="text-base font-extrabold text-foreground group-hover:text-primary transition-colors tracking-tight leading-tight">{h.nombre}</h3>
                                                 <div className="flex flex-wrap gap-x-3 gap-y-1 mt-1">
-                                                    <span className="text-[9px] font-bold tracking-widest uppercase text-muted-foreground flex items-center gap-1">
+                                                    <span className="text-xs font-bold tracking-widest uppercase text-muted-foreground flex items-center gap-1">
                                                         <CreditCard className="w-3 h-3" /> {h.dni || 'S/D'}
                                                     </span>
-                                                    <span className="text-[9px] font-bold tracking-widest uppercase text-muted-foreground flex items-center gap-1">
+                                                    <span className="text-xs font-bold tracking-widest uppercase text-muted-foreground flex items-center gap-1">
                                                         <MapPin className="w-3 h-3" /> {h.procedencia || 'N/E'}
                                                     </span>
                                                 </div>
@@ -239,17 +239,17 @@ const Huespedes = memo(function Huespedes() {
                                         <div className="flex items-center justify-between pt-2.5">
                                             <div className="flex items-center gap-1.5 text-muted-foreground">
                                                 <Phone className="w-3 h-3" />
-                                                <span className="text-[10px] font-bold tracking-wider">{h.telefono || 'S/T'}</span>
+                                                <span className="text-xs font-bold tracking-wider">{h.telefono || 'S/T'}</span>
                                             </div>
                                             <div className="bg-green-500/10 px-1.5 py-0.5 rounded border border-green-500/20 shadow-xs">
-                                                <span className="text-[10px] font-extrabold text-green-600 dark:text-green-400 tabular-nums">S/ {h.totalGasto}</span>
+                                                <span className="text-xs font-extrabold text-green-600 dark:text-green-400 tabular-nums">S/ {h.totalGasto}</span>
                                             </div>
                                         </div>
 
                                         <div className="pt-2 border-t border-border/40 mt-2">
                                             <div className="flex items-start gap-1.5 text-muted-foreground">
                                                 <StickyNote className="w-3 h-3 mt-0.5 flex-shrink-0" />
-                                                <p className="text-[9px] font-medium leading-tight flex-1 line-clamp-2" title={h.observaciones}>
+                                                <p className="text-xs font-medium leading-tight flex-1 line-clamp-2" title={h.observaciones}>
                                                     {h.observaciones ? h.observaciones : 'Sin observaciones'}
                                                 </p>
                                             </div>
@@ -269,7 +269,7 @@ const Huespedes = memo(function Huespedes() {
                         <Users className="w-6 h-6" />
                     </div>
                     <p className="text-lg font-extrabold text-foreground tracking-tight">No se encontraron huéspedes</p>
-                    <p className="text-[10px] font-bold tracking-widest uppercase text-muted-foreground mt-1.5 max-w-sm">Intenta ajustando los filtros o la búsqueda.</p>
+                    <p className="text-xs font-bold tracking-widest uppercase text-muted-foreground mt-1.5 max-w-sm">Intenta ajustando los filtros o la búsqueda.</p>
                 </div>
             )}
                 </>

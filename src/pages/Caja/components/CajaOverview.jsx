@@ -53,13 +53,13 @@ export const CajaOverview = memo(function CajaOverview(/** @type {any} */ { stat
                                 </div>
                                 <div className="min-w-0 flex-1">
                                     <div className="flex items-center justify-between gap-2">
-                                        <p className="truncate text-[9px] font-bold uppercase tracking-wider text-muted-foreground">{card.label}</p>
+                                        <p className="truncate text-xs font-bold uppercase tracking-wider text-muted-foreground">{card.label}</p>
                                         <span className="text-[8px] font-semibold uppercase tracking-wider text-muted-foreground/75">Hoy</span>
                                     </div>
                                     <p className="mt-1 text-xl font-extrabold tabular-nums tracking-tight text-foreground">{money(card.value)}</p>
                                 </div>
                             </div>
-                            <p className="mt-2 truncate border-t border-border/50 pt-2 text-[9px] leading-snug text-muted-foreground">{card.hint}</p>
+                            <p className="mt-2 truncate border-t border-border/50 pt-2 text-xs leading-snug text-muted-foreground">{card.hint}</p>
                         </article>
                     );
                 })}
@@ -72,7 +72,7 @@ export const CajaOverview = memo(function CajaOverview(/** @type {any} */ { stat
                             <DollarSign className="h-4 w-4 text-primary" aria-hidden="true" />
                             <div>
                                 <h2 className="text-sm font-semibold text-foreground">Dinero por medio de pago</h2>
-                                <p className="text-[10px] text-muted-foreground">Lo registrado digitalmente durante el día</p>
+                                <p className="text-xs text-muted-foreground">Lo registrado digitalmente durante el día</p>
                             </div>
                         </div>
                         <span className="text-xs font-bold tabular-nums text-foreground">{money(stats.ingresos)}</span>
@@ -85,7 +85,7 @@ export const CajaOverview = memo(function CajaOverview(/** @type {any} */ { stat
                                     <div className={cn('mb-2 flex h-7 w-7 items-center justify-center rounded-md border', method.className)}>
                                         <Icon className="h-3.5 w-3.5" aria-hidden="true" />
                                     </div>
-                                    <p className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground">{method.label}</p>
+                                    <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{method.label}</p>
                                     <p className="mt-0.5 text-sm font-bold tabular-nums text-foreground">{money(stats.metodos?.[method.key])}</p>
                                 </div>
                             );
@@ -98,7 +98,7 @@ export const CajaOverview = memo(function CajaOverview(/** @type {any} */ { stat
                         <FileText className="h-4 w-4 text-primary" aria-hidden="true" />
                         <div>
                             <h2 className="text-sm font-semibold text-foreground">Control tributario</h2>
-                            <p className="text-[10px] text-muted-foreground">Comprobantes del día por estado SUNAT</p>
+                            <p className="text-xs text-muted-foreground">Comprobantes del día por estado SUNAT</p>
                         </div>
                     </div>
                     <div className="space-y-2">
@@ -115,7 +115,7 @@ export const CajaOverview = memo(function CajaOverview(/** @type {any} */ { stat
                                     </div>
                                     <div className="min-w-0 flex-1">
                                         <p className="text-xs font-semibold text-foreground">{item.label}</p>
-                                        <p className="text-[10px] text-muted-foreground">{Number(item.count || 0)} comprobante(s)</p>
+                                        <p className="text-xs text-muted-foreground">{Number(item.count || 0)} comprobante(s)</p>
                                     </div>
                                     <p className="text-sm font-bold tabular-nums text-foreground">{money(item.total)}</p>
                                 </div>

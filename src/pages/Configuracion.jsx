@@ -71,7 +71,7 @@ const Configuracion = memo(function Configuracion() {
                     </div>
                     <div>
                         <h1 className="text-xl sm:text-2xl font-extrabold tracking-tight text-foreground">Configuración</h1>
-                        <p className="text-muted-foreground mt-0.5 text-[9px] font-black uppercase tracking-widest">Datos del hospedaje y preferencias</p>
+                        <p className="text-muted-foreground mt-0.5 text-xs font-black uppercase tracking-widest">Datos del hospedaje y preferencias</p>
                     </div>
                 </div>
             </div>
@@ -136,7 +136,7 @@ const Configuracion = memo(function Configuracion() {
                 >
                     {saved ? <><CheckCircle className="w-4 h-4" /> Guardado</> : <><Save className="w-4 h-4" /> {guardar.isPending ? 'Guardando...' : 'Guardar Configuración'}</>}
                 </Button>
-                {saved && <span className="text-[10px] text-emerald-500 font-black uppercase tracking-widest bg-emerald-500/10 px-2 py-1.5 rounded border border-emerald-500/20 shadow-xs">¡Configuración guardada!</span>}
+                {saved && <span className="text-xs text-emerald-500 font-black uppercase tracking-widest bg-emerald-500/10 px-2 py-1.5 rounded border border-emerald-500/20 shadow-xs">¡Configuración guardada!</span>}
             </div>
 
             {/* Modal para mostrar el Código QR (Global a ConfigEnlacesPublicos) */}
@@ -159,13 +159,13 @@ const Configuracion = memo(function Configuracion() {
                                     className="w-40 h-40 rounded-lg"
                                 />
                             </div>
-                            <p className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground leading-relaxed">
+                            <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground leading-relaxed">
                                 Escanea este código con la cámara de tu celular para acceder directamente.
                             </p>
                             <Button 
                                 onClick={() => setShowQrModal(null)} 
                                 variant="outline"
-                                className="w-full text-[10px] font-extrabold uppercase tracking-widest"
+                                className="w-full text-xs font-extrabold uppercase tracking-widest"
                             >
                                 Cerrar
                             </Button>

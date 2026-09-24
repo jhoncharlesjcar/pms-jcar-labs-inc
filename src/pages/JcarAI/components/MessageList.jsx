@@ -62,7 +62,7 @@ function MessageItem({ message }) {
                     }`}
                     dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(message.content) }}
                 />
-                <span className="px-1 text-[10px] text-muted-foreground">
+                <span className="px-1 text-xs text-muted-foreground">
                     {formatTime(message.created_at)}
                     {deliverySuffix}
                 </span>

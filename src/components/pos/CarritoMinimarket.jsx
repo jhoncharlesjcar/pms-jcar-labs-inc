@@ -73,7 +73,7 @@ const CarritoMinimarket = memo(function CarritoMinimarket(/** @type {any} */ { i
                         {/* Info */}
                         <div className="flex-1 min-w-0">
                             <p className="text-xs font-extrabold text-foreground leading-tight truncate">{item.nombre}</p>
-                            <p className="text-[10px] text-muted-foreground font-bold tracking-wider uppercase mt-0.5">S/ {item.precio.toFixed(2)} c/u</p>
+                            <p className="text-xs text-muted-foreground font-bold tracking-wider uppercase mt-0.5">S/ {item.precio.toFixed(2)} c/u</p>
                         </div>
 
                         {/* Controles de cantidad táctiles (WCAG 44px) */}
@@ -122,7 +122,7 @@ const CarritoMinimarket = memo(function CarritoMinimarket(/** @type {any} */ { i
 
             {/* Resumen */}
             <div className="px-4 py-3.5 bg-muted/20 border-t border-border/40">
-                <div className="flex justify-between text-[10px] uppercase font-extrabold tracking-wider text-muted-foreground mb-1">
+                <div className="flex justify-between text-xs uppercase font-extrabold tracking-wider text-muted-foreground mb-1">
                     <span>{items.reduce((s, i) => s + i.cantidad, 0)} ítem(s)</span>
                     <span>{items.length} tipo(s)</span>
                 </div>

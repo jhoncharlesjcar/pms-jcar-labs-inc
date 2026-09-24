@@ -126,7 +126,7 @@ export default function RecepcionCockpit({ summary, filter, onFilterChange }) {
                     >
                         {item.label}
                         <span className={cn(
-                            'min-w-5 rounded-full px-1.5 py-0.5 text-center text-[10px] tabular-nums',
+                            'min-w-5 rounded-full px-1.5 py-0.5 text-center text-xs tabular-nums',
                             filter === item.value ? 'bg-primary/15' : 'bg-muted'
                         )}>
                             {summary[item.countKey]}

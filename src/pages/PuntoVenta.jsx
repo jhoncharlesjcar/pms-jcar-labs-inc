@@ -43,11 +43,11 @@ const PuntoVenta = memo(function PuntoVenta() {
                         </div>
                         <div>
                             <h1 className="font-extrabold text-foreground text-xl sm:text-2xl tracking-tight leading-none">Punto de Venta</h1>
-                            <p className="text-[9px] text-muted-foreground font-semibold uppercase tracking-widest mt-0.5">POS y Minimarket</p>
+                            <p className="text-xs text-muted-foreground font-semibold uppercase tracking-widest mt-0.5">POS y Minimarket</p>
                         </div>
                     </div>
                     {items.length > 0 && (
-                        <Button variant="ghost" size="sm" onClick={limpiarCarrito} className="gap-1.5 px-2.5 text-[9px] font-bold uppercase tracking-widest text-muted-foreground hover:bg-destructive/10 hover:text-destructive">
+                        <Button variant="ghost" size="sm" onClick={limpiarCarrito} className="gap-1.5 px-2.5 text-xs font-bold uppercase tracking-widest text-muted-foreground hover:bg-destructive/10 hover:text-destructive">
                             <RotateCcw className="w-3 h-3" /> Limpiar
                         </Button>
                     )}
@@ -69,13 +69,13 @@ const PuntoVenta = memo(function PuntoVenta() {
                             </div>
                             <span className="font-extrabold text-foreground text-sm tracking-tight">Carrito</span>
                             {totalItems > 0 && (
-                                <span className="bg-primary text-primary-foreground text-[9px] font-bold px-1.5 py-0.5 rounded-sm flex items-center justify-center shadow-xs ml-1">
+                                <span className="bg-primary text-primary-foreground text-xs font-bold px-1.5 py-0.5 rounded-sm flex items-center justify-center shadow-xs ml-1">
                                     {totalItems} ítems
                                 </span>
                             )}
                         </div>
                         {/* botón volver al catálogo en móvil */}
-                        <button onClick={() => setVistaMovil('catalogo')} className="lg:hidden text-[10px] text-primary font-bold hover:underline">
+                        <button onClick={() => setVistaMovil('catalogo')} className="lg:hidden text-xs text-primary font-bold hover:underline">
                             ← Catálogo
                         </button>
                     </div>
@@ -93,7 +93,7 @@ const PuntoVenta = memo(function PuntoVenta() {
                 <div className="p-4 border-t border-border/40 bg-card/40 backdrop-blur-xl space-y-3">
                     {items.length > 0 && (
                         <div className="flex justify-between items-end font-bold text-foreground px-1 mb-1">
-                            <span className="text-[9px] text-muted-foreground uppercase tracking-widest font-black">Total a cobrar</span>
+                            <span className="text-xs text-muted-foreground uppercase tracking-widest font-black">Total a cobrar</span>
                             <span className="text-2xl font-extrabold text-primary tabular-nums tracking-tighter leading-none">S/ {totalGeneral.toFixed(2)}</span>
                         </div>
                     )}
@@ -116,14 +116,14 @@ const PuntoVenta = memo(function PuntoVenta() {
             <nav aria-label="Acciones del punto de venta" className="lg:hidden fixed bottom-0 left-0 right-0 bg-card/95 backdrop-blur-2xl border-t border-border/60 flex items-center justify-around z-50 safe-bottom p-1.5 shadow-lg">
                 <button
                     onClick={() => setVistaMovil('catalogo')}
-                    className={`flex-1 min-h-[44px] flex flex-col items-center justify-center text-[10px] font-bold transition-all rounded-lg ${vistaMovil === 'catalogo' ? 'text-primary bg-primary/10' : 'text-muted-foreground'}`}
+                    className={`flex-1 min-h-[44px] flex flex-col items-center justify-center text-xs font-bold transition-all rounded-lg ${vistaMovil === 'catalogo' ? 'text-primary bg-primary/10' : 'text-muted-foreground'}`}
                 >
                     <Store className="w-3.5 h-3.5 mb-0.5" />
                     <span>Productos</span>
                 </button>
                 <button
                     onClick={() => setVistaMovil('carrito')}
-                    className={`flex-1 min-h-[44px] flex flex-col items-center justify-center text-[10px] font-bold transition-all rounded-lg relative ${vistaMovil === 'carrito' ? 'text-primary bg-primary/10' : 'text-muted-foreground'}`}
+                    className={`flex-1 min-h-[44px] flex flex-col items-center justify-center text-xs font-bold transition-all rounded-lg relative ${vistaMovil === 'carrito' ? 'text-primary bg-primary/10' : 'text-muted-foreground'}`}
                 >
                     <ShoppingCart className="w-3.5 h-3.5 mb-0.5" />
                     <span>Carrito</span>
@@ -136,7 +136,7 @@ const PuntoVenta = memo(function PuntoVenta() {
                 {items.length > 0 && (
                     <button
                         onClick={() => setPagoOpen(true)}
-                        className="flex-1 min-h-[44px] flex flex-col items-center justify-center text-[10px] font-black text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg shadow-sm transition-all active:scale-95"
+                        className="flex-1 min-h-[44px] flex flex-col items-center justify-center text-xs font-black text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg shadow-sm transition-all active:scale-95"
                     >
                         <Receipt className="w-3.5 h-3.5 mb-0.5" />
                         <span>S/ {totalGeneral.toFixed(2)}</span>

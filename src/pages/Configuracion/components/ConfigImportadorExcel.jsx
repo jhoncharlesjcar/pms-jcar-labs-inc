@@ -160,14 +160,14 @@ export const ConfigImportadorExcel = memo(function ConfigImportadorExcel(/** @ty
                     </div>
                     <div>
                         <h2 className="font-extrabold text-foreground text-lg tracking-tight">Importación Masiva (CSV)</h2>
-                        <p className="text-[9px] font-black uppercase tracking-widest text-muted-foreground mt-0.5">Carga habitaciones desde un CSV validado</p>
+                        <p className="text-xs font-black uppercase tracking-widest text-muted-foreground mt-0.5">Carga habitaciones desde un CSV validado</p>
                     </div>
                 </div>
 
                 <Button
                     onClick={descargarPlantilla}
                     variant="outline"
-                    className="gap-2 shadow-xs text-[9px] font-extrabold uppercase tracking-widest rounded-md h-9 px-4 border-border/40 active:scale-95 transition-all"
+                    className="gap-2 shadow-xs text-xs font-extrabold uppercase tracking-widest rounded-md h-9 px-4 border-border/40 active:scale-95 transition-all"
                 >
                     <Download className="w-3.5 h-3.5 text-emerald-500" /> Descargar Plantilla
                 </Button>
@@ -193,7 +193,7 @@ export const ConfigImportadorExcel = memo(function ConfigImportadorExcel(/** @ty
                 <p className="text-sm font-extrabold text-foreground tracking-tight">
                     {fileName ? fileName : 'Seleccionar archivo CSV'}
                 </p>
-                <p className="text-[9px] font-black uppercase tracking-widest text-muted-foreground mt-1">
+                <p className="text-xs font-black uppercase tracking-widest text-muted-foreground mt-1">
                     Formato soportado: .csv (máximo 1 MB / 1000 filas)
                 </p>
             </div>
@@ -206,7 +206,7 @@ export const ConfigImportadorExcel = memo(function ConfigImportadorExcel(/** @ty
                     </div>
 
                     <div className="max-h-60 overflow-y-auto rounded-md border border-border/40 bg-card/60 shadow-inner">
-                        <table className="w-full text-left text-[10px]">
+                        <table className="w-full text-left text-xs">
                             <thead className="sticky top-0 bg-background/95 backdrop-blur-md border-b border-border/40 shadow-sm">
                                 <tr>
                                     <th className="p-2 font-black uppercase tracking-widest text-muted-foreground">Nro</th>
@@ -226,7 +226,7 @@ export const ConfigImportadorExcel = memo(function ConfigImportadorExcel(/** @ty
                                 ))}
                                 {fileData.length > 10 && (
                                     <tr>
-                                        <td colSpan={4} className="p-2 text-center text-muted-foreground font-black uppercase tracking-widest text-[9px] bg-background/30">
+                                        <td colSpan={4} className="p-2 text-center text-muted-foreground font-black uppercase tracking-widest text-xs bg-background/30">
                                             ... y {fileData.length - 10} habitaciones más
                                         </td>
                                     </tr>
@@ -238,14 +238,14 @@ export const ConfigImportadorExcel = memo(function ConfigImportadorExcel(/** @ty
                     <Button 
                         onClick={ejecutarImportacion} 
                         disabled={loading}
-                        className="w-full h-9 rounded-md font-extrabold text-[10px] tracking-widest uppercase bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm active:scale-95 transition-all"
+                        className="w-full h-9 rounded-md font-extrabold text-xs tracking-widest uppercase bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm active:scale-95 transition-all"
                     >
                         {loading ? 'Importando...' : `Confirmar Importación (${fileData.length})`}
                     </Button>
                 </div>
             )}
 
-            <div className="bg-amber-500/10 border border-amber-500/20 rounded-xl p-4 flex gap-3 text-[10px] font-bold text-amber-600 dark:text-amber-400 shadow-xs">
+            <div className="bg-amber-500/10 border border-amber-500/20 rounded-xl p-4 flex gap-3 text-xs font-bold text-amber-600 dark:text-amber-400 shadow-xs">
                 <AlertTriangle className="w-4 h-4 flex-shrink-0 mt-0.5" />
                 <p className="leading-relaxed">
                     <strong className="font-black uppercase tracking-widest block mb-1">Aviso:</strong> El sistema sobrescribirá las habitaciones si el número (ej: "101") ya existe en la base de datos de este hotel, o creará nuevas en caso contrario. 

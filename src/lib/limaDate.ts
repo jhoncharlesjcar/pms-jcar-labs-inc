@@ -6,6 +6,17 @@ export function hoyLima(date: Date = new Date()): string {
   return date.toLocaleDateString('sv-SE', { timeZone: LIMA_TZ });
 }
 
+/** Hora civil 0–23 en America/Lima. No usar `Date#getHours()` (TZ del navegador). */
+export function horaLima(date: Date = new Date()): number {
+  const hour = new Intl.DateTimeFormat('en-US', {
+    timeZone: LIMA_TZ,
+    hour: '2-digit',
+    hourCycle: 'h23',
+  }).formatToParts(date).find((part) => part.type === 'hour')?.value ?? '0';
+  const n = Number(hour);
+  return n === 24 ? 0 : n;
+}
+
 export function addDaysYmd(ymd: string, days: number): string {
   const parts = ymd.split('-').map(Number);
   const y = parts[0];

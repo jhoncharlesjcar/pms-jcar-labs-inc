@@ -48,7 +48,7 @@ export const CajaListEgresos = memo(function CajaListEgresos(/** @type {any} */ 
                             key={t}
                             onClick={() => setFilterTab(t)}
                             className={cn(
-                                "px-2 py-1 rounded-md text-[9px] font-extrabold uppercase tracking-widest transition-all",
+                                "px-2 py-1 rounded-md text-xs font-extrabold uppercase tracking-widest transition-all",
                                 filterTab === t ? "bg-background text-foreground shadow-sm border border-border/40" : "text-muted-foreground hover:text-foreground"
                             )}
                         >
@@ -71,7 +71,7 @@ export const CajaListEgresos = memo(function CajaListEgresos(/** @type {any} */ 
                                 </div>
                                 <div>
                                     <p className="font-extrabold text-xs text-foreground tracking-tight">{e.concepto || 'Egreso sin concepto'}</p>
-                                    <div className="flex items-center gap-1.5 text-[9px] font-bold text-muted-foreground uppercase tracking-widest mt-0.5">
+                                    <div className="flex items-center gap-1.5 text-xs font-bold text-muted-foreground uppercase tracking-widest mt-0.5">
                                         <Calendar className="w-3 h-3" />
                                         <span className="truncate max-w-[80px] sm:max-w-none">{format(new Date(e.fecha || e.created_date), "dd MMM, HH:mm", { locale: es })}</span>
                                         <span className="opacity-30">•</span>

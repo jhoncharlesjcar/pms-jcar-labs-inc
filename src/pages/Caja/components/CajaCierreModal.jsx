@@ -90,7 +90,7 @@ export const CajaCierreModal = memo(function CajaCierreModal(/** @type {any} */ 
                                 <div className="mb-3 flex items-center justify-between gap-3">
                                     <div>
                                         <h2 id="resumen-turno" className="text-sm font-semibold text-foreground">Resumen registrado</h2>
-                                        <p className="text-[10px] text-muted-foreground">Ventas y egresos consolidados por el sistema</p>
+                                        <p className="text-xs text-muted-foreground">Ventas y egresos consolidados por el sistema</p>
                                     </div>
                                     <span className="text-xs font-bold tabular-nums text-primary">{money(stats.balance)}</span>
                                 </div>
@@ -100,7 +100,7 @@ export const CajaCierreModal = memo(function CajaCierreModal(/** @type {any} */ 
                                         ['Ingresos', stats.ingresos], ['Egresos', -Number(stats.egresos || 0)],
                                     ].map(([label, value]) => (
                                         <div key={label} className="rounded-lg border border-border/40 bg-background/60 p-3">
-                                            <p className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground">{label}</p>
+                                            <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{label}</p>
                                             <p className="mt-1 text-sm font-bold tabular-nums text-foreground">{money(value)}</p>
                                         </div>
                                     ))}
@@ -134,9 +134,9 @@ export const CajaCierreModal = memo(function CajaCierreModal(/** @type {any} */ 
 
                             <section className="rounded-xl border border-border/60 p-4" aria-label="Control SUNAT">
                                 <div className="grid grid-cols-3 gap-2 text-center">
-                                    <div><p className="text-lg font-bold text-emerald-600">{Number(stats.sunatDeclaradasCount || 0)}</p><p className="text-[9px] text-muted-foreground">Aceptados</p></div>
-                                    <div><p className="text-lg font-bold text-amber-600">{Number(stats.sunatPendientesCount || 0)}</p><p className="text-[9px] text-muted-foreground">Pendientes</p></div>
-                                    <div><p className="text-lg font-bold text-rose-600">{Number(stats.sunatRechazadasCount || 0)}</p><p className="text-[9px] text-muted-foreground">Rechazados</p></div>
+                                    <div><p className="text-lg font-bold text-emerald-600">{Number(stats.sunatDeclaradasCount || 0)}</p><p className="text-xs text-muted-foreground">Aceptados</p></div>
+                                    <div><p className="text-lg font-bold text-amber-600">{Number(stats.sunatPendientesCount || 0)}</p><p className="text-xs text-muted-foreground">Pendientes</p></div>
+                                    <div><p className="text-lg font-bold text-rose-600">{Number(stats.sunatRechazadasCount || 0)}</p><p className="text-xs text-muted-foreground">Rechazados</p></div>
                                 </div>
                             </section>
                         </div>
@@ -147,10 +147,10 @@ export const CajaCierreModal = memo(function CajaCierreModal(/** @type {any} */ 
                                     <Landmark className="h-4 w-4 text-primary" aria-hidden="true" />
                                     <div>
                                         <h2 id="arqueo-fisico" className="text-sm font-semibold text-foreground">Arqueo de efectivo</h2>
-                                        <p className="text-[10px] text-muted-foreground">Cuenta únicamente el dinero físico del cajón.</p>
+                                        <p className="text-xs text-muted-foreground">Cuenta únicamente el dinero físico del cajón.</p>
                                     </div>
                                 </div>
-                                <Label htmlFor="efectivo-contado" className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Efectivo contado</Label>
+                                <Label htmlFor="efectivo-contado" className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Efectivo contado</Label>
                                 <div className="relative mt-1">
                                     <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm font-semibold text-muted-foreground">S/</span>
                                     <Input
@@ -174,13 +174,13 @@ export const CajaCierreModal = memo(function CajaCierreModal(/** @type {any} */ 
                                                 <p className="text-xs font-semibold">{auditConfig.label}</p>
                                                 {arqueo.estado !== 'sin_conteo' && <p className="text-sm font-bold tabular-nums">{money(arqueo.diferencia)}</p>}
                                             </div>
-                                            <p className="mt-0.5 text-[10px] opacity-80">{auditConfig.message}</p>
+                                            <p className="mt-0.5 text-xs opacity-80">{auditConfig.message}</p>
                                         </div>
                                     </div>
                                 </div>
 
                                 <div className="mt-4">
-                                    <Label htmlFor="cierre-notas" className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                                    <Label htmlFor="cierre-notas" className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                                         Notas {arqueo.requiereNota ? '(obligatorias por diferencia)' : '(opcionales)'}
                                     </Label>
                                     <textarea
@@ -191,12 +191,12 @@ export const CajaCierreModal = memo(function CajaCierreModal(/** @type {any} */ 
                                         placeholder="Novedades del turno o explicación de la diferencia…"
                                         aria-invalid={notaIncompleta}
                                     />
-                                    {notaIncompleta && <p className="mt-1 text-[10px] font-medium text-rose-600">Explica la diferencia con al menos 3 caracteres.</p>}
+                                    {notaIncompleta && <p className="mt-1 text-xs font-medium text-rose-600">Explica la diferencia con al menos 3 caracteres.</p>}
                                 </div>
                             </section>
 
                             <section className="rounded-xl border border-border/60 p-4" aria-label="Exportar cierre">
-                                <p className="mb-3 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Respaldos antes del cierre</p>
+                                <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Respaldos antes del cierre</p>
                                 <div className="grid grid-cols-2 gap-2">
                                     <Button variant="outline" onClick={handlePrintHotel} className="h-10 gap-2 text-xs"><Printer className="h-3.5 w-3.5" /> Hotel</Button>
                                     <Button variant="outline" onClick={handlePrintPOS} className="h-10 gap-2 text-xs"><Printer className="h-3.5 w-3.5" /> POS</Button>

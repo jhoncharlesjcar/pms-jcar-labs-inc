@@ -31,7 +31,7 @@ export const ConfigEnlacesPublicos = memo(function ConfigEnlacesPublicos(/** @ty
                     </div>
                     <div>
                         <h2 className="font-extrabold text-lg text-foreground tracking-tight">Enlaces Públicos y Autogestión</h2>
-                        <p className="text-[9px] font-black uppercase tracking-widest text-muted-foreground mt-0.5">Links directos para tus clientes (0% comisión)</p>
+                        <p className="text-xs font-black uppercase tracking-widest text-muted-foreground mt-0.5">Links directos para tus clientes (0% comisión)</p>
                     </div>
                 </div>
             </div>
@@ -45,14 +45,14 @@ export const ConfigEnlacesPublicos = memo(function ConfigEnlacesPublicos(/** @ty
                                 0% Comisión
                             </span>
                             <h3 className="font-extrabold text-sm sm:text-base text-foreground mt-2 tracking-tight">Motor de Reservas Directo</h3>
-                            <p className="text-[10px] sm:text-xs font-bold text-muted-foreground mt-1">
+                            <p className="text-xs sm:text-xs font-bold text-muted-foreground mt-1">
                                 Permite a tus huéspedes cotizar, ver tarifas dinámicas y reservar desde su móvil.
                             </p>
                         </div>
                     </div>
 
                     <div className="flex items-center gap-1.5 bg-background/50 p-2 rounded-lg border border-border/40 shadow-inner">
-                        <span className="text-[10px] sm:text-xs text-muted-foreground truncate flex-1 px-2 font-mono font-bold">
+                        <span className="text-xs sm:text-xs text-muted-foreground truncate flex-1 px-2 font-mono font-bold">
                             {bookingUrl}
                         </span>
                         <Button 
@@ -70,7 +70,7 @@ export const ConfigEnlacesPublicos = memo(function ConfigEnlacesPublicos(/** @ty
                             size="sm" 
                             variant="outline" 
                             onClick={() => window.open(bookingUrl, '_blank')}
-                            className="flex-1 text-[9px] font-extrabold uppercase tracking-widest gap-1 h-8 rounded-lg border-border/40 hover:bg-emerald-500/5 active:scale-95 transition-all"
+                            className="flex-1 text-xs font-extrabold uppercase tracking-widest gap-1 h-8 rounded-lg border-border/40 hover:bg-emerald-500/5 active:scale-95 transition-all"
                         >
                             <ExternalLink className="w-3.5 h-3.5" /> Probar
                         </Button>
@@ -81,7 +81,7 @@ export const ConfigEnlacesPublicos = memo(function ConfigEnlacesPublicos(/** @ty
                                 const text = `🏨 *Reserva Directamente con Nosotros* 🏨\n\nEvita comisiones y asegura el mejor precio reservando directamente desde nuestro portal web:\n\n🔗 ${bookingUrl}\n\n¡Te esperamos!`;
                                 window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`, '_blank');
                             }}
-                            className="flex-1 text-[9px] font-extrabold uppercase tracking-widest gap-1 h-8 rounded-lg border-emerald-500/20 hover:bg-emerald-500/10 hover:text-emerald-600 text-emerald-500 bg-emerald-500/5 active:scale-95 transition-all shadow-xs"
+                            className="flex-1 text-xs font-extrabold uppercase tracking-widest gap-1 h-8 rounded-lg border-emerald-500/20 hover:bg-emerald-500/10 hover:text-emerald-600 text-emerald-500 bg-emerald-500/5 active:scale-95 transition-all shadow-xs"
                         >
                             <Share2 className="w-3.5 h-3.5" /> Compartir
                         </Button>
@@ -105,14 +105,14 @@ export const ConfigEnlacesPublicos = memo(function ConfigEnlacesPublicos(/** @ty
                                 Cumplimiento MINCETUR
                             </span>
                             <h3 className="font-extrabold text-sm sm:text-base text-foreground mt-2 tracking-tight">Check-in Digital Auto-registro</h3>
-                            <p className="text-[10px] sm:text-xs font-bold text-muted-foreground mt-1">
+                            <p className="text-xs sm:text-xs font-bold text-muted-foreground mt-1">
                                 Envía este link a tus huéspedes antes del ingreso para agilizar el registro legal.
                             </p>
                         </div>
                     </div>
 
                     <div className="flex items-center gap-1.5 bg-background/50 p-2 rounded-lg border border-border/40 shadow-inner">
-                        <span className="text-[10px] sm:text-xs text-muted-foreground truncate flex-1 px-2 font-mono font-bold">
+                        <span className="text-xs sm:text-xs text-muted-foreground truncate flex-1 px-2 font-mono font-bold">
                             Se genera desde una reserva confirmada
                         </span>
                         <Button 
@@ -131,7 +131,7 @@ export const ConfigEnlacesPublicos = memo(function ConfigEnlacesPublicos(/** @ty
                             size="sm" 
                             variant="outline" 
                             disabled
-                            className="flex-1 text-[9px] font-extrabold uppercase tracking-widest gap-1 h-8 rounded-lg border-border/40 hover:bg-indigo-500/5 active:scale-95 transition-all"
+                            className="flex-1 text-xs font-extrabold uppercase tracking-widest gap-1 h-8 rounded-lg border-border/40 hover:bg-indigo-500/5 active:scale-95 transition-all"
                         >
                             <ExternalLink className="w-3.5 h-3.5" /> Probar
                         </Button>
@@ -139,7 +139,7 @@ export const ConfigEnlacesPublicos = memo(function ConfigEnlacesPublicos(/** @ty
                             size="sm" 
                             variant="outline"
                             disabled
-                            className="flex-1 text-[9px] font-extrabold uppercase tracking-widest gap-1 h-8 rounded-lg border-indigo-500/20 hover:bg-indigo-500/10 hover:text-indigo-600 text-indigo-500 bg-indigo-500/5 active:scale-95 transition-all shadow-xs"
+                            className="flex-1 text-xs font-extrabold uppercase tracking-widest gap-1 h-8 rounded-lg border-indigo-500/20 hover:bg-indigo-500/10 hover:text-indigo-600 text-indigo-500 bg-indigo-500/5 active:scale-95 transition-all shadow-xs"
                         >
                             <Share2 className="w-3.5 h-3.5" /> Compartir
                         </Button>
@@ -156,7 +156,7 @@ export const ConfigEnlacesPublicos = memo(function ConfigEnlacesPublicos(/** @ty
                 </div>
             </div>
 
-            <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-xl p-4 text-[10px] text-emerald-600 dark:text-emerald-400 leading-relaxed font-bold shadow-xs">
+            <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-xl p-4 text-xs text-emerald-600 dark:text-emerald-400 leading-relaxed font-bold shadow-xs">
                 <strong className="font-black uppercase tracking-widest">💡 Consejo Pro:</strong> Puedes imprimir los códigos QR y colocarlos físicamente en un cartel acrílico en el mostrador de recepción o en el lobby. Así tus huéspedes pueden auto-registrarse escaneando desde su celular, reduciendo tiempos de espera a cero.
             </div>
         </div>

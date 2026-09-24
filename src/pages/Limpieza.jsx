@@ -88,22 +88,22 @@ const Limpieza = memo(function Limpieza() {
                 <div className="flex items-center gap-2 rounded-xl border border-purple-500/25 bg-purple-500/10 px-3 py-2 shrink-0">
                     <BroomIcon className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" />
                     <span className="text-xs font-extrabold text-purple-600 dark:text-purple-400 tabular-nums">{metrics.sucias}</span>
-                    <span className="text-[10px] font-bold text-muted-foreground uppercase">Sucias</span>
+                    <span className="text-xs font-bold text-muted-foreground uppercase">Sucias</span>
                 </div>
                 <div className="flex items-center gap-2 rounded-xl border border-amber-500/25 bg-amber-500/10 px-3 py-2 shrink-0">
                     <Wrench className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
                     <span className="text-xs font-extrabold text-amber-600 dark:text-amber-400 tabular-nums">{metrics.mantenimiento}</span>
-                    <span className="text-[10px] font-bold text-muted-foreground uppercase">Fallas</span>
+                    <span className="text-xs font-bold text-muted-foreground uppercase">Fallas</span>
                 </div>
                 <div className="flex items-center gap-2 rounded-xl border border-emerald-500/25 bg-emerald-500/10 px-3 py-2 shrink-0">
                     <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
                     <span className="text-xs font-extrabold text-emerald-600 dark:text-emerald-400 tabular-nums">{metrics.disponibles}</span>
-                    <span className="text-[10px] font-bold text-muted-foreground uppercase">Listas</span>
+                    <span className="text-xs font-bold text-muted-foreground uppercase">Listas</span>
                 </div>
                 <div className="flex items-center gap-2 rounded-xl border border-rose-500/25 bg-rose-500/10 px-3 py-2 shrink-0">
                     <User className="w-3.5 h-3.5 text-rose-600 dark:text-rose-400" />
                     <span className="text-xs font-extrabold text-rose-600 dark:text-rose-400 tabular-nums">{metrics.ocupadas}</span>
-                    <span className="text-[10px] font-bold text-muted-foreground uppercase">Ocupadas</span>
+                    <span className="text-xs font-bold text-muted-foreground uppercase">Ocupadas</span>
                 </div>
             </div>
 
@@ -114,7 +114,7 @@ const Limpieza = memo(function Limpieza() {
                         <BroomIcon className="w-4 h-4" />
                     </div>
                     <div>
-                        <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">Por Limpiar</p>
+                        <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Por Limpiar</p>
                         <p className="text-2xl font-extrabold text-purple-600 dark:text-purple-400 tabular-nums tracking-tighter leading-none mt-1">{metrics.sucias}</p>
                     </div>
                 </div>
@@ -124,7 +124,7 @@ const Limpieza = memo(function Limpieza() {
                         <Wrench className="w-4 h-4" />
                     </div>
                     <div>
-                        <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">Mantenimiento</p>
+                        <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Mantenimiento</p>
                         <p className="text-2xl font-extrabold text-amber-600 dark:text-amber-400 tabular-nums tracking-tighter leading-none mt-1">{metrics.mantenimiento}</p>
                     </div>
                 </div>
@@ -134,7 +134,7 @@ const Limpieza = memo(function Limpieza() {
                         <CheckCircle2 className="w-4 h-4" />
                     </div>
                     <div>
-                        <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">Listas</p>
+                        <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Listas</p>
                         <p className="text-2xl font-extrabold text-emerald-600 dark:text-emerald-400 tabular-nums tracking-tighter leading-none mt-1">{metrics.disponibles}</p>
                     </div>
                 </div>
@@ -144,7 +144,7 @@ const Limpieza = memo(function Limpieza() {
                         <User className="w-4 h-4" />
                     </div>
                     <div>
-                        <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">Ocupadas</p>
+                        <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Ocupadas</p>
                         <p className="text-2xl font-extrabold text-rose-600 dark:text-rose-400 tabular-nums tracking-tighter leading-none mt-1">{metrics.ocupadas}</p>
                     </div>
                 </div>
@@ -165,7 +165,7 @@ const Limpieza = memo(function Limpieza() {
 
                         <Button 
                             variant={verTodas ? "default" : "outline"} 
-                            className="w-full gap-2 text-[10px] font-bold uppercase tracking-wider sm:w-auto"
+                            className="w-full gap-2 text-xs font-bold uppercase tracking-wider sm:w-auto"
                             onClick={() => setVerTodas(!verTodas)}
                         >
                             <Filter className="w-3.5 h-3.5 text-primary" /> {verTodas ? 'Mostrando Todas las Habitaciones' : 'Solo Pendientes (Sucia / Falla)'}
@@ -194,11 +194,11 @@ const Limpieza = memo(function Limpieza() {
                                         <div className="space-y-3">
                                             <div className="flex justify-between items-start">
                                                 <div>
-                                                    <span className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground">Habitación</span>
+                                                    <span className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Habitación</span>
                                                     <p className={cn("text-2xl font-extrabold tabular-nums tracking-tighter leading-none mt-1", colors.number)}>#{hab.numero}</p>
-                                                    <p className="text-[9px] font-bold tracking-widest text-muted-foreground uppercase mt-1">{hab.tipo}{hab.piso ? ` · Piso ${hab.piso}` : ''}</p>
+                                                    <p className="text-xs font-bold tracking-widest text-muted-foreground uppercase mt-1">{hab.tipo}{hab.piso ? ` · Piso ${hab.piso}` : ''}</p>
                                                 </div>
-                                                <StatusBadge status={hab.estado} label={conf.label} className="text-[9px] px-2 py-0.5" />
+                                                <StatusBadge status={hab.estado} label={conf.label} className="text-xs px-2 py-0.5" />
                                             </div>
 
                                             {/* Motivo de Mantenimiento si aplica */}
@@ -207,7 +207,7 @@ const Limpieza = memo(function Limpieza() {
                                                     const desc = JSON.parse(hab.descripcion);
                                                     if (hab.estado === 'mantenimiento' && desc.motivo_mantenimiento) {
                                                         return (
-                                                            <div className="w-full text-[10px] text-red-600 dark:text-red-400 font-semibold bg-red-500/10 p-1.5 rounded-md border border-red-500/20 leading-tight">
+                                                            <div className="w-full text-xs text-red-600 dark:text-red-400 font-semibold bg-red-500/10 p-1.5 rounded-md border border-red-500/20 leading-tight">
                                                                 🚨 Motivo: {desc.motivo_mantenimiento}
                                                             </div>
                                                         );
@@ -218,7 +218,7 @@ const Limpieza = memo(function Limpieza() {
 
                                             {/* Contador de tiempo transcurrido en limpieza */}
                                             {hab.estado === 'limpieza' && (
-                                                <div className="flex items-center gap-1.5 text-[10px] font-bold px-2 py-0.5 rounded-md bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/20">
+                                                <div className="flex items-center gap-1.5 text-xs font-bold px-2 py-0.5 rounded-md bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/20">
                                                     <Clock className="w-3.5 h-3.5" />
                                                     {(() => {
                                                         try {
@@ -272,7 +272,7 @@ const Limpieza = memo(function Limpieza() {
                                                 <Button 
                                                     aria-label={`Reportar avería en habitación ${hab.numero}`}
                                                     variant="ghost" 
-                                                    className="w-full gap-1.5 text-[10px] font-bold uppercase tracking-widest text-amber-600 hover:bg-amber-500/10 dark:text-amber-400 min-h-[44px]"
+                                                    className="w-full gap-1.5 text-xs font-bold uppercase tracking-widest text-amber-600 hover:bg-amber-500/10 dark:text-amber-400 min-h-[44px]"
                                                     onClick={() => {
                                                         setMantenimientoModal({ open: true, hab: hab, motivo: '' });
                                                     }}
@@ -293,7 +293,7 @@ const Limpieza = memo(function Limpieza() {
                                 <CheckCircle2 className="w-6 h-6" />
                             </div>
                             <p className="text-lg font-extrabold text-foreground tracking-tight">¡Todo al día en Housekeeping!</p>
-                            <p className="text-[10px] font-bold tracking-widest uppercase text-muted-foreground mt-1.5 max-w-sm">No hay habitaciones pendientes de limpieza o mantenimiento.</p>
+                            <p className="text-xs font-bold tracking-widest uppercase text-muted-foreground mt-1.5 max-w-sm">No hay habitaciones pendientes de limpieza o mantenimiento.</p>
                         </div>
                     )}
 
@@ -310,14 +310,14 @@ const Limpieza = memo(function Limpieza() {
                             <DialogTitle className="text-xl font-extrabold tracking-tight text-foreground">
                                 Reportar Falla
                             </DialogTitle>
-                            <p className="text-[10px] uppercase tracking-widest font-bold text-muted-foreground mt-1">
+                            <p className="text-xs uppercase tracking-widest font-bold text-muted-foreground mt-1">
                                 Habitación #{mantenimientoModal.hab?.numero}
                             </p>
                         </DialogHeader>
                     </div>
                     <div className="p-6 py-3 overflow-y-auto custom-scrollbar flex-1 space-y-4">
                         <div className="space-y-2.5">
-                            <Label htmlFor="motivo" className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground ml-1">Motivo / Problema Reportado</Label>
+                            <Label htmlFor="motivo" className="text-xs font-bold uppercase tracking-widest text-muted-foreground ml-1">Motivo / Problema Reportado</Label>
                             <Input 
                                 id="motivo"
                                 value={mantenimientoModal.motivo} 
@@ -329,7 +329,7 @@ const Limpieza = memo(function Limpieza() {
                         </div>
                         <div className="bg-red-500/10 border border-red-500/20 p-3 rounded-md flex items-start gap-2.5">
                             <Wrench className="w-4 h-4 text-red-500 mt-0.5 flex-shrink-0" />
-                            <p className="text-[10px] text-red-600 dark:text-red-400 font-bold leading-relaxed">
+                            <p className="text-xs text-red-600 dark:text-red-400 font-bold leading-relaxed">
                                 La habitación quedará bloqueada en estado de Mantenimiento hasta que se confirme su reparación y limpieza.
                             </p>
                         </div>

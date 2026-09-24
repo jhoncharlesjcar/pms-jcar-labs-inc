@@ -1,9 +1,14 @@
 import { describe, it, expect } from 'vitest';
-import { addDaysYmd, hoyLima } from '@/lib/limaDate';
+import { addDaysYmd, horaLima, hoyLima } from '@/lib/limaDate';
 
 describe('limaDate', () => {
   it('hoyLima returns ISO calendar date', () => {
     expect(hoyLima()).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+  });
+
+  it('horaLima uses America/Lima, not the browser clock', () => {
+    expect(horaLima(new Date('2026-09-24T00:30:00Z'))).toBe(19);
+    expect(horaLima(new Date('2026-09-24T05:00:00Z'))).toBe(0);
   });
 
   it('addDaysYmd rolls month boundaries', () => {

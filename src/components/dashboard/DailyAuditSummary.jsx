@@ -36,7 +36,7 @@ export const DailyAuditSummary = memo(function DailyAuditSummary(/** @type {Dail
                     </div>
                     <div>
                         <h2 id="auditoria-dia" className="text-sm font-bold text-foreground">Control gerencial del día</h2>
-                        <p className="mt-0.5 text-[10px] leading-snug text-muted-foreground">{Number(transactions || 0)} transacciones · {money(total)} registrados</p>
+                        <p className="mt-0.5 text-xs leading-snug text-muted-foreground">{Number(transactions || 0)} transacciones · {money(total)} registrados</p>
                     </div>
                 </div>
 
@@ -47,7 +47,7 @@ export const DailyAuditSummary = memo(function DailyAuditSummary(/** @type {Dail
                             <div key={method.key} className="rounded-lg border border-border/50 bg-background/70 p-2.5">
                                 <div className="flex items-center gap-1.5 text-muted-foreground">
                                     <Icon className="h-3.5 w-3.5" aria-hidden="true" />
-                                    <span className="text-[9px] font-semibold uppercase tracking-wider">{method.label}</span>
+                                    <span className="text-xs font-semibold uppercase tracking-wider">{method.label}</span>
                                 </div>
                                 <p className="mt-1 text-xs font-bold tabular-nums text-foreground">{money(methods[method.key])}</p>
                             </div>
@@ -60,7 +60,7 @@ export const DailyAuditSummary = memo(function DailyAuditSummary(/** @type {Dail
                         <AlertTriangle className={`h-4 w-4 ${incidents > 0 ? 'text-amber-500' : 'text-emerald-500'}`} aria-hidden="true" />
                         <div>
                             <p className="text-xs font-semibold text-foreground">{incidents > 0 ? `${incidents} alerta(s) SUNAT` : 'SUNAT sin alertas'}</p>
-                            <p className="text-[9px] text-muted-foreground">Pendientes o rechazados</p>
+                            <p className="text-xs text-muted-foreground">Pendientes o rechazados</p>
                         </div>
                     </div>
                     <Button type="button" variant="outline" size="sm" onClick={onOpenCaja} className="h-9 shrink-0 gap-1.5 text-xs">

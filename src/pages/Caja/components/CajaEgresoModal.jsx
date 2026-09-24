@@ -25,7 +25,7 @@ export const CajaEgresoModal = memo(function CajaEgresoModal(/** @type {any} */ 
                             Nuevo Egreso
                         </DialogTitle>
                     </DialogHeader>
-                    <p className="text-muted-foreground text-[10px] font-bold uppercase tracking-widest mt-1.5">Registra gastos operativos o compras para el hotel.</p>
+                    <p className="text-muted-foreground text-xs font-bold uppercase tracking-widest mt-1.5">Registra gastos operativos o compras para el hotel.</p>
                     <div className="absolute top-0 right-0 w-32 h-32 bg-primary/10 blur-2xl rounded-full -mr-16 -mt-16" />
                 </div>
 
@@ -42,7 +42,7 @@ export const CajaEgresoModal = memo(function CajaEgresoModal(/** @type {any} */ 
                     });
                 }} className="p-6 space-y-4 overflow-y-auto custom-scrollbar flex-1">
                     <div className="space-y-2">
-                        <Label htmlFor="egreso_monto" className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">Monto del Gasto (S/)</Label>
+                        <Label htmlFor="egreso_monto" className="text-xs font-black uppercase tracking-widest text-muted-foreground">Monto del Gasto (S/)</Label>
                         <div className="relative">
                             <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                             <Input 
@@ -58,7 +58,7 @@ export const CajaEgresoModal = memo(function CajaEgresoModal(/** @type {any} */ 
                     </div>
 
                     <div className="space-y-2">
-                        <Label htmlFor="egreso_concepto" className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">Concepto / Detalle</Label>
+                        <Label htmlFor="egreso_concepto" className="text-xs font-black uppercase tracking-widest text-muted-foreground">Concepto / Detalle</Label>
                         <div className="relative">
                             <FileText className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
                             <Input 
@@ -72,7 +72,7 @@ export const CajaEgresoModal = memo(function CajaEgresoModal(/** @type {any} */ 
                     </div>
 
                     <div className="space-y-2">
-                        <Label htmlFor="egreso_categoria" className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">Categoría</Label>
+                        <Label htmlFor="egreso_categoria" className="text-xs font-black uppercase tracking-widest text-muted-foreground">Categoría</Label>
                         <select 
                             id="egreso_categoria"
                             name="categoria"
@@ -88,8 +88,8 @@ export const CajaEgresoModal = memo(function CajaEgresoModal(/** @type {any} */ 
                     </div>
 
                     <div className="flex gap-3 pt-4">
-                        <Button type="button" variant="ghost" onClick={() => setExpenseModal(false)} className="flex-1 h-9 rounded-md font-bold text-[10px] uppercase tracking-widest hover:bg-muted">Cancelar</Button>
-                        <Button disabled={addEgreso.isPending} className="flex-1 h-9 rounded-md bg-primary hover:bg-primary/90 shadow-md font-extrabold text-xs active:scale-95 transition-all">
+                        <Button type="button" variant="ghost" onClick={() => setExpenseModal(false)} className="h-11 flex-1">Cancelar</Button>
+                        <Button disabled={addEgreso.isPending} className="h-11 flex-1">
                             {addEgreso.isPending ? 'Guardando...' : 'Registrar Gasto'}
                         </Button>
                     </div>

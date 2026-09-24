@@ -175,7 +175,7 @@ const Insumos = memo(function Insumos() {
                         </div>
                         <div>
                             <h1 className="text-xl sm:text-2xl font-extrabold tracking-tight text-foreground">Insumos y Suministros</h1>
-                            <p className="text-muted-foreground text-[10px] sm:text-xs font-bold uppercase tracking-widest mt-0.5">
+                            <p className="text-muted-foreground text-xs sm:text-xs font-bold uppercase tracking-widest mt-0.5">
                                 Controla el stock interno de tu propiedad
                             </p>
                         </div>
@@ -195,10 +195,10 @@ const Insumos = memo(function Insumos() {
                         <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center border border-primary/20 group-hover:scale-105 transition-transform">
                             <Package className="w-4 h-4 text-primary" />
                         </div>
-                        <span className="text-[9px] font-black uppercase tracking-widest text-primary bg-primary/10 px-1.5 py-0.5 rounded border border-primary/20">General</span>
+                        <span className="text-xs font-black uppercase tracking-widest text-primary bg-primary/10 px-1.5 py-0.5 rounded border border-primary/20">General</span>
                     </div>
                     <p className="text-2xl font-extrabold mb-0.5 tabular-nums text-foreground tracking-tighter leading-none">{stats.total}</p>
-                    <p className="text-[9px] text-muted-foreground font-bold uppercase tracking-widest mt-1">Ítems Registrados</p>
+                    <p className="text-xs text-muted-foreground font-bold uppercase tracking-widest mt-1">Ítems Registrados</p>
                     <div className="absolute top-0 right-0 w-24 h-24 bg-primary/5 blur-3xl rounded-full -mr-12 -mt-12 group-hover:bg-primary/10 transition-colors" />
                 </div>
 
@@ -207,10 +207,10 @@ const Insumos = memo(function Insumos() {
                         <div className="w-8 h-8 rounded-lg bg-red-500/10 flex items-center justify-center border border-red-500/20 group-hover:scale-105 transition-transform">
                             <AlertTriangle className="w-4 h-4 text-red-600 dark:text-red-400" />
                         </div>
-                        <span className="text-[9px] font-black uppercase tracking-widest text-red-600 dark:text-red-400 bg-red-500/10 px-1.5 py-0.5 rounded border border-red-500/20">Alerta</span>
+                        <span className="text-xs font-black uppercase tracking-widest text-red-600 dark:text-red-400 bg-red-500/10 px-1.5 py-0.5 rounded border border-red-500/20">Alerta</span>
                     </div>
                     <p className="text-2xl font-extrabold mb-0.5 tabular-nums text-red-600 dark:text-red-400 tracking-tighter leading-none">{stats.bajoStock}</p>
-                    <p className="text-[9px] text-muted-foreground font-bold uppercase tracking-widest mt-1">Stock Bajo ({'<5'})</p>
+                    <p className="text-xs text-muted-foreground font-bold uppercase tracking-widest mt-1">Stock Bajo ({'<5'})</p>
                     <div className="absolute top-0 right-0 w-24 h-24 bg-red-500/5 blur-3xl rounded-full -mr-12 -mt-12 group-hover:bg-red-500/10 transition-colors" />
                 </div>
 
@@ -219,10 +219,10 @@ const Insumos = memo(function Insumos() {
                         <div className="w-8 h-8 rounded-lg bg-emerald-500/10 flex items-center justify-center border border-emerald-500/20 group-hover:scale-105 transition-transform">
                             <ArrowRightLeft className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
                         </div>
-                        <span className="text-[9px] font-black uppercase tracking-widest text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-1.5 py-0.5 rounded border border-emerald-500/20">Entradas</span>
+                        <span className="text-xs font-black uppercase tracking-widest text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-1.5 py-0.5 rounded border border-emerald-500/20">Entradas</span>
                     </div>
                     <p className="text-2xl font-extrabold mb-0.5 tabular-nums text-emerald-600 dark:text-emerald-400 tracking-tighter leading-none">{stats.entradasHoy}</p>
-                    <p className="text-[9px] text-muted-foreground font-bold uppercase tracking-widest mt-1">Ingresos Hoy</p>
+                    <p className="text-xs text-muted-foreground font-bold uppercase tracking-widest mt-1">Ingresos Hoy</p>
                     <div className="absolute top-0 right-0 w-24 h-24 bg-emerald-500/5 blur-3xl rounded-full -mr-12 -mt-12 group-hover:bg-emerald-500/10 transition-colors" />
                 </div>
 
@@ -231,10 +231,10 @@ const Insumos = memo(function Insumos() {
                         <div className="w-8 h-8 rounded-lg bg-amber-500/10 flex items-center justify-center border border-amber-500/20 group-hover:scale-105 transition-transform">
                             <History className="w-4 h-4 text-amber-600 dark:text-amber-400" />
                         </div>
-                        <span className="text-[9px] font-black uppercase tracking-widest text-amber-600 dark:text-amber-400 bg-amber-500/10 px-1.5 py-0.5 rounded border border-amber-500/20">Salidas</span>
+                        <span className="text-xs font-black uppercase tracking-widest text-amber-600 dark:text-amber-400 bg-amber-500/10 px-1.5 py-0.5 rounded border border-amber-500/20">Salidas</span>
                     </div>
                     <p className="text-2xl font-extrabold mb-0.5 tabular-nums text-amber-600 dark:text-amber-400 tracking-tighter leading-none">{stats.salidasHoy}</p>
-                    <p className="text-[9px] text-muted-foreground font-bold uppercase tracking-widest mt-1">Salidas Hoy</p>
+                    <p className="text-xs text-muted-foreground font-bold uppercase tracking-widest mt-1">Salidas Hoy</p>
                     <div className="absolute top-0 right-0 w-24 h-24 bg-amber-500/5 blur-3xl rounded-full -mr-12 -mt-12 group-hover:bg-amber-500/10 transition-colors" />
                 </div>
             </div>
@@ -269,14 +269,14 @@ const Insumos = memo(function Insumos() {
                                     <div className="flex gap-2 pt-2 border-t border-border/40">
                                         <Button 
                                             variant="outline" size="sm" 
-                                            className="flex-1 h-8 rounded-lg gap-1 px-1.5 text-[9px] font-extrabold uppercase tracking-widest hover:bg-emerald-500/10 hover:text-emerald-600 dark:hover:text-emerald-400 hover:border-emerald-500/30 border-border/40 active:scale-95 transition-all shadow-xs"
+                                            className="flex-1 h-8 rounded-lg gap-1 px-1.5 text-xs font-extrabold uppercase tracking-widest hover:bg-emerald-500/10 hover:text-emerald-600 dark:hover:text-emerald-400 hover:border-emerald-500/30 border-border/40 active:scale-95 transition-all shadow-xs"
                                             onClick={() => abrirMovimiento(insumo, 'entrada')}
                                         >
                                             <Plus className="w-3 h-3" /> Ingreso
                                         </Button>
                                         <Button 
                                             variant="outline" size="sm" 
-                                            className="flex-1 h-8 rounded-lg gap-1 px-1.5 text-[9px] font-extrabold uppercase tracking-widest hover:bg-red-500/10 hover:text-red-600 dark:hover:text-red-400 hover:border-red-500/30 border-border/40 active:scale-95 transition-all shadow-xs"
+                                            className="flex-1 h-8 rounded-lg gap-1 px-1.5 text-xs font-extrabold uppercase tracking-widest hover:bg-red-500/10 hover:text-red-600 dark:hover:text-red-400 hover:border-red-500/30 border-border/40 active:scale-95 transition-all shadow-xs"
                                             onClick={() => abrirMovimiento(insumo, 'salida')}
                                         >
                                             <Minus className="w-3 h-3" /> Salida
@@ -319,7 +319,7 @@ const Insumos = memo(function Insumos() {
                                     </div>
                                     <div className="flex-1 min-w-0">
                                         <p className="font-extrabold text-xs truncate text-foreground tracking-tight">{insumo?.nombre || 'Desconocido'}</p>
-                                        <div className="flex items-center gap-1.5 text-[9px] font-black uppercase tracking-widest text-muted-foreground mt-0.5">
+                                        <div className="flex items-center gap-1.5 text-xs font-black uppercase tracking-widest text-muted-foreground mt-0.5">
                                             <span className={cn("font-extrabold tabular-nums", isEntrada ? "text-emerald-600 dark:text-emerald-400" : "text-amber-600 dark:text-amber-400")}>{isEntrada ? '+' : '-'}{mov.cantidad} {insumo?.unidad_medida || 'unids'}</span>
                                             <span className="opacity-30">•</span>
                                             <span className="truncate">{mov.motivo}</span>
@@ -345,18 +345,18 @@ const Insumos = memo(function Insumos() {
                             </div>
                             <DialogTitle className="text-xl font-extrabold text-foreground tracking-tight">Nuevo Insumo</DialogTitle>
                         </DialogHeader>
-                        <DialogDescription className="text-muted-foreground text-[10px] font-bold uppercase tracking-widest mt-1">Añade un suministro al inventario interno del hotel.</DialogDescription>
+                        <DialogDescription className="text-muted-foreground text-xs font-bold uppercase tracking-widest mt-1">Añade un suministro al inventario interno del hotel.</DialogDescription>
                         <div className="absolute top-0 right-0 w-32 h-32 bg-primary/10 blur-3xl rounded-full -mr-16 -mt-16" />
                     </div>
                     
                     <form onSubmit={handleCrearInsumo} className="p-6 space-y-4">
                         <div className="space-y-2">
-                            <Label className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">Nombre del Insumo</Label>
+                            <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground">Nombre del Insumo</Label>
                             <Input name="nombre" required placeholder="Ej. Papel Higiénico Scott" className="h-10 rounded-md text-xs font-bold bg-background/50 border-border/40 focus-visible:ring-primary/30 focus-visible:border-primary/50 shadow-inner px-3" />
                         </div>
                         <div className="grid grid-cols-2 gap-3">
                             <div className="space-y-2">
-                                <Label className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">Categoría</Label>
+                                <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground">Categoría</Label>
                                 <select name="categoria_id" required className="w-full h-10 px-3 rounded-md border border-border/40 bg-background/50 text-xs font-bold focus-visible:ring-primary/30 focus-visible:border-primary/50 shadow-sm appearance-none cursor-pointer">
                                     <option value="">Seleccione...</option>
                                     {categorias.map(c => <option key={c.id} value={c.id}>{c.nombre}</option>)}
@@ -364,7 +364,7 @@ const Insumos = memo(function Insumos() {
                                 </select>
                             </div>
                             <div className="space-y-2">
-                                <Label className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">Unidad de Medida</Label>
+                                <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground">Unidad de Medida</Label>
                                 <select name="unidad_medida" required className="w-full h-10 px-3 rounded-md border border-border/40 bg-background/50 text-xs font-bold focus-visible:ring-primary/30 focus-visible:border-primary/50 shadow-sm appearance-none cursor-pointer">
                                     <option value="unidad">Unidades</option>
                                     <option value="litro">Litros (L)</option>
@@ -398,7 +398,7 @@ const Insumos = memo(function Insumos() {
                                 {tipoMovimiento === 'entrada' ? 'Ingreso de Insumos' : 'Salida de Insumos'}
                             </DialogTitle>
                         </DialogHeader>
-                        <DialogDescription className="text-muted-foreground text-[10px] font-bold uppercase tracking-widest mt-1">
+                        <DialogDescription className="text-muted-foreground text-xs font-bold uppercase tracking-widest mt-1">
                             {tipoMovimiento === 'entrada' 
                                 ? `Añadiendo stock a: ${insumoSeleccionado?.nombre}`
                                 : `Retirando stock de: ${insumoSeleccionado?.nombre} (Stock actual: ${insumoSeleccionado?.stock})`
@@ -412,7 +412,7 @@ const Insumos = memo(function Insumos() {
                     <form onSubmit={handleMovimiento} className="p-6 space-y-4">
                         <div className="grid grid-cols-2 gap-3">
                             <div className="space-y-2">
-                                <Label className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">Cantidad ({insumoSeleccionado?.unidad_medida})</Label>
+                                <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground">Cantidad ({insumoSeleccionado?.unidad_medida})</Label>
                                 <Input 
                                     name="cantidad" type="number" required min="1" 
                                     max={tipoMovimiento === 'salida' ? insumoSeleccionado?.stock : undefined}
@@ -421,7 +421,7 @@ const Insumos = memo(function Insumos() {
                             </div>
                             {tipoMovimiento === 'entrada' && (
                                 <div className="space-y-2">
-                                    <Label className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">Costo Total (S/)</Label>
+                                    <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground">Costo Total (S/)</Label>
                                     <Input 
                                         name="costo_total" type="number" step="0.01" min="0" required
                                         placeholder="0.00"
@@ -431,7 +431,7 @@ const Insumos = memo(function Insumos() {
                             )}
                         </div>
                         <div className="space-y-2">
-                            <Label className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">Motivo / Observación</Label>
+                            <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground">Motivo / Observación</Label>
                             <Input 
                                 name="motivo" required 
                                 placeholder={tipoMovimiento === 'entrada' ? "Ej. Compra en Sodimac" : "Ej. Usado para limpieza de habitaciones"}

@@ -80,7 +80,7 @@ export const Revenue = memo(function Revenue() {
             <div className="ui-card-grid grid grid-cols-1 sm:grid-cols-3">
                 <div className="enterprise-card metric-card ui-card-pad space-y-2">
                     <p className="text-xs font-black text-muted-foreground uppercase tracking-widest flex items-center gap-2">
-                        RevPAR <span className="px-1.5 py-0.5 rounded-full bg-primary/10 text-primary text-[9px]">Mes</span>
+                        RevPAR <span className="px-1.5 py-0.5 rounded-full bg-primary/10 text-primary text-xs">Mes</span>
                     </p>
                     <div className="flex items-end gap-3">
                         <span className="text-3xl font-black text-foreground">S/ {kpis.revpar}</span>
@@ -92,7 +92,7 @@ export const Revenue = memo(function Revenue() {
                 </div>
                 <div className="enterprise-card metric-card ui-card-pad space-y-2">
                     <p className="text-xs font-black text-muted-foreground uppercase tracking-widest flex items-center gap-2">
-                        ADR <span className="px-1.5 py-0.5 rounded-full bg-primary/10 text-primary text-[9px]">Mes</span>
+                        ADR <span className="px-1.5 py-0.5 rounded-full bg-primary/10 text-primary text-xs">Mes</span>
                     </p>
                     <div className="flex items-end gap-3">
                         <span className="text-3xl font-black text-foreground">S/ {kpis.adr}</span>
@@ -104,7 +104,7 @@ export const Revenue = memo(function Revenue() {
                 </div>
                 <div className="enterprise-card metric-card ui-card-pad space-y-2">
                     <p className="text-xs font-black text-muted-foreground uppercase tracking-widest flex items-center gap-2">
-                        Ocupación <span className="px-1.5 py-0.5 rounded-full bg-primary/10 text-primary text-[9px]">Mes</span>
+                        Ocupación <span className="px-1.5 py-0.5 rounded-full bg-primary/10 text-primary text-xs">Mes</span>
                     </p>
                     <div className="flex items-end gap-3">
                         <span className="text-3xl font-black text-foreground">{kpis.ocupacion}%</span>

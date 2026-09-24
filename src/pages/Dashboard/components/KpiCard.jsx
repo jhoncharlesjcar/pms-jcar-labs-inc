@@ -53,7 +53,7 @@ export function KpiCard({ kpi }) {
                 </div>
                 {hasVariation && (
                     <span className={cn(
-                        'text-[9px] font-bold px-1.5 py-0.5 rounded-md flex items-center gap-0.5 shadow-xs',
+                        'text-xs font-bold px-1.5 py-0.5 rounded-md flex items-center gap-0.5 shadow-xs',
                         isPositive ? 'text-emerald-600 dark:text-emerald-400 bg-emerald-500/10' :
                             isNegative ? 'text-red-500 dark:text-red-400 bg-red-500/10' :
                                 'text-muted-foreground bg-muted/50'
@@ -71,7 +71,7 @@ export function KpiCard({ kpi }) {
                 {!kpi.isMoney && kpi.unit && <span className="text-xs font-bold text-muted-foreground/80 ml-0.5">{kpi.unit}</span>}
             </div>
 
-            <p className="text-[9px] text-muted-foreground/60 font-medium mt-2">{kpi.subtitle || 'vs. ayer'}</p>
+            <p className="text-xs text-muted-foreground/60 font-medium mt-2">{kpi.subtitle || 'vs. ayer'}</p>
 
             <div className={cn('absolute bottom-0 left-4 right-4 h-0.5 rounded-t-sm opacity-70 group-hover:opacity-100 transition-opacity', kpi.barColor)} />
         </div>

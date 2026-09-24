@@ -94,7 +94,7 @@ const RecepcionTimeline = ({ reservas, habitaciones }) => {
                                 const isToday = isSameDay(day, new Date());
                                 return (
                                     <div key={day.toISOString()} className={cn("flex-1 min-w-[60px] border-r border-border/50 p-2 flex flex-col items-center justify-center", isToday ? "bg-primary/5" : "")}>
-                                        <span className={cn("text-[10px] uppercase font-bold", isToday ? "text-primary" : "text-muted-foreground")}>
+                                        <span className={cn("text-xs uppercase font-bold", isToday ? "text-primary" : "text-muted-foreground")}>
                                             {format(day, 'EEE', { locale: es })}
                                         </span>
                                         <span className={cn("text-sm font-bold mt-0.5", isToday ? "text-primary" : "text-foreground")}>
@@ -112,7 +112,7 @@ const RecepcionTimeline = ({ reservas, habitaciones }) => {
                             <React.Fragment key={piso}>
                                 {/* Piso Header */}
                                 <div className="bg-muted/40 border-b border-border/50 p-1.5 px-3 sticky left-0 z-20">
-                                    <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">{piso === 'Sin Piso' ? 'Sin Asignar' : `Piso ${piso}`}</span>
+                                    <span className="text-xs font-bold uppercase tracking-widest text-muted-foreground">{piso === 'Sin Piso' ? 'Sin Asignar' : `Piso ${piso}`}</span>
                                 </div>
                                 {/* Habitaciones del Piso */}
                                 {habitacionesAgrupadas[piso].map(hab => (
@@ -120,7 +120,7 @@ const RecepcionTimeline = ({ reservas, habitaciones }) => {
                                         <div className="w-40 flex-shrink-0 px-3 py-2 border-r border-border/50 flex items-center justify-between gap-2 bg-card sticky left-0 z-20 shadow-[2px_0_8px_-2px_rgba(0,0,0,0.08)] group-hover:bg-muted/20 transition-colors">
                                             <div className="min-w-0">
                                                 <span className="text-sm font-bold tabular-dense tracking-dense">{hab.numero}</span>
-                                                <p className="truncate text-[9px] font-medium uppercase text-muted-foreground tracking-dense">{hab.tipo}</p>
+                                                <p className="truncate text-xs font-medium uppercase text-muted-foreground tracking-dense">{hab.tipo}</p>
                                             </div>
                                             <StatusBadge status={hab.estado} showIcon={false} className="max-w-20 truncate px-1.5 py-0.5 text-[8px]" />
                                         </div>
@@ -159,7 +159,7 @@ const RecepcionTimeline = ({ reservas, habitaciones }) => {
                                                                 )}
                                                             >
                                                                 {renderBlock && (
-                                                                    <span className="text-[10px] font-bold text-white px-2 truncate relative z-10 drop-shadow-md">
+                                                                    <span className="text-xs font-bold text-white px-2 truncate relative z-10 drop-shadow-md">
                                                                         {reserva.huesped_nombre}
                                                                     </span>
                                                                 )}

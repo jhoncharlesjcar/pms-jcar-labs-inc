@@ -11,44 +11,50 @@ export function RoomAvailabilityGrid({
     const view = receptionAvailabilityView(Boolean(loading), error, rooms.length);
 
     return (
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
+        <div>
             {view === 'loading' && (
-                <p role="status" className="col-span-full py-4 text-center text-sm text-muted-foreground">
-                    {AVAILABILITY_COPY.loading}
-                </p>
+                <p role="status" className="sr-only">{AVAILABILITY_COPY.loading}</p>
             )}
-            {view === 'rooms' && rooms.map((room) => (
-                <button
-                    key={room.id}
-                    onClick={() => onSelect(room)}
-                    type="button"
-                    className={cn(
-                        'p-3 rounded-xl border text-left transition-all duration-300 relative overflow-hidden group h-20 flex flex-col justify-between hover:-translate-y-1 hover:shadow-md',
-                        selectedId === room.id
-                            ? 'border-primary bg-primary/10 shadow-md ring-1 ring-primary/50'
-                            : 'border-border/40 bg-card/40 hover:bg-card/60 backdrop-blur-xl shadow-sm'
-                    )}
-                >
-                    <div>
-                        <p className="font-bold text-lg leading-none tabular-nums text-foreground">#{room.numero}</p>
-                        <p className="text-[9px] text-muted-foreground uppercase font-semibold tracking-widest mt-1 truncate">{room.tipo}</p>
-                    </div>
-                    <p className="text-xs font-bold text-foreground tracking-tight">S/ {room.precio_noche}</p>
-                    {selectedId === room.id && (
-                        <div className="absolute top-2.5 right-2.5 w-1.5 h-1.5 rounded-full bg-primary animate-pulse shadow-sm" />
-                    )}
-                </button>
-            ))}
-            {view === 'empty' && (
-                <p className="col-span-full py-8 text-center text-sm font-medium text-muted-foreground bg-secondary/20 rounded-2xl border border-dashed border-border/60">
-                    {AVAILABILITY_COPY.empty}
-                </p>
-            )}
-            {view === 'error' && (
-                <p role="alert" className="col-span-full rounded-xl border border-destructive/30 bg-destructive/10 px-3 py-3 text-sm text-destructive">
-                    {AVAILABILITY_COPY.error}
-                </p>
-            )}
+            <div
+                className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5"
+                aria-busy={view === 'loading'}
+            >
+                {view === 'loading' && Array.from({ length: 6 }, (_, i) => (
+                    <div key={i} aria-hidden="true" className="h-24 animate-pulse rounded-xl border border-border/40 bg-muted/60" />
+                ))}
+                {view === 'rooms' && rooms.map((room) => {
+                    const selected = selectedId === room.id;
+                    return (
+                        <button
+                            key={room.id}
+                            onClick={() => onSelect(room)}
+                            type="button"
+                            aria-pressed={selected}
+                            className={cn(
+                                'flex min-h-11 flex-col justify-between gap-2 rounded-xl border p-3 text-left',
+                                selected
+                                    ? 'border-primary bg-primary/10 ring-1 ring-primary/50'
+                                    : 'border-border bg-card hover:bg-muted/40'
+                            )}
+                        >
+                            <span className="text-lg font-semibold leading-none tabular-nums text-foreground">#{room.numero}</span>
+                            <span className="block truncate text-xs text-muted-foreground">{room.tipo}</span>
+                            <span className="text-sm font-semibold text-foreground">S/ {room.precio_noche}</span>
+                            {selected && <span className="text-xs font-medium text-primary">Seleccionada</span>}
+                        </button>
+                    );
+                })}
+                {view === 'empty' && (
+                    <p className="col-span-full rounded-xl border border-dashed border-border bg-muted/30 px-4 py-8 text-center text-sm text-muted-foreground">
+                        {AVAILABILITY_COPY.empty}
+                    </p>
+                )}
+                {view === 'error' && (
+                    <p role="alert" className="col-span-full rounded-xl border border-destructive/30 bg-destructive/10 px-3 py-3 text-sm text-destructive">
+                        {AVAILABILITY_COPY.error}
+                    </p>
+                )}
+            </div>
         </div>
     );
 }

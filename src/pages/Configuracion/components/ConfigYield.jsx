@@ -103,7 +103,7 @@ export function ConfigYield() {
                     </div>
                     <div>
                         <h2 className="font-extrabold text-lg text-foreground tracking-tight">Yield Management</h2>
-                        <p className="text-[10px] font-bold text-muted-foreground">Reglas de precios dinámicos por ocupación</p>
+                        <p className="text-xs font-bold text-muted-foreground">Reglas de precios dinámicos por ocupación</p>
                     </div>
                 </div>
                 <Button onClick={addRule} size="sm" className="h-8 gap-1 bg-purple-600 hover:bg-purple-700 text-xs">
@@ -120,7 +120,7 @@ export function ConfigYield() {
                     rules.map((rule, i) => (
                         <div key={rule.id} className="p-4 rounded-xl border border-border/50 bg-background/50 flex flex-wrap items-end gap-4 shadow-sm animate-in fade-in zoom-in-95 duration-200">
                             <div className="space-y-1.5 flex-1 min-w-[120px]">
-                                <Label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest ml-1">Si la ocupación supera el</Label>
+                                <Label className="text-xs font-black text-muted-foreground uppercase tracking-widest ml-1">Si la ocupación supera el</Label>
                                 <div className="relative">
                                     <Input 
                                         type="number"
@@ -133,7 +133,7 @@ export function ConfigYield() {
                             </div>
 
                             <div className="space-y-1.5 flex-1 min-w-[120px]">
-                                <Label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest ml-1">Multiplicar tarifa por</Label>
+                                <Label className="text-xs font-black text-muted-foreground uppercase tracking-widest ml-1">Multiplicar tarifa por</Label>
                                 <div className="relative">
                                     <Input 
                                         type="number"
@@ -143,7 +143,7 @@ export function ConfigYield() {
                                         className="h-9 font-mono text-sm text-purple-600 font-bold"
                                     />
                                 </div>
-                                <p className="text-[9px] text-muted-foreground ml-1">Ej: 1.15 = +15%</p>
+                                <p className="text-xs text-muted-foreground ml-1">Ej: 1.15 = +15%</p>
                             </div>
 
                             <div className="space-y-1.5 flex items-center gap-2 pb-1">

@@ -3,7 +3,7 @@ export type AvailabilityView = 'loading' | 'error' | 'empty' | 'rooms';
 export const AVAILABILITY_COPY = {
   loading: 'Consultando disponibilidad y tarifas del PMS…',
   error: 'No se pudo consultar disponibilidad. Recarga e inténtalo de nuevo.',
-  empty: 'No hay habitaciones libres para esas fechas. Prueba otro rango o revisa el inventario.',
+  empty: 'Ninguna libre en este rango. Cambia las fechas de arriba.',
 } as const;
 
 /** RPC failure is never shown as "no rooms". */

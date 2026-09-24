@@ -135,14 +135,14 @@ const CatalogoMinimarket = memo(function CatalogoMinimarket(/** @type {any} */ {
                             key={cat.id}
                             onClick={() => setCatActiva(cat.id)}
                             className={cn(
-                                "flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-bold transition-all duration-300 active:scale-95",
+                                "flex-shrink-0 flex min-h-11 items-center gap-1.5 rounded-lg px-3 text-xs font-medium transition-colors",
                                 catActiva === cat.id
                                     ? "bg-background text-foreground shadow-sm border border-border/60 dark:border-white/10"
                                     : "text-muted-foreground hover:bg-muted/30 hover:text-foreground border border-transparent"
                             )}
                         >
                             <span className="text-xs leading-none drop-shadow-sm">{cat.emoji}</span>
-                            <span className="uppercase tracking-widest text-[9px] sm:text-[10px]">{cat.label}</span>
+                            <span>{cat.label}</span>
                         </button>
                     ))}
                 </div>
@@ -150,17 +150,17 @@ const CatalogoMinimarket = memo(function CatalogoMinimarket(/** @type {any} */ {
 
             {/* Barra gestión */}
             <div className="flex items-center justify-between">
-                <p className="text-[10px] text-muted-foreground font-medium">{filtrados.length} producto(s)</p>
+                <p className="text-xs text-muted-foreground font-medium">{filtrados.length} producto(s)</p>
                 <div className="flex gap-2">
-                    <Button variant="outline" size="sm" onClick={() => setGestionando(!gestionando)} className="gap-1 text-[10px] h-7 rounded-md font-bold px-2.5">
+                    <Button variant="outline" onClick={() => setGestionando(!gestionando)} className="h-11 gap-1.5">
                         <Settings2 className="w-3.5 h-3.5" /> {gestionando ? 'Listo' : 'Gestionar'}
                     </Button>
                     {gestionando && (
                         <div className="flex gap-2">
-                            <Button variant="secondary" size="sm" onClick={() => setModalCatOpen(true)} className="gap-1 text-[10px] h-7 rounded-md font-bold px-2.5">
+                            <Button variant="secondary" onClick={() => setModalCatOpen(true)} className="h-11 gap-1.5">
                                 <FolderPlus className="w-3.5 h-3.5" /> Categorías
                             </Button>
-                            <Button size="sm" onClick={abrirNuevo} className="gap-1 text-[10px] h-7 rounded-md font-bold px-2.5">
+                            <Button onClick={abrirNuevo} className="h-11 gap-1.5">
                                 <Plus className="w-3.5 h-3.5" /> Nuevo
                             </Button>
                         </div>
@@ -200,7 +200,7 @@ const CatalogoMinimarket = memo(function CatalogoMinimarket(/** @type {any} */ {
                                 )}
                             >
                                 {qty > 0 && !gestionando && (
-                                    <span className="absolute top-2 right-2 bg-primary text-primary-foreground text-[9px] font-bold w-4 h-4 rounded-full flex items-center justify-center shadow-xs">
+                                    <span className="absolute top-2 right-2 bg-primary text-primary-foreground text-xs font-bold w-4 h-4 rounded-full flex items-center justify-center shadow-xs">
                                         {qty}
                                     </span>
                                 )}
@@ -208,14 +208,14 @@ const CatalogoMinimarket = memo(function CatalogoMinimarket(/** @type {any} */ {
                                 <p className="text-xs font-extrabold text-foreground text-center leading-tight line-clamp-2 mt-0.5">{prod.nombre}</p>
                                 
                                 {sinStock ? (
-                                    <p className="text-[9px] font-bold uppercase tracking-widest text-destructive">Sin Stock</p>
+                                    <p className="text-xs font-bold uppercase tracking-widest text-destructive">Sin Stock</p>
                                 ) : (
                                     <p className="text-base font-extrabold text-emerald-600 dark:text-emerald-400 tabular-nums tracking-tighter">S/ {Number(prod.precio_venta || 0).toFixed(2)}</p>
                                 )}
 
                                 {/* Badge de Stock */}
                                 <div className={cn(
-                                    "text-[9px] px-1.5 py-0.5 rounded flex items-center gap-1 border",
+                                    "text-xs px-1.5 py-0.5 rounded flex items-center gap-1 border",
                                     sinStock
                                         ? "bg-destructive/15 text-destructive border-destructive/20 animate-pulse"
                                         : stockBajo

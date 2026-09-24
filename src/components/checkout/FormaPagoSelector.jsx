@@ -72,13 +72,13 @@ export const FormaPagoSelector = memo(function FormaPagoSelector(/** @type {any}
                             <>
                                 <p className="text-xs font-semibold text-muted-foreground uppercase tracking-widest">Escanea para pagar</p>
                                 <img src={qrDinamico} alt="QR Dinámico" className="w-40 h-40 mx-auto rounded-lg shadow-md border border-border/50" />
-                                <p className="text-[10px] text-emerald-600 animate-pulse font-bold flex items-center justify-center gap-2">
+                                <p className="text-xs text-emerald-600 animate-pulse font-bold flex items-center justify-center gap-2">
                                     <Loader2 className="w-3.5 h-3.5 animate-spin" /> Esperando confirmación de {config.pasarela_activa}...
                                 </p>
                             </>
                         ) : (
                             <>
-                                <p className="text-[10px] font-bold text-muted-foreground">Se generará un QR dinámico de un solo uso válido por 15 minutos.</p>
+                                <p className="text-xs font-bold text-muted-foreground">Se generará un QR dinámico de un solo uso válido por 15 minutos.</p>
                                 <Button onClick={handleGenerarQR} disabled={generandoQR} className="w-full bg-emerald-600 hover:bg-emerald-700 shadow-md h-12">
                                     {generandoQR ? <Loader2 className="w-5 h-5 animate-spin mx-auto" /> : 'Generar QR de Pago'}
                                 </Button>

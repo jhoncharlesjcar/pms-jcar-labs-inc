@@ -62,11 +62,11 @@ const PanelDesarrollador = memo(function PanelDesarrollador() {
                 </div>
                 <div>
                     <h1 className="font-extrabold text-xl text-foreground tracking-tight">Panel de Desarrollador</h1>
-                    <p className="text-[9px] font-black uppercase tracking-widest text-muted-foreground mt-0.5">Control total del sistema · Multi-Tenant PMS JCAR LABS</p>
+                    <p className="text-xs font-black uppercase tracking-widest text-muted-foreground mt-0.5">Control total del sistema · Multi-Tenant PMS JCAR LABS</p>
                 </div>
                 <div className="ml-auto flex items-center gap-2">
-                    <span className="bg-amber-100 text-amber-700 text-[9px] uppercase tracking-widest font-extrabold px-2 py-1 rounded-sm border border-amber-300">🔧 DEV MODE</span>
-                    <span className="bg-green-100 text-green-700 text-[9px] uppercase tracking-widest font-extrabold px-2 py-1 rounded-sm border border-green-300">v{sysConfig.version}</span>
+                    <span className="bg-amber-100 text-amber-700 text-xs uppercase tracking-widest font-extrabold px-2 py-1 rounded-sm border border-amber-300">🔧 DEV MODE</span>
+                    <span className="bg-green-100 text-green-700 text-xs uppercase tracking-widest font-extrabold px-2 py-1 rounded-sm border border-green-300">v{sysConfig.version}</span>
                 </div>
             </div>
 
@@ -75,7 +75,7 @@ const PanelDesarrollador = memo(function PanelDesarrollador() {
             <div className="flex gap-1 border-b border-border/40 overflow-x-auto no-scrollbar pb-px">
                 {TABS.map(t => (
                     <button key={t.id} onClick={() => setTab(t.id)}
-                        className={cn("flex items-center gap-2 px-3 py-2 text-[10px] font-black uppercase tracking-widest border-b-2 transition-[transform,opacity] -mb-px whitespace-nowrap",
+                        className={cn("flex items-center gap-2 px-3 py-2 text-xs font-black uppercase tracking-widest border-b-2 transition-[transform,opacity] -mb-px whitespace-nowrap",
                             tab === t.id ? "border-amber-500 text-amber-600 dark:text-amber-500" : "border-transparent text-muted-foreground hover:text-foreground hover:bg-foreground/5 rounded-t-md")}>
                         <t.icon className="w-3.5 h-3.5" />{t.label}
                     </button>

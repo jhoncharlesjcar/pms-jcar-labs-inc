@@ -33,7 +33,7 @@ export function ConfigMotorReservas() {
                 </div>
                 <div>
                     <h2 className="font-extrabold text-lg text-foreground tracking-tight">Motor de Reservas Propio</h2>
-                    <p className="text-[10px] font-bold text-muted-foreground">Vende directo desde tu web sin comisiones</p>
+                    <p className="text-xs font-bold text-muted-foreground">Vende directo desde tu web sin comisiones</p>
                 </div>
             </div>
 
@@ -46,7 +46,7 @@ export function ConfigMotorReservas() {
 
                     <div className="space-y-4 bg-background/50 p-4 rounded-xl border border-border/40">
                         <div className="space-y-1.5">
-                            <Label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest ml-1">Color Principal</Label>
+                            <Label className="text-xs font-black text-muted-foreground uppercase tracking-widest ml-1">Color Principal</Label>
                             <div className="flex gap-2">
                                 <Input 
                                     type="color" 
@@ -64,7 +64,7 @@ export function ConfigMotorReservas() {
                         </div>
 
                         <div className="space-y-1.5">
-                            <Label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest ml-1">Tema Base</Label>
+                            <Label className="text-xs font-black text-muted-foreground uppercase tracking-widest ml-1">Tema Base</Label>
                             <select 
                                 className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                                 value={widgetConfig.theme}
@@ -76,7 +76,7 @@ export function ConfigMotorReservas() {
                         </div>
                         
                         <div className="space-y-1.5">
-                            <Label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest ml-1">Altura del Widget</Label>
+                            <Label className="text-xs font-black text-muted-foreground uppercase tracking-widest ml-1">Altura del Widget</Label>
                             <Input 
                                 type="text" 
                                 value={widgetConfig.height}
@@ -100,7 +100,7 @@ export function ConfigMotorReservas() {
 
                     <div className="space-y-2">
                         <div className="flex items-center justify-between">
-                            <Label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest ml-1 flex items-center gap-1">
+                            <Label className="text-xs font-black text-muted-foreground uppercase tracking-widest ml-1 flex items-center gap-1">
                                 <Code2 className="w-3 h-3" /> Código de Inserción
                             </Label>
                         </div>
@@ -119,7 +119,7 @@ export function ConfigMotorReservas() {
                                 {copied ? 'Copiado' : 'Copiar'}
                             </Button>
                         </div>
-                        <p className="text-[10px] text-muted-foreground ml-1">
+                        <p className="text-xs text-muted-foreground ml-1">
                             Pega este código en el HTML de tu página web (ej. WordPress, Wix, Squarespace) en la sección donde quieras que aparezca el motor de reservas.
                         </p>
                     </div>

@@ -22,7 +22,7 @@ export const FidelidadCard = memo(function FidelidadCard(/** @type {any} */ {
                     <Award className="w-4 h-4 text-amber-500 flex-shrink-0" />
                     <div>
                         <p className="text-xs font-bold text-foreground">Fidelización por Puntos</p>
-                        <p className="text-[10px] text-muted-foreground">Saldo actual: <strong className="text-amber-600 dark:text-amber-400">{loyaltyAccount?.points_balance || 0} Pts</strong></p>
+                        <p className="text-xs text-muted-foreground">Saldo actual: <strong className="text-amber-600 dark:text-amber-400">{loyaltyAccount?.points_balance || 0} Pts</strong></p>
                     </div>
                 </div>
                 {canRedeem && (
@@ -45,12 +45,12 @@ export const FidelidadCard = memo(function FidelidadCard(/** @type {any} */ {
                 </p>
             )}
             {!canRedeem && (loyaltyAccount?.points_balance || 0) < 100 && (
-                <p className="text-[10px] text-muted-foreground italic">
+                <p className="text-xs text-muted-foreground italic">
                     Se requieren mínimo 100 Pts para redimir descuento (esta estadía otorgará {calculateEarnedPoints(reserva.noches || 1)} Pts).
                 </p>
             )}
             {!canRedeem && (loyaltyAccount?.points_balance || 0) >= 100 && !isSimpleRoomType(reserva.habitacion_tipo) && (
-                <p className="text-[10px] text-amber-600 dark:text-amber-400 italic">
+                <p className="text-xs text-amber-600 dark:text-amber-400 italic">
                     El huésped posee 100+ Pts acumulados pero la recompensa solo aplica a habitaciones simples (Actual: {reserva.habitacion_tipo || 'Doble/Matrimonial'}).
                 </p>
             )}

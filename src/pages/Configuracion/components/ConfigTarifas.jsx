@@ -141,7 +141,7 @@ export const ConfigTarifas = memo(function ConfigTarifas(/** @type {{ hotelId: s
                     </div>
                     <div>
                         <h2 className="font-extrabold text-foreground text-lg tracking-tight">Gestor de Tarifas y Feriados</h2>
-                        <p className="text-[9px] font-black uppercase tracking-widest text-muted-foreground mt-0.5">Configura incrementos por temporadas altas y fechas festivas</p>
+                        <p className="text-xs font-black uppercase tracking-widest text-muted-foreground mt-0.5">Configura incrementos por temporadas altas y fechas festivas</p>
                     </div>
                 </div>
                 <Button 
@@ -157,7 +157,7 @@ export const ConfigTarifas = memo(function ConfigTarifas(/** @type {{ hotelId: s
                         });
                         setShowTarifaModal(true);
                     }} 
-                    className="gap-2 shadow-xs text-emerald-500 border-emerald-500/20 bg-emerald-500/5 hover:bg-emerald-500/10 rounded-md h-9 text-[9px] font-extrabold uppercase tracking-widest px-4 active:scale-95 transition-all"
+                    className="gap-2 shadow-xs text-emerald-500 border-emerald-500/20 bg-emerald-500/5 hover:bg-emerald-500/10 rounded-md h-9 text-xs font-extrabold uppercase tracking-widest px-4 active:scale-95 transition-all"
                 >
                     <Plus className="w-3.5 h-3.5" /> Agregar Feriado / Tarifa
                 </Button>
@@ -185,13 +185,13 @@ export const ConfigTarifas = memo(function ConfigTarifas(/** @type {{ hotelId: s
                                     <div className="flex items-center gap-2">
                                         <p className="font-extrabold text-foreground text-sm truncate tracking-tight">{t.nombre}</p>
                                         <span className={cn(
-                                            "text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-sm shadow-xs",
+                                            "text-xs font-black uppercase tracking-widest px-2 py-0.5 rounded-sm shadow-xs",
                                             t.activo ? "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20" : "bg-muted text-muted-foreground border border-border/40"
                                         )}>
                                             {t.habitacion_tipo === 'todos' ? 'Todas las Habs' : t.habitacion_tipo}
                                         </span>
                                     </div>
-                                    <p className="text-[9px] font-black uppercase tracking-widest text-muted-foreground mt-1">
+                                    <p className="text-xs font-black uppercase tracking-widest text-muted-foreground mt-1">
                                         📅 {t.fecha_inicio} al {t.fecha_fin}
                                     </p>
                                 </div>
@@ -199,7 +199,7 @@ export const ConfigTarifas = memo(function ConfigTarifas(/** @type {{ hotelId: s
                             <div className="flex items-center gap-4 justify-end">
                                 <div className="text-right">
                                     <span className={cn(
-                                        "text-[10px] font-bold px-2.5 py-1 rounded-md border",
+                                        "text-xs font-bold px-2.5 py-1 rounded-md border",
                                         esIncremento ? "bg-emerald-500/5 text-emerald-500 border-emerald-500/20 shadow-inner" : "bg-amber-500/5 text-amber-500 border-amber-500/20 shadow-inner"
                                     )}>
                                         Multiplicador: {t.factor_ajuste} ({factorTxt})
@@ -235,8 +235,8 @@ export const ConfigTarifas = memo(function ConfigTarifas(/** @type {{ hotelId: s
 
                 {tarifas.length === 0 && (
                     <div className="text-center py-8 border border-dashed border-border/50 rounded-xl bg-background/20">
-                        <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold">No hay feriados ni tarifas dinámicas registradas</p>
-                        <p className="text-[9px] text-muted-foreground/60 mt-0.5">Las tarifas se aplicarán automáticamente al cotizar reservas</p>
+                        <p className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">No hay feriados ni tarifas dinámicas registradas</p>
+                        <p className="text-xs text-muted-foreground/60 mt-0.5">Las tarifas se aplicarán automáticamente al cotizar reservas</p>
                     </div>
                 )}
             </div>
@@ -255,7 +255,7 @@ export const ConfigTarifas = memo(function ConfigTarifas(/** @type {{ hotelId: s
                         </DialogHeader>
                         <div className="space-y-4 py-4">
                             <div className="space-y-1.5">
-                                <Label htmlFor="tarifa_nombre" className="text-[9px] font-black text-muted-foreground uppercase tracking-widest ml-1">Nombre del Feriado / Temporada *</Label>
+                                <Label htmlFor="tarifa_nombre" className="text-xs font-black text-muted-foreground uppercase tracking-widest ml-1">Nombre del Feriado / Temporada *</Label>
                                 <Input 
                                     id="tarifa_nombre"
                                     value={tarifaForm.nombre} 
@@ -267,7 +267,7 @@ export const ConfigTarifas = memo(function ConfigTarifas(/** @type {{ hotelId: s
 
                             <div className="grid grid-cols-2 gap-4">
                                 <div className="space-y-1.5">
-                                    <Label htmlFor="tarifa_fecha_inicio" className="text-[9px] font-black text-muted-foreground uppercase tracking-widest ml-1">Fecha Inicio *</Label>
+                                    <Label htmlFor="tarifa_fecha_inicio" className="text-xs font-black text-muted-foreground uppercase tracking-widest ml-1">Fecha Inicio *</Label>
                                     <Input 
                                         id="tarifa_fecha_inicio"
                                         type="date"
@@ -277,7 +277,7 @@ export const ConfigTarifas = memo(function ConfigTarifas(/** @type {{ hotelId: s
                                     />
                                 </div>
                                 <div className="space-y-1.5">
-                                    <Label htmlFor="tarifa_fecha_fin" className="text-[9px] font-black text-muted-foreground uppercase tracking-widest ml-1">Fecha Fin *</Label>
+                                    <Label htmlFor="tarifa_fecha_fin" className="text-xs font-black text-muted-foreground uppercase tracking-widest ml-1">Fecha Fin *</Label>
                                     <Input 
                                         id="tarifa_fecha_fin"
                                         type="date"
@@ -290,7 +290,7 @@ export const ConfigTarifas = memo(function ConfigTarifas(/** @type {{ hotelId: s
 
                             <div className="grid grid-cols-2 gap-4">
                                 <div className="space-y-1.5">
-                                    <Label htmlFor="tarifa_habitacion_tipo" className="text-[9px] font-black text-muted-foreground uppercase tracking-widest ml-1">Aplica a Habitación *</Label>
+                                    <Label htmlFor="tarifa_habitacion_tipo" className="text-xs font-black text-muted-foreground uppercase tracking-widest ml-1">Aplica a Habitación *</Label>
                                     <select 
                                         id="tarifa_habitacion_tipo"
                                         value={tarifaForm.habitacion_tipo} 
@@ -307,7 +307,7 @@ export const ConfigTarifas = memo(function ConfigTarifas(/** @type {{ hotelId: s
                                     </select>
                                 </div>
                                 <div className="space-y-1.5">
-                                    <Label htmlFor="tarifa_factor_ajuste" className="text-[9px] font-black text-muted-foreground uppercase tracking-widest ml-1">Multiplicador Tarifario *</Label>
+                                    <Label htmlFor="tarifa_factor_ajuste" className="text-xs font-black text-muted-foreground uppercase tracking-widest ml-1">Multiplicador Tarifario *</Label>
                                     <Input 
                                         id="tarifa_factor_ajuste"
                                         type="number"
@@ -322,7 +322,7 @@ export const ConfigTarifas = memo(function ConfigTarifas(/** @type {{ hotelId: s
                                 </div>
                             </div>
 
-                            <div className="bg-emerald-500/5 border border-emerald-500/20 rounded-md p-3 text-[10px] font-bold text-emerald-600 dark:text-emerald-400">
+                            <div className="bg-emerald-500/5 border border-emerald-500/20 rounded-md p-3 text-xs font-bold text-emerald-600 dark:text-emerald-400">
                                 💡 <strong className="font-black uppercase tracking-widest">Ejemplo:</strong> Si el precio base es S/ 100 y el multiplicador es <strong className="font-black">1.30</strong>, la habitación costará <strong className="font-black">S/ 130</strong> durante el rango de fechas seleccionado.
                             </div>
                         </div>
@@ -330,14 +330,14 @@ export const ConfigTarifas = memo(function ConfigTarifas(/** @type {{ hotelId: s
                             <Button 
                                 variant="outline" 
                                 onClick={() => setShowTarifaModal(false)}
-                                className="rounded-md font-bold h-9 px-4 text-[9px] uppercase tracking-widest active:scale-95 transition-all border-border/40"
+                                className="rounded-md font-bold h-9 px-4 text-xs uppercase tracking-widest active:scale-95 transition-all border-border/40"
                             >
                                 Cancelar
                             </Button>
                             <Button 
                                 onClick={() => crearTarifa.mutate(tarifaForm)}
                                 disabled={!tarifaForm.nombre || !tarifaForm.fecha_inicio || !tarifaForm.fecha_fin || crearTarifa.isPending}
-                                className="rounded-md font-extrabold text-[9px] uppercase tracking-widest h-9 px-4 bg-emerald-600 hover:bg-emerald-700 text-white active:scale-95 transition-all shadow-sm"
+                                className="rounded-md font-extrabold text-xs uppercase tracking-widest h-9 px-4 bg-emerald-600 hover:bg-emerald-700 text-white active:scale-95 transition-all shadow-sm"
                             >
                                 {crearTarifa.isPending ? 'Guardando...' : 'Guardar Regla'}
                             </Button>

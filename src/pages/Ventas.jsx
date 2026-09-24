@@ -71,7 +71,7 @@ const Ventas = memo(function Ventas() {
                     <div className="enterprise-card section-card flex w-full flex-col justify-center px-4 py-3 text-right sm:w-auto">
                         <div className="flex items-center justify-end gap-2 mb-1">
                             <TrendingUp className="w-3.5 h-3.5 text-primary" />
-                            <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Caja Hoy</p>
+                            <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Caja Hoy</p>
                         </div>
                         <p className="text-3xl font-extrabold text-primary leading-none tabular-nums tracking-tighter">S/ {totalesHoy.total.toFixed(2)}</p>
                     </div>
@@ -123,7 +123,7 @@ const Ventas = memo(function Ventas() {
                     <div className="flex gap-1.5 bg-muted/50 border border-border/40 p-1.5 rounded-xl overflow-x-auto w-full sm:w-auto">
                         {['todos', 'efectivo', 'yape', 'plin', 'tarjeta'].map(m => (
                             <button key={m} onClick={() => setFiltroMetodo(m)} className={cn(
-                                "px-3 py-2 rounded-lg text-[10px] font-extrabold uppercase tracking-widest transition-all whitespace-nowrap",
+                                "px-3 py-2 rounded-lg text-xs font-extrabold uppercase tracking-widest transition-all whitespace-nowrap",
                                 filtroMetodo === m ? "bg-background text-primary shadow-sm border border-border/50" : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
                             )}>
                                 <span className="flex items-center gap-1.5">
@@ -258,10 +258,10 @@ const Ventas = memo(function Ventas() {
                                 className="enterprise-card section-card ui-card-pad flex flex-col gap-4 shadow-sm transition-shadow hover:shadow-md"
                             >
                                 <div className="flex items-center justify-between">
-                                    <div className={cn("text-[9px] font-black uppercase tracking-widest px-2.5 py-1 rounded-md border shadow-xs", v._tipo === 'hotel' ? "text-blue-600 dark:text-blue-400 border-blue-500/20 bg-blue-500/10" : "text-amber-600 dark:text-amber-400 border-amber-500/20 bg-amber-500/10")}>
+                                    <div className={cn("text-xs font-black uppercase tracking-widest px-2.5 py-1 rounded-md border shadow-xs", v._tipo === 'hotel' ? "text-blue-600 dark:text-blue-400 border-blue-500/20 bg-blue-500/10" : "text-amber-600 dark:text-amber-400 border-amber-500/20 bg-amber-500/10")}>
                                         {v._tipo === 'hotel' ? 'Hotel' : 'Minimarket'}
                                     </div>
-                                    <span className={cn("text-[9px] px-2.5 py-1 rounded-md font-black uppercase tracking-widest border shadow-xs", comp.color)}>
+                                    <span className={cn("text-xs px-2.5 py-1 rounded-md font-black uppercase tracking-widest border shadow-xs", comp.color)}>
                                         {comp.label}
                                     </span>
                                 </div>
@@ -272,14 +272,14 @@ const Ventas = memo(function Ventas() {
                                     </div>
                                     <div className="text-right">
                                         <p className="text-xl font-extrabold text-foreground tabular-nums tracking-tighter">S/ {Number(v.total || 0).toFixed(2)}</p>
-                                        <div className="flex items-center justify-end gap-1.5 text-[10px] text-muted-foreground font-bold uppercase tracking-widest mt-0.5">
+                                        <div className="flex items-center justify-end gap-1.5 text-xs text-muted-foreground font-bold uppercase tracking-widest mt-0.5">
                                             <span className="scale-110">{metodoPagoIcon[v.metodo_pago]}</span>
                                             <span>{v.metodo_pago}</span>
                                         </div>
                                     </div>
                                 </div>
                                 <div className="flex items-center justify-between pt-3 border-t border-border/20">
-                                    <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-1.5">
+                                    <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-1.5">
                                         <CalendarDays className="w-3.5 h-3.5" /> {format(new Date(v.created_date || v.fecha_venta), "dd MMM, HH:mm", { locale: es })}
                                     </p>
                                     <div className="flex items-center gap-2">

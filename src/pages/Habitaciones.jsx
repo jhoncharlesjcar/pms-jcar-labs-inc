@@ -113,7 +113,7 @@ const Habitaciones = memo(function Habitaciones() {
                         <BedDouble className="h-5 w-5" />
                     </div>
                     <div>
-                        <p className="mb-1 text-[10px] font-extrabold uppercase tracking-[0.16em] text-primary/75">Inventario operativo</p>
+                        <p className="mb-1 text-xs font-extrabold uppercase tracking-[0.16em] text-primary/75">Inventario operativo</p>
                         <h1 className="text-3xl font-extrabold tracking-[-0.045em] text-foreground sm:text-[2.15rem]">Habitaciones</h1>
                         <p className="mt-1 text-sm font-medium text-muted-foreground">{habitaciones.length} unidades registradas · disponibilidad en tiempo real</p>
                     </div>
@@ -136,7 +136,7 @@ const Habitaciones = memo(function Habitaciones() {
                         >
                             <BedDouble className="h-4 w-4 opacity-80" />
                             <span>Todas</span>
-                            <span className={cn("rounded-full px-2 py-0.5 text-[9px] tabular-nums", filtroEstado === 'todos' ? "bg-white/15 text-white" : "bg-muted text-muted-foreground")}>{habitaciones.length}</span>
+                            <span className={cn("rounded-full px-2 py-0.5 text-xs tabular-nums", filtroEstado === 'todos' ? "bg-white/15 text-white" : "bg-muted text-muted-foreground")}>{habitaciones.length}</span>
                         </button>
                         {Object.entries(estadoConfig).map(([key, cfg]) => {
                             const count = habitaciones.filter(h => h.estado === key).length;
@@ -151,7 +151,7 @@ const Habitaciones = memo(function Habitaciones() {
                                 >
                                     <cfg.icon className={cn("h-4 w-4", filtroEstado === key ? "opacity-80" : cfg.color)} />
                                     <span>{cfg.label}</span>
-                                    <span className={cn("rounded-full px-2 py-0.5 text-[9px] tabular-nums", filtroEstado === key ? "bg-white/15 text-white" : "bg-muted text-muted-foreground")}>{count}</span>
+                                    <span className={cn("rounded-full px-2 py-0.5 text-xs tabular-nums", filtroEstado === key ? "bg-white/15 text-white" : "bg-muted text-muted-foreground")}>{count}</span>
                                 </button>
                             );
                         })}
@@ -182,7 +182,7 @@ const Habitaciones = memo(function Habitaciones() {
                                     <h2 className="whitespace-nowrap text-sm font-extrabold tracking-tight text-foreground">
                                         {piso === 'Sin Piso' ? 'Sin asignar' : `Piso ${piso}`}
                                     </h2>
-                                    <p className="text-[10px] font-semibold text-muted-foreground">{agrupadasPorPiso[piso].length} habitaciones</p>
+                                    <p className="text-xs font-semibold text-muted-foreground">{agrupadasPorPiso[piso].length} habitaciones</p>
                                 </div>
                                 <div className="h-px flex-1 bg-border/70" />
                             </div>

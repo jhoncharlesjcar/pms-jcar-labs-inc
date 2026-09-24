@@ -48,7 +48,7 @@ export const CajaListCierres = memo(function CajaListCierres(/** @type {any} */ 
                             <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-primary/50 to-primary/10"></div>
                             <div className="flex justify-between items-start mb-3 pt-1">
                                 <div>
-                                    <p className="text-[9px] font-black uppercase tracking-widest text-primary bg-primary/10 px-2 py-0.5 rounded border border-primary/20 shadow-xs mb-1.5 inline-block">Cierre de Caja</p>
+                                    <p className="text-xs font-black uppercase tracking-widest text-primary bg-primary/10 px-2 py-0.5 rounded border border-primary/20 shadow-xs mb-1.5 inline-block">Cierre de Caja</p>
                                     <p className="font-extrabold text-xs tracking-tight capitalize">{format(new Date(c.fecha || c.created_date), "EEEE, d 'de' MMMM", { locale: es })}</p>
                                 </div>
                                 <div className="w-7 h-7 rounded-md bg-green-500/10 flex items-center justify-center border border-green-500/20 shadow-xs group-hover:scale-105 transition-transform">
@@ -67,9 +67,9 @@ export const CajaListCierres = memo(function CajaListCierres(/** @type {any} */ 
                             </div>
                             <div className="mt-4 flex items-center gap-2 bg-muted/30 p-1.5 rounded-lg border border-border/30">
                                 <div className="w-6 h-6 rounded-md bg-primary/10 text-primary flex items-center justify-center border border-primary/20 shadow-xs">
-                                    <span className="text-[9px] font-black uppercase">{(c.usuario_nombre || '?')[0]}</span>
+                                    <span className="text-xs font-black uppercase">{(c.usuario_nombre || '?')[0]}</span>
                                 </div>
-                                <p className="text-[9px] text-muted-foreground font-bold uppercase tracking-widest">Cerrado por {c.usuario_nombre || 'Sistema'}</p>
+                                <p className="text-xs text-muted-foreground font-bold uppercase tracking-widest">Cerrado por {c.usuario_nombre || 'Sistema'}</p>
                             </div>
                         </div>
                     ))

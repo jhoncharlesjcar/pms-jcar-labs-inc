@@ -105,7 +105,7 @@ const RegistrarVentaModal = memo(
                 <div className="shrink-0 border-t border-border/70 bg-background/95 p-3 backdrop-blur sm:p-4">
                     <div className="mb-3 flex items-center justify-between gap-4">
                         <div>
-                            <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Total a cobrar</p>
+                            <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Total a cobrar</p>
                             <p className="text-2xl font-bold tabular-nums text-primary">S/ {state.totalCalc.total_final.toFixed(2)}</p>
                         </div>
                         <div className="text-right text-xs text-muted-foreground">

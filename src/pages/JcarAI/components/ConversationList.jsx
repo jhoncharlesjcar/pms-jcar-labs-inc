@@ -69,7 +69,7 @@ export default function ConversationList({ hotelId }) {
                                             <div className="mb-1 flex flex-wrap items-center gap-2">
                                                 <h3 className="font-semibold">{conversation.guest_name || 'Huésped anónimo'}</h3>
                                                 <span className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${statusClass}`}>{statusLabel}</span>
-                                                <span className="rounded bg-muted px-2 py-0.5 text-[10px] font-bold uppercase text-muted-foreground">{conversation.channel}</span>
+                                                <span className="rounded bg-muted px-2 py-0.5 text-xs font-bold uppercase text-muted-foreground">{conversation.channel}</span>
                                             </div>
                                             <div className="flex flex-wrap items-center gap-4 text-xs text-muted-foreground">
                                                 {conversation.guest_phone && <span className="flex items-center gap-1"><Phone className="h-3 w-3" />{conversation.guest_phone}</span>}

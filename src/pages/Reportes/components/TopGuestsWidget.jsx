@@ -59,7 +59,7 @@ export function TopGuestsWidget({ huespedes, isLoading }) {
                             </div>
                             <div className="flex-1 min-w-0">
                                 <p className="text-sm font-extrabold text-foreground truncate leading-none">{h.nombre}</p>
-                                <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest mt-1 flex items-center gap-1 truncate">
+                                <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest mt-1 flex items-center gap-1 truncate">
                                     <MapPin className="w-2.5 h-2.5" /> {h.procedencia || 'No registrada'}
                                 </p>
                             </div>
@@ -67,7 +67,7 @@ export function TopGuestsWidget({ huespedes, isLoading }) {
                                 <p className="text-sm font-black text-emerald-600 dark:text-emerald-400 tabular-nums leading-none">
                                     S/ {h.totalGasto?.toLocaleString('es-PE', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
                                 </p>
-                                <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest mt-1 text-right">
+                                <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest mt-1 text-right">
                                     {h.totalEstancias} {h.totalEstancias === 1 ? 'visita' : 'visitas'}
                                 </p>
                             </div>

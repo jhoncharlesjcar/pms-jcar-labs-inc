@@ -23,17 +23,17 @@ export function HabitacionFormModal({
                 <div className="space-y-4">
                     <div className="grid grid-cols-2 gap-4">
                         <div>
-                            <Label className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Número / Nombre</Label>
+                            <Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Número / Nombre</Label>
                             <Input value={form.numero} onChange={e => setForm({ ...form, numero: e.target.value })} placeholder="101" className="mt-1 h-9 bg-background text-sm rounded-md border border-input focus:ring-1 focus:ring-primary" />
                         </div>
                         <div>
-                            <Label className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Piso</Label>
+                            <Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Piso</Label>
                             <Input value={form.piso} onChange={e => setForm({ ...form, piso: e.target.value })} placeholder="1" className="mt-1 h-9 bg-background text-sm rounded-md border border-input focus:ring-1 focus:ring-primary" />
                         </div>
                     </div>
                     <div className="grid grid-cols-2 gap-4">
                         <div>
-                            <Label className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Tipo</Label>
+                            <Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Tipo</Label>
                             <Select value={form.tipo} onValueChange={v => setForm({ ...form, tipo: v })}>
                                 <SelectTrigger className="mt-1 h-9 bg-background text-sm rounded-md border border-input focus:ring-1 focus:ring-primary"><SelectValue /></SelectTrigger>
                                 <SelectContent className="rounded-md">
@@ -42,16 +42,16 @@ export function HabitacionFormModal({
                             </Select>
                         </div>
                         <div>
-                            <Label className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Capacidad (pers.)</Label>
+                            <Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Capacidad (pers.)</Label>
                             <Input type="number" min={1} value={String(form.capacidad)} onChange={e => setForm({ ...form, capacidad: Number(e.target.value) })} className="mt-1 h-9 bg-background text-sm rounded-md border border-input focus:ring-1 focus:ring-primary" />
                         </div>
                     </div>
                     <div>
-                        <Label className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Precio por noche (S/)</Label>
+                        <Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Precio por noche (S/)</Label>
                         <Input type="number" min={0} value={String(form.precio_noche ?? form.precio ?? 0)} onChange={e => setForm({ ...form, precio_noche: Number(e.target.value), precio: Number(e.target.value) })} placeholder="80" className="mt-1 h-9 bg-background text-sm font-semibold rounded-md border border-input focus:ring-1 focus:ring-primary" />
                     </div>
                     <div>
-                        <Label className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Estado</Label>
+                        <Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Estado</Label>
                         <Select value={form.estado} onValueChange={v => setForm({ ...form, estado: v })}>
                             <SelectTrigger className="mt-1 h-9 bg-background text-sm font-medium rounded-md border border-input focus:ring-1 focus:ring-primary"><SelectValue /></SelectTrigger>
                             <SelectContent className="rounded-md">
@@ -60,11 +60,11 @@ export function HabitacionFormModal({
                         </Select>
                     </div>
                     <div>
-                        <Label className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">URL de Foto (Opcional)</Label>
+                        <Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">URL de Foto (Opcional)</Label>
                         <Input value={form.imagen_url || ''} onChange={e => setForm({ ...form, imagen_url: e.target.value })} placeholder="https://ejemplo.com/foto.jpg" className="mt-1 h-9 bg-background text-sm rounded-md border border-input focus:ring-1 focus:ring-primary" />
                     </div>
                     <div>
-                        <Label className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-2 block">Comodidades (Amenities)</Label>
+                        <Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 block">Comodidades (Amenities)</Label>
                         <div className="grid grid-cols-2 gap-3">
                             {AMENITIES_MAP.map(a => {
                                 const Icon = a.icon;

@@ -91,15 +91,15 @@ const Reportes = memo(function Reportes() {
                         </div>
                         <div>
                             <h1 className="text-xl sm:text-2xl font-extrabold tracking-tight text-foreground">Reportes</h1>
-                            <p className="text-muted-foreground text-[10px] sm:text-xs font-bold uppercase tracking-widest mt-0.5">Análisis detallado de ingresos y operaciones</p>
+                            <p className="text-muted-foreground text-xs sm:text-xs font-bold uppercase tracking-widest mt-0.5">Análisis detallado de ingresos y operaciones</p>
                         </div>
                     </div>
                 </div>
                 <div className="grid grid-cols-2 sm:flex items-center gap-2 w-full sm:w-auto">
-                    <Button onClick={exportarExcel} variant="outline" className="w-full sm:w-auto gap-1.5 border-border/40 px-3 sm:px-4 text-[10px] font-extrabold uppercase tracking-widest hover:border-emerald-500/30 hover:bg-emerald-500/10 hover:text-emerald-600 dark:hover:text-emerald-400">
+                    <Button onClick={exportarExcel} variant="outline" className="w-full sm:w-auto gap-1.5 border-border/40 px-3 sm:px-4 text-xs font-extrabold uppercase tracking-widest hover:border-emerald-500/30 hover:bg-emerald-500/10 hover:text-emerald-600 dark:hover:text-emerald-400">
                         <TableIcon className="w-3.5 h-3.5 text-emerald-500" /> CSV
                     </Button>
-                    <Button onClick={exportarPDF} className="w-full sm:w-auto gap-1.5 px-3 sm:px-4 text-[10px] font-extrabold uppercase tracking-widest">
+                    <Button onClick={exportarPDF} className="w-full sm:w-auto gap-1.5 px-3 sm:px-4 text-xs font-extrabold uppercase tracking-widest">
                         <Download className="w-3.5 h-3.5" /> PDF
                     </Button>
                 </div>
@@ -108,7 +108,7 @@ const Reportes = memo(function Reportes() {
             <div className="enterprise-card section-card ui-card-pad space-y-3 shadow-sm">
                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
                     <div className="space-y-1.5">
-                        <label className="text-[9px] font-black text-muted-foreground uppercase tracking-widest ml-1">Periodo</label>
+                        <label className="text-xs font-black text-muted-foreground uppercase tracking-widest ml-1">Periodo</label>
                         <Select value={periodo} onValueChange={setPeriodo}>
                             <SelectTrigger className="h-9 rounded-md bg-background/50 text-xs font-bold border-border/40 focus:ring-primary/30 shadow-inner"><SelectValue /></SelectTrigger>
                             <SelectContent className="rounded-md border-border/40 shadow-xl">
@@ -121,7 +121,7 @@ const Reportes = memo(function Reportes() {
                     </div>
 
                     <div className="space-y-1.5">
-                        <label className="text-[9px] font-black text-muted-foreground uppercase tracking-widest ml-1">Origen</label>
+                        <label className="text-xs font-black text-muted-foreground uppercase tracking-widest ml-1">Origen</label>
                         <Select value={tipoReporte} onValueChange={setTipoReporte}>
                             <SelectTrigger className="h-9 rounded-md bg-background/50 text-xs font-bold border-border/40 focus:ring-primary/30 shadow-inner"><SelectValue /></SelectTrigger>
                             <SelectContent className="rounded-md border-border/40 shadow-xl">
@@ -133,7 +133,7 @@ const Reportes = memo(function Reportes() {
                     </div>
 
                     <div className="space-y-1.5">
-                        <label className="text-[9px] font-black text-muted-foreground uppercase tracking-widest ml-1">Turno</label>
+                        <label className="text-xs font-black text-muted-foreground uppercase tracking-widest ml-1">Turno</label>
                         <Select value={turno} onValueChange={setTurno}>
                             <SelectTrigger className="h-9 rounded-md bg-background/50 text-xs font-bold border-border/40 focus:ring-primary/30 shadow-inner"><SelectValue /></SelectTrigger>
                             <SelectContent className="rounded-md border-border/40 shadow-xl">
@@ -148,11 +148,11 @@ const Reportes = memo(function Reportes() {
                     {periodo === 'personalizado' && (
                         <div className="col-span-2 lg:col-span-1 flex gap-2">
                             <div className="flex-1 space-y-1.5">
-                                <label className="text-[9px] font-black text-muted-foreground uppercase tracking-widest ml-1">Desde</label>
+                                <label className="text-xs font-black text-muted-foreground uppercase tracking-widest ml-1">Desde</label>
                                 <Input type="date" value={fechaInicio} onChange={e => setFechaInicio(e.target.value)} className="h-9 rounded-md bg-background/50 text-xs font-bold border-border/40 shadow-inner" />
                             </div>
                             <div className="flex-1 space-y-1.5">
-                                <label className="text-[9px] font-black text-muted-foreground uppercase tracking-widest ml-1">Hasta</label>
+                                <label className="text-xs font-black text-muted-foreground uppercase tracking-widest ml-1">Hasta</label>
                                 <Input type="date" value={fechaFin} onChange={e => setFechaFin(e.target.value)} className="h-9 rounded-md bg-background/50 text-xs font-bold border-border/40 shadow-inner" />
                             </div>
                         </div>
@@ -173,7 +173,7 @@ const Reportes = memo(function Reportes() {
                             <div className={cn("w-6 h-6 rounded-md flex items-center justify-center font-bold flex-shrink-0 shadow-sm border border-border/50", stat.bg)}>
                                 <stat.icon className={cn("w-3 h-3", stat.color)} />
                             </div>
-                            <p className="text-[10px] sm:text-xs text-muted-foreground font-bold uppercase tracking-wider">{stat.label}</p>
+                            <p className="text-xs sm:text-xs text-muted-foreground font-bold uppercase tracking-wider">{stat.label}</p>
                         </div>
                         <p className="text-2xl sm:text-3xl font-extrabold tabular-nums text-foreground tracking-tighter leading-none mt-2">S/ {stat.val.toLocaleString('es-PE', { minimumFractionDigits: 2 })}</p>
                         <TrendingUp className="absolute bottom-4 right-4 w-12 h-12 text-primary/5 opacity-50 group-hover:scale-110 transition-transform" />
@@ -265,7 +265,7 @@ const Reportes = memo(function Reportes() {
                         <div className="overflow-x-auto custom-scrollbar">
                             <table className="w-full text-left text-xs">
                                 <thead>
-                                    <tr className="border-b border-border/60 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                                    <tr className="border-b border-border/60 text-xs font-bold uppercase tracking-wider text-muted-foreground">
                                         <th className="pb-2">Fecha</th>
                                         <th className="pb-2">Cliente / Ref</th>
                                         <th className="pb-2">Origen</th>
@@ -279,7 +279,7 @@ const Reportes = memo(function Reportes() {
                                             <td className="py-2.5 font-medium tabular-nums text-muted-foreground">{v.fecha_pago?.split('T')[0] || '--'}</td>
                                             <td className="py-2.5 font-bold text-foreground truncate max-w-[160px]">{v.huesped_nombre || 'Cliente Mostrador'}</td>
                                             <td className="py-2.5">
-                                                <span className="rounded px-1.5 py-0.5 text-[9px] font-extrabold uppercase bg-muted text-muted-foreground">
+                                                <span className="rounded px-1.5 py-0.5 text-xs font-extrabold uppercase bg-muted text-muted-foreground">
                                                     {v._tipo}
                                                 </span>
                                             </td>

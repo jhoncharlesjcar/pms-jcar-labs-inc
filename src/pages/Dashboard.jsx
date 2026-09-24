@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef } from 'react';
 import { useHotelData } from '@/hooks/useHotelData';
+import { horaLima } from '@/lib/limaDate';
 
 import { Link, useNavigate } from 'react-router-dom';
 import {
@@ -22,7 +23,7 @@ import { RecentActivity } from './Dashboard/components/RecentActivity';
 
 /** Helper: saludo según hora del día */
 function getGreeting() {
-    const h = new Date().getHours();
+    const h = horaLima();
     if (h < 12) return 'Buenos días';
     if (h < 18) return 'Buenas tardes';
     return 'Buenas noches';
@@ -188,9 +189,10 @@ export default function Dashboard() {
                     <div className="flex items-center gap-2 mt-1.5">
                         <CalendarDays className="w-3.5 h-3.5 text-muted-foreground/50" />
                         <p className="text-xs font-medium text-muted-foreground/60 tracking-wide capitalize">
-                            {new Date().toLocaleDateString("es-PE", { weekday: "long", day: "numeric", month: "long", year: "numeric" })}
+                            {new Date().toLocaleDateString('es-PE', { timeZone: 'America/Lima', weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
                         </p>
                     </div>
+                    <p className="mt-1 text-xs text-muted-foreground">Movimientos de hoy, hora de Lima. El historial está en Ventas.</p>
                 </div>
                 <div className="flex gap-2 items-center">
                     <div className={cn("px-3 py-1.5 border rounded-xl flex items-center gap-2.5 shadow-sm transition-all duration-300",
@@ -201,7 +203,7 @@ export default function Dashboard() {
                             <span className="text-xs font-bold text-foreground leading-none">
                                 {isOffline ? 'Modo Offline' : 'Sistema Operativo'}
                             </span>
-                            <span className={cn("text-[9px] font-medium mt-0.5", isOffline ? "text-red-500 font-bold" : "text-muted-foreground")}>
+                            <span className={cn("text-xs font-medium mt-0.5", isOffline ? "text-red-500 font-bold" : "text-muted-foreground")}>
                                 {isOffline
                                     ? (queueCount > 0 ? `${queueCount} cambios pendientes` : 'Sin internet')
                                     : 'Sincronizado'}
@@ -262,11 +264,11 @@ export default function Dashboard() {
                         {/* KPIs Gerenciales: ADR & RevPAR */}
                         <div className="grid grid-cols-2 gap-3 pt-3 border-t border-border/50">
                             <div className="bg-muted/30 p-3 rounded-lg flex flex-col justify-between">
-                                <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">ADR</p>
+                                <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider">ADR</p>
                                 <p className="text-base font-bold text-foreground mt-1 tabular-nums">S/ {metrics.adr ? metrics.adr.toFixed(2) : '0.00'}</p>
                             </div>
                             <div className="bg-muted/30 p-3 rounded-lg flex flex-col justify-between">
-                                <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">RevPAR</p>
+                                <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider">RevPAR</p>
                                 <p className="text-base font-bold text-foreground mt-1 tabular-nums">S/ {metrics.revpar ? metrics.revpar.toFixed(2) : '0.00'}</p>
                             </div>
                         </div>
@@ -274,8 +276,8 @@ export default function Dashboard() {
 
                     <div className="mt-4 pt-4 border-t border-border/50">
                         <div className="flex justify-between items-center">
-                            <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-1">Acumulado Mes</p>
-                            <span className="px-1.5 py-0.5 rounded bg-amber-500/10 text-[9px] text-amber-600 font-semibold uppercase border border-amber-500/20">Live</span>
+                            <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-1">Acumulado Mes</p>
+                            <span className="px-1.5 py-0.5 rounded bg-amber-500/10 text-xs text-amber-600 font-semibold uppercase border border-amber-500/20">Live</span>
                         </div>
                         <p className="text-xl sm:text-2xl font-bold text-foreground tracking-tight tabular-nums mt-0.5">S/ {Math.round(acumuladoMes).toLocaleString()}</p>
                     </div>
@@ -318,7 +320,7 @@ export default function Dashboard() {
                                     )}
                                 >
                                     <Icon className={cn('w-5 h-5 transition-transform group-hover/qa:scale-110', a.color)} />
-                                    <span className="text-[10px] font-bold text-foreground leading-tight text-center">{a.label}</span>
+                                    <span className="text-xs font-bold text-foreground leading-tight text-center">{a.label}</span>
                                 </button>
                             );
                         })}
@@ -335,7 +337,7 @@ export default function Dashboard() {
                             <h3 className="text-sm font-bold text-foreground tracking-tight">Alertas</h3>
                         </div>
                         {alerts.length > 0 && (
-                            <span className="text-[9px] font-bold text-amber-600 bg-amber-500/10 px-2 py-0.5 rounded-md">{alerts.length}</span>
+                            <span className="text-xs font-bold text-amber-600 bg-amber-500/10 px-2 py-0.5 rounded-md">{alerts.length}</span>
                         )}
                     </div>
                     <div className="space-y-2 flex-1">
@@ -351,7 +353,7 @@ export default function Dashboard() {
                             <div className="flex flex-col items-center justify-center flex-1 py-6 text-muted-foreground">
                                 <CheckCircle2 className="w-8 h-8 mb-2 text-emerald-500/40" />
                                 <p className="text-xs font-medium">Todo en orden</p>
-                                <p className="text-[10px] text-muted-foreground/60 mt-0.5">No hay alertas pendientes</p>
+                                <p className="text-xs text-muted-foreground/60 mt-0.5">No hay alertas pendientes</p>
                             </div>
                         )}
                     </div>
@@ -365,7 +367,7 @@ export default function Dashboard() {
                             Llegadas y Salidas de Hoy
                         </h3>
                         <Link to="/recepcion">
-                            <span className="text-[10px] font-medium text-primary hover:text-primary/80 transition-colors flex items-center gap-1">Ir a Recepción <ArrowUpRight className="w-3 h-3" /></span>
+                            <span className="text-xs font-medium text-primary hover:text-primary/80 transition-colors flex items-center gap-1">Ir a Recepción <ArrowUpRight className="w-3 h-3" /></span>
                         </Link>
                     </div>
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -382,13 +384,13 @@ export default function Dashboard() {
                                         return (
                                             <div key={r.id} className="flex items-center justify-between p-3 bg-emerald-500/5 border border-emerald-500/10 rounded-xl">
                                                 <div className="flex items-center gap-2.5">
-                                                    <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-emerald-500 to-teal-600 text-white text-[10px] font-bold flex items-center justify-center flex-shrink-0">{ini}</div>
+                                                    <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-emerald-500 to-teal-600 text-white text-xs font-bold flex items-center justify-center flex-shrink-0">{ini}</div>
                                                     <div>
                                                         <p className="text-xs font-bold text-foreground">{r.huesped_nombre}</p>
-                                                        <p className="text-[10px] text-muted-foreground">Habitación {r.habitacion_numero || 'Sin asignar'}</p>
+                                                        <p className="text-xs text-muted-foreground">Habitación {r.habitacion_numero || 'Sin asignar'}</p>
                                                     </div>
                                                 </div>
-                                                <span className="text-[10px] px-2 py-1 bg-emerald-500/10 text-emerald-600 rounded-md font-semibold uppercase">{r.estado}</span>
+                                                <span className="text-xs px-2 py-1 bg-emerald-500/10 text-emerald-600 rounded-md font-semibold uppercase">{r.estado}</span>
                                             </div>
                                         );
                                     })}
@@ -412,13 +414,13 @@ export default function Dashboard() {
                                         return (
                                             <div key={r.id} className="flex items-center justify-between p-3 bg-orange-500/5 border border-orange-500/10 rounded-xl">
                                                 <div className="flex items-center gap-2.5">
-                                                    <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-orange-500 to-amber-600 text-white text-[10px] font-bold flex items-center justify-center flex-shrink-0">{ini}</div>
+                                                    <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-orange-500 to-amber-600 text-white text-xs font-bold flex items-center justify-center flex-shrink-0">{ini}</div>
                                                     <div>
                                                         <p className="text-xs font-bold text-foreground">{r.huesped_nombre}</p>
-                                                        <p className="text-[10px] text-muted-foreground">Habitación {r.habitacion_numero}</p>
+                                                        <p className="text-xs text-muted-foreground">Habitación {r.habitacion_numero}</p>
                                                     </div>
                                                 </div>
-                                                <span className="text-[10px] px-2 py-1 bg-orange-500/10 text-orange-600 rounded-md font-semibold uppercase">{r.estado}</span>
+                                                <span className="text-xs px-2 py-1 bg-orange-500/10 text-orange-600 rounded-md font-semibold uppercase">{r.estado}</span>
                                             </div>
                                         );
                                     })}

@@ -92,7 +92,7 @@ export default function ProfileModal({ open, onOpenChange }) {
                                 placeholder="correo@ejemplo.com"
                                 required
                             />
-                            <p className="text-[10px] text-muted-foreground">
+                            <p className="text-xs text-muted-foreground">
                                 Nota: Cambiar el correo puede requerir confirmación enviada a ambas direcciones.
                             </p>
                         </div>
